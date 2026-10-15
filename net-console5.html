@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NET CONSOLE v5</title>
+<style>
+:root{--c:#39ff8a;--bg:#040a06;--dim:#1e3f2a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--c);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+#top{position:fixed;left:0;right:0;top:0;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:12px;letter-spacing:1px;border-bottom:1px solid var(--dim);background:var(--bg);z-index:30}
+#wrap{position:fixed;left:0;right:0;top:32px;bottom:100px;overflow-y:auto;padding:10px 12px 16px 46px;-webkit-overflow-scrolling:touch}
+.pane{display:none}
+.pane.on{display:block}
+#out{white-space:pre-wrap;word-break:break-word}
+.dim{opacity:.55}
+.ok{color:#8affc0}
+.wr{color:#ffd166}
+.er{color:#ff6b6b}
+.h{font-size:13px;letter-spacing:2px;opacity:.85;margin:0 0 8px}
+.cur{display:inline-block;width:8px;height:14px;background:var(--c);vertical-align:-2px;animation:bl 1s steps(2,start) infinite}
+@keyframes bl{to{opacity:0}}
+#mid{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:40}
+#sw{border:1px solid var(--c);border-left:0;background:rgba(2,8,5,.92);color:var(--c);border-radius:0 16px 16px 0;padding:16px 7px;font:11px/1 ui-monospace,monospace;letter-spacing:2px;writing-mode:vertical-rl;text-orientation:mixed}
+#bar{position:fixed;left:0;right:0;bottom:44px;display:flex;flex-wrap:wrap;gap:6px;padding:6px 8px;background:rgba(2,8,5,.96);z-index:30}
+button.b{flex:1 1 30%;padding:11px 4px;border:1px solid var(--c);background:rgba(0,22,12,.7);color:var(--c);border-radius:10px;font:11.5px ui-monospace,monospace}
+button.b:active{background:rgba(0,60,30,.9)}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:4px;padding:5px 6px;background:rgba(2,8,5,.96);z-index:30}
+button.t{flex:1;padding:10px 1px;border:1px solid var(--dim);background:transparent;color:var(--c);border-radius:9px;font:11px ui-monospace,monospace}
+button.t.on{border-color:var(--c);background:rgba(0,34,16,.85)}
+#inp{position:fixed;left:0;top:0;width:2px;height:2px;opacity:.02;border:0;padding:0;background:transparent;color:transparent;z-index:-1}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.kv{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--dim);padding:4px 0}
+</style>
+</head>
+<body>
+<div id="top">
+  <span id="net">● ONLINE</span>
+  <span id="mode">РЕЖИМ: ПЕЧАТЬ</span>
+  <span id="clk">--:--</span>
+</div>
+
+<div id="mid"><button id="sw" data-act="mode">⌨ ПЕЧАТЬ</button></div>
+
+<div id="wrap">
+  <section class="pane on" id="p-term"><div id="out"></div></section>
+
+  <section class="pane" id="p-scan">
+    <div class="h">📡 СКАНЕР СЕТЕЙ</div>
+    <div class="dim">Список демонстрационный: браузеру Android видеть чужие Wi-Fi сети запрещено. Реальные цифры твоего канала — на экране АНАЛИЗ.</div>
+    <div class="row"><button class="b" data-act="scan">СКАНИРОВАТЬ</button><button class="b" data-act="scanstop">СТОП</button></div>
+    <div id="scanBody"></div>
+  </section>
+
+  <section class="pane" id="p-an">
+    <div class="h">📊 РЕАЛЬНЫЙ АНАЛИЗ КАНАЛА</div>
+    <div class="dim">6 замеров пинга, джиттер, скорость 2 МБ. Замер настоящий, трафик тратится.</div>
+    <div class="row"><button class="b" data-act="an">ЗАПУСТИТЬ ТЕСТ</button><button class="b" data-act="png">PNG-ОТЧЁТ</button><button class="b" data-act="copyrep">КОПИРОВАТЬ</button></div>
+    <div id="anBody"></div>
+  </section>
+
+  <section class="pane" id="p-gps">
+    <div class="h">🌍 GPS</div>
+    <div class="dim">Реальные координаты телефона. Браузер спросит разрешение.</div>
+    <div class="row"><button class="b" data-act="geo">УЗНАТЬ</button><button class="b" data-act="geowatch">СЛЕЖЕНИЕ</button><button class="b" data-act="geomap">НА КАРТЕ</button></div>
+    <div id="gpsBody"></div>
+  </section>
+
+  <section class="pane" id="p-hist">
+    <div class="h">📈 ИСТОРИЯ ЗАМЕРОВ</div>
+    <div class="row"><button class="b" data-act="hist">ПОКАЗАТЬ</button><button class="b" data-act="histclear">ОЧИСТИТЬ</button></div>
+    <div id="histBody"></div>
+  </section>
+</div>
+
+<div id="bar">
+  <button class="b" data-act="focus">⌨ НАЧАТЬ ПЕЧАТЬ</button>
+  <button class="b" data-act="enter">⏎ ВВЕСТИ</button>
+  <button class="b" data-act="back">⌫ СТЕРЕТЬ</button>
+  <button class="b" data-act="copyrep">📋 ОТЧЁТ</button>
+  <button class="b" data-act="hint">💡 ПОДСКАЗКА</button>
+  <button class="b" data-act="wipe">🧹 СБРОС</button>
+</div>
+
+<div id="tabs">
+  <button class="t on" data-tab="term">⌨ ТЕРМ</button>
+  <button class="t" data-tab="scan">📡 СКАН</button>
+  <button class="t" data-tab="an">📊 АНАЛИЗ</button>
+  <button class="t" data-tab="gps">🌍 GPS</button>
+  <button class="t" data-tab="hist">📈 ИСТОРИЯ</button>
+</div>
+
+<input id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
+
+<script>
+(function(){
+"use strict";
+var out=document.getElementById('out'),inp=document.getElementById('inp'),wrap=document.getElementById('wrap');
+var cur=null,mode='type',tab='term',scanTimer=null,lastAn=null,watchId=null,lastPos=null;
+var THEMES={green:'#39ff8a',blue:'#6cc8ff',amber:'#ffc861',purple:'#c79bff'};
+function $(id){return document.getElementById(id)}
+function end(){wrap.scrollTop=wrap.scrollHeight}
+function newLine(txt,cls,caret){
+  var d=document.createElement('div');
+  if(cls)d.className=cls;
+  d.appendChild(document.createTextNode(txt==null?'':txt));
+  if(caret!==false){var c=document.createElement('span');c.className='cur';d.appendChild(c);cur=d;}
+  out.appendChild(d);end();return d;
+}
+function put(ch){
+  if(!cur)newLine('',null,true);
+  var c=cur.querySelector('.cur');
+  cur.insertBefore(document.createTextNode(ch),c);end();
+}
+function back(){
+  if(!cur)return;
+  var c=cur.querySelector('.cur'),p=c&&c.previousSibling;
+  if(p&&p.nodeType===3&&p.data.length){p.deleteData(p.data.length-1,1);end();}
+}
+function lineText(el){var s='';for(var i=0;i<el.childNodes.length;i++){var n=el.childNodes[i];if(n.nodeType===3)s+=n.data}return s}
+function clearOut(){out.innerHTML='';cur=null;}
+function focusInp(){if(tab!=='term')return;try{inp.focus({preventScroll:true})}catch(e){try{inp.focus()}catch(_){}}}
+function beep(f,d){try{
+  var AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
+  if(!beep.ac)beep.ac=new AC();
+  var a=beep.ac,o=a.createOscillator(),g=a.createGain();
+  o.frequency.value=f||880;o.type='square';g.gain.value=.03;
+  o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+(d||.03));
+}catch(e){}}
+function tap(){beep(1050,.02);if(navigator.vibrate)try{navigator.vibrate(8)}catch(e){}}
+
+function setMode(m,quiet){
+  mode=m;
+  $('mode').textContent='РЕЖИМ: '+(m==='type'?'ПЕЧАТЬ':'УМНЫЙ');
+  $('sw').textContent=(m==='type'?'⌨ ПЕЧАТЬ':'🧠 УМНЫЙ');
+  try{localStorage.setItem('nc5mode',m)}catch(e){}
+  inp.value='';
+  if(m==='smart'){
+    newLine('— умный режим: пиши фразу, потом нажми ⏎ ВВЕСТИ —','dim',false);
+    startSmart();
+  }else{
+    newLine('— печать: текст идёт буква в букву, ничего не меняю —','dim',false);
+    newLine('',null,true);
+  }
+  if(!quiet)focusInp();
+}
+function startSmart(){newLine('> ',null,true)}
+
+function submit(){
+  if(mode==='type'){
+    if(cur){var c=cur.querySelector('.cur');if(c)c.parentNode.removeChild(c);}
+    newLine('',null,true);tap();return;
+  }
+  var el=cur,txt=el?lineText(el):'';
+  if(el){var c2=el.querySelector('.cur');if(c2)c2.parentNode.removeChild(c2);}
+  txt=txt.replace(/^>\s?/,'');
+  var res=smart(txt);
+  for(var i=0;i<res.length;i++)newLine(res[i][0],res[i][1]||null,false);
+  startSmart();
+}
+function round(v){return Math.round(v*1e6)/1e6}
+function hash(x){var h=5381;for(var i=0;i<x.length;i++){h=((h<<5)+h+x.charCodeAt(i))|0}return (h>>>0).toString(16).toUpperCase()}
+function rot13(x){
+  return x.replace(/[a-zA-Z]/g,function(c){var b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b)})
+          .replace(/[а-яёА-ЯЁ]/g,function(c){
+            var low='абвгдежзийклмнопрстуфхцчшщъыьэюя';
+            var up=c===c.toUpperCase(),i=low.indexOf(c.toLowerCase());
+            if(i<0)return c;
+            var n=low.charAt((i+13)%low.length);
+            return up?n.toUpperCase():n;
+          });
+}
+function statLines(x){
+  var chars=x.length,noSpace=x.replace(/\s/g,'').length;
+  var words=x.trim()?x.trim().split(/\s+/).length:0;
+  var lat=(x.match(/[A-Za-z]/g)||[]).length,cyr=(x.match(/[А-Яа-яЁё]/g)||[]).length;
+  var dig=(x.match(/\d/g)||[]).length;
+  return [
+    ['текст: "'+x+'"','dim'],
+    ['символов: '+chars+' (без пробелов '+noSpace+')','ok'],
+    ['слов: '+words+' · латиница: '+lat+' · кириллица: '+cyr,'ok'],
+    ['цифр: '+dig,'dim']
+  ];
+}
+function clean(x){return x.replace(/[^A-Za-zА-Яа-яЁё0-9]/g,'').toLowerCase()}
+function smart(t){
+  var s=t.trim(),low=s.toLowerCase(),msg=s.replace(/^\S+\s*/,'');
+  if(!s)return [['пусто — набери что-нибудь','wr']];
+  if(low==='help'||low==='?'||low.indexOf('команды')===0)return [
+    ['что я умею:','ok'],
+    ['12*7+3 — посчитаю','dim'],
+    ['сколько слов <текст> — статистика','dim'],
+    ['палиндром <текст> — проверю','dim'],
+    ['rot13 <текст> — шифр Цезаря','dim'],
+    ['реверс <текст> — переверну','dim'],
+    ['капс <текст> / низ <текст>','dim'],
+    ['число 1 100 — случайное','dim'],
+    ['хэш <текст> — отпечаток','dim'],
+    ['время · тема blue|green|amber|purple','dim'],
+    ['очистить · версия · привет','dim']
+  ];
+  if(/^[-+*/^().\d\s,]+$/.test(s)&&/\d/.test(s)&&/[-+*/^]/.test(s)){
+    var ex=s.replace(/,/g,'.').replace(/\^/g,'**');
+    try{
+      var v=Function('"use strict";return ('+ex+')')();
+      if(typeof v==='number'&&isFinite(v))return [[s+' = '+round(v),'ok']];
+    }catch(e){}
+    return [['не смог посчитать: '+s,'er']];
+  }
+  if(low.indexOf('сколько')===0){
+    var body=s.replace(/^сколько\s*/i,'');
+    return statLines(body||s);
+  }
+  if(low.indexOf('палиндром')===0){
+    var b=clean(msg);
+    if(!b)return [['напиши текст после слова палиндром','wr']];
+    var r=b.split('').reverse().join('');
+    return [[(b===r?'✓ да, палиндром: ':'! нет, не палиндром: ')+msg+' (обратно: '+r+')',b===r?'ok':'er']];
+  }
+  if(low.indexOf('rot13')===0||low.indexOf('рот13')===0)return [['rot13: '+rot13(msg),'ok']];
+  if(low.indexOf('реверс')===0||low.indexOf('перевер')===0)return [['реверс: '+msg.split('').reverse().join(''),'ok']];
+  if(low.indexOf('капс')===0)return [['капс: '+msg.toUpperCase(),'ok']];
+  if(low.indexOf('низ')===0)return [['низ: '+msg.toLowerCase(),'ok']];
+  if(low.indexOf('число')===0){
+    var m=s.match(/\d+/g),a=1,b2=100;
+    if(m&&m[0])a=parseInt(m[0],10);if(m&&m[1])b2=parseInt(m[1],10);
+    if(a>b2){var tmp=a;a=b2;b2=tmp}
+    return [['случайное от '+a+' до '+b2+': '+(a+Math.floor(Math.random()*(b2-a+1))),'ok']];
+  }
+  if(low.indexOf('хэш')===0)return [['хэш: '+hash(msg),'ok']];
+  if(low.indexOf('время')===0||low.indexOf('час')===0){
+    var d=new Date();
+    return [['сейчас: '+d.toLocaleTimeString('ru-RU')+' · '+d.toLocaleDateString('ru-RU'),'ok']];
+  }
+  if(low.indexOf('тема')===0){
+    var th=msg.trim().toLowerCase();
+    if(THEMES[th]){applyTheme(th);return [['тема: '+th,'ok']]}
+    return [['доступно: green, blue, amber, purple','wr']];
+  }
+  if(low.indexOf('очист')===0||low==='clear'){clearOut();return [['экран очищен','dim']]}
+  if(low.indexOf('версия')===0||low==='ver')return [['net console v5','ok']];
+  if(low.indexOf('привет')===0||low.indexOf('здорово')===0||low==='хай')return [['Привет, Илюха! Пиши фразу или help','ok']];
+  if(low.indexOf('погод')>=0)return [['погоду из терминала не достать — спроси Honer AI в чате','wr']];
+  if(low.indexOf('пинг')>=0||low.indexOf('скорост')>=0||low.indexOf('speed')>=0)return [['замеры живут на экране АНАЛИЗ — вкладка 📊 внизу','wr']];
+  var lines=[['разбор фразы:','dim']];
+  lines=lines.concat(statLines(s));
+  var w=s.replace(/[^\wА-Яа-яЁё\s]/g,'').split(/\s+/).filter(Boolean);
+  if(w.length)lines.push(['первое слово: '+w[0]+' · последнее: '+w[w.length-1],'dim']);
+  lines.push(['обратный порядок: '+s.split('').reverse().join(''),'dim']);
+  lines.push(['палиндром? '+(clean(s)===clean(s).split('').reverse().join('')?'да':'нет'),'ok']);
+  return lines;
+}
+function applyTheme(n){
+  var c=THEMES[n]||THEMES.green;
+  document.documentElement.style.setProperty('--c',c);
+  try{localStorage.setItem('nc5theme',n)}catch(e){}
+}
+function hint(){
+  newLine('подсказка: слева по центру — переключатель. ⌨ ПЕЧАТЬ — буква в букву, 🧠 УМНЫЙ — пиши фразу и жми ⏎ ВВЕСТИ (попробуй: 12*7+3)','wr',false);
+}
+
+/* --- ввод: работает и на Android, и на ПК --- */
+inp.addEventListener('beforeinput',function(e){
+  if(e.inputType==='insertLineBreak'||e.inputType==='insertParagraph'){e.preventDefault();submit();}
+});
+inp.addEventListener('input',function(e){
+  var t=e.inputType||'';
+  if(t.indexOf('delete')===0){back();inp.value='';return}
+  var v=inp.value;
+  if(v){inp.value='';for(var i=0;i<v.length;i++){var ch=v.charAt(i);if(ch==='\n')submit();else{put(ch);tap();}}}
+});
+inp.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.keyCode===13){e.preventDefault();submit();return}
+  if(e.key==='Backspace'||e.keyCode===8){e.preventDefault();back();return}
+  if(e.key&&e.key.length===1&&e.key!=='Unidentified'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();put(e.key);tap();}
+});
+
+/* --- экраны --- */
+function show(t){
+  tab=t;
+  var panes={term:'p-term',scan:'p-scan',an:'p-an',gps:'p-gps',hist:'p-hist'};
+  for(var k in panes){var el=$(panes[k]);if(el)el.className='pane'+(k===t?' on':'');}
+  var ts=document.querySelectorAll('button.t');
+  for(var i=0;i<ts.length;i++){ts[i].className='t'+(ts[i].getAttribute('data-tab')===t?' on':'');}
+  wrap.scrollTop=0;
+  if(t==='term')focusInp();
+}
+function doAct(a){
+  if(a==='mode')setMode(mode==='type'?'smart':'type');
+  else if(a==='focus')focusInp();
+  else if(a==='enter')submit();
+  else if(a==='back')back();
+  else if(a==='copyrep')doCopy();
+  else if(a==='png')pngReport();
+  else if(a==='hint')hint();
+  else if(a==='wipe'){clearOut();setMode(mode);}
+  else if(a==='scan')doScan();
+  else if(a==='scanstop'){clearInterval(scanTimer);}
+  else if(a==='an')runTest();
+  else if(a==='geo')geo();
+  else if(a==='geowatch')geowatch();
+  else if(a==='geomap')geomap();
+  else if(a==='hist')histShow();
+  else if(a==='histclear')histClear();
+}
+document.addEventListener('click',function(e){
+  var el=e.target&&e.target.closest?e.target.closest('button'):null;
+  if(!el)return;
+  var tb=el.getAttribute('data-tab');
+  if(tb){show(tb);return}
+  var a=el.getAttribute('data-act');
+  if(a)doAct(a);
+  setTimeout(focusInp,0);
+});
+
+/* --- сканер (демо) --- */
+var NETS=[['MTS_Router_5G','WPA2',36,-42],['TP-LINK_3F1A','WPA2',6,-58],['Rostelecom-2G','WPA2',1,-63],['Keenetic-4412','WPA3',11,-67],['FreeWiFi_Ulg','открыта',9,-71],['HomeNet_5G','WPA2',44,-75],['DIR-615_home','WPA2',13,-82],['iPhone_X','WPA2',149,-88]];
+function bars(v){var n=Math.max(1,Math.min(5,Math.round((v+100)/12)));var s='';for(var i=0;i<n;i++)s+='▮';return s}
+function doScan(){
+  var body=$('scanBody');body.innerHTML='<div class="dim">сканирую…</div>';
+  var i=0;clearInterval(scanTimer);
+  scanTimer=setInterval(function(){
+    if(i>=NETS.length){clearInterval(scanTimer);body.firstChild.textContent='готово: '+NETS.length+' сетей (демо)';return}
+    var n=NETS[i++];var el=document.createElement('div');
+    el.textContent=n[0]+' ['+n[1]+'] · канал '+n[2]+' · '+n[3]+' dBm '+bars(n[3]);
+    body.appendChild(el);beep(880,.02);
+  },260);
+}
+
+/* --- реальный анализ --- */
+function rowKV(k,v){var d=document.createElement('div');d.className='kv';d.innerHTML='<span>'+k+'</span><span>'+v+'</span>';return d}
+function runTest(){
+  var body=$('anBody');body.innerHTML='';lastAn={at:new Date(),pings:[],down:null,jit:null};
+  var conn=navigator.connection||navigator.mozConnection||null;
+  var head=document.createElement('div');head.className='dim';
+  head.textContent='канал: '+(conn?(conn.effectiveType||'?')+' · заявлено '+(conn.downlink||'?'):'нет данных')+' Мбит/с — замеряю пинг…';
+  body.appendChild(head);
+  var pings=[],n=0;
+  function step(){
+    var t0=performance.now();
+    fetch('https://speed.cloudflare.com/__down?bytes=0&r='+Math.random(),{cache:'no-store'})
+      .then(function(r){return r.text()})
+      .then(function(){
+        var ms=performance.now()-t0;pings.push(ms);n++;
+        var el=document.createElement('div');el.textContent='замер '+n+': '+ms.toFixed(0)+' мс';body.appendChild(el);
+        if(n<6)setTimeout(step,200);else speedTest();
+      })
+      .catch(function(){
+        var el=document.createElement('div');el.className='er';el.textContent='сеть недоступна: замер не прошёл (проверь интернет)';body.appendChild(el);
+      });
+  }
+  function speedTest(){
+    var avg=pings.reduce(function(a,b){return a+b},0)/pings.length;
+    var dev=pings.reduce(function(a,b){return a+Math.abs(b-avg)},0)/pings.length;
+    lastAn.pings=pings;lastAn.jit=dev;
+    var note=document.createElement('div');note.className='dim';note.textContent='пинг ок — качаю 2 МБ…';body.appendChild(note);
+    var t0=performance.now();
+    fetch('https://speed.cloudflare.com/__down?bytes=2000000&r='+Math.random(),{cache:'no-store'})
+      .then(function(r){return r.arrayBuffer()})
+      .then(function(b){
+        var sec=(performance.now()-t0)/1000;
+        var mbps=(b.byteLength*8/1000000)/sec;
+        lastAn.down=mbps;lastAn.avg=avg;lastAn.dev=dev;
+        note.parentNode&&note.parentNode.removeChild(note);
+        body.appendChild(rowKV('пинг средний',avg.toFixed(0)+' мс'));
+        body.appendChild(rowKV('пинг мин — макс',Math.min.apply(null,pings).toFixed(0)+' — '+Math.max.apply(null,pings).toFixed(0)+' мс'));
+        body.appendChild(rowKV('джиттер',dev.toFixed(1)+' мс'));
+        body.appendChild(rowKV('скорость скачивания',mbps.toFixed(1)+' Мбит/с'));
+        body.appendChild(rowKV('объём',(b.byteLength/1048576).toFixed(1)+' МБ за '+sec.toFixed(2)+' с'));
+        if(conn){body.appendChild(rowKV('тип соединения',(conn.effectiveType||'?')+' · '+(conn.type||'unknown')));}
+        var v=verdict(avg,dev);
+        var vd=document.createElement('div');vd.className=v[1];vd.textContent='вердикт под CS2: '+v[0];body.appendChild(vd);
+        histAdd(avg,dev,mbps);
+      })
+      .catch(function(){
+        var el=document.createElement('div');el.className='er';el.textContent='скорость не измерилась: сеть оборвалась';body.appendChild(el);
+      });
+  }
+  step();
+}
+function verdict(ping,jit){
+  if(jit>60)return ['канал дёргается — лучше кабель','er'];
+  if(ping<40&&jit<15)return ['идеально, можно катать мм и рейтинг','ok'];
+  if(ping<70&&jit<30)return ['играбельно, стрелять можно','ok'];
+  if(ping<110)return ['терпимо: будут рывки при пиках','wr'];
+  return ['лучше провод или Wi-Fi 5 ГГц','er'];
+}
+function reportText(){
+  var a=lastAn;if(!a)return 'отчёт пуст — сначала запусти тест на экране АНАЛИЗ';
+  var l=[];
+  l.push('NET CONSOLE v5 — отчёт о канале');
+  l.push('время: '+a.at.toLocaleString('ru-RU'));
+  if(a.avg!=null){l.push('пинг средний: '+a.avg.toFixed(0)+' мс');l.push('джиттер: '+a.dev.toFixed(1)+' мс')}
+  if(a.down!=null)l.push('скорость скачивания: '+a.down.toFixed(1)+' Мбит/с');
+  if(navigator.connection)l.push('тип соединения: '+(navigator.connection.effectiveType||'?'));
+  if(a.avg!=null)l.push('вердикт: '+verdict(a.avg,a.dev==null?0:a.dev)[0]);
+  if(lastPos)l.push('координаты: '+lastPos.coords.latitude.toFixed(5)+', '+lastPos.coords.longitude.toFixed(5));
+  l.push('устройство: '+navigator.userAgent);
+  return l.join('\n');
+}
+function doCopy(){
+  var t=reportText();
+  var done=function(){newLine('отчёт скопирован ✓','ok',false)};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallback(t,done)})}
+  else fallback(t,done);
+}
+function fallback(t,cb){
+  var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');cb()}catch(e){newLine('не получилось скопировать — выдели текст вручную','er',false)}
+  document.body.removeChild(ta);
+}
+function pngReport(){
+  var lines=reportText().split('\n');
+  var c=document.createElement('canvas');c.width=900;c.height=Math.max(220,60+lines.length*30);
+  var g=c.getContext('2d');
+  g.fillStyle='#04120a';g.fillRect(0,0,c.width,c.height);
+  g.fillStyle='#39ff8a';g.font='22px monospace';
+  for(var i=0;i<lines.length;i++)g.fillText(lines[i].slice(0,70),24,48+i*30);
+  var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='net-report.png';a.click();
+  newLine('PNG сохранён в загрузки ✓','ok',false);
+}
+
+/* --- GPS --- */
+function geoFill(p){
+  lastPos=p;var b=$('gpsBody');b.innerHTML='';
+  b.appendChild(rowKV('широта',p.coords.latitude.toFixed(6)));
+  b.appendChild(rowKV('долгота',p.coords.longitude.toFixed(6)));
+  b.appendChild(rowKV('точность','±'+Math.round(p.coords.accuracy)+' м'));
+  if(p.coords.altitude!=null)b.appendChild(rowKV('высота',Math.round(p.coords.altitude)+' м'));
+  if(p.coords.speed!=null)b.appendChild(rowKV('скорость',Math.round(p.coords.speed*3.6)+' км/ч'));
+  if(p.coords.heading!=null)b.appendChild(rowKV('азимут',Math.round(p.coords.heading)+'°'));
+  b.appendChild(rowKV('обновлено',new Date(p.timestamp).toLocaleTimeString('ru-RU')));
+}
+function geo(){
+  var b=$('gpsBody');b.innerHTML='<div class="dim">запрашиваю координаты — разреши доступ</div>';
+  navigator.geolocation.getCurrentPosition(function(p){geoFill(p)},function(e){
+    b.innerHTML='<div class="er">не получилось: '+(e.message||'доступ закрыт')+'</div>';
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function geowatch(){
+  if(watchId){navigator.geolocation.clearWatch(watchId);watchId=null;newLine('слежение выключено','dim',false);return}
+  newLine('слежение включено — координаты обновляются','ok',false);
+  watchId=navigator.geolocation.watchPosition(function(p){geoFill(p)},function(e){},{
+    enableHighAccuracy:true,timeout:20000,maximumAge:0
+  });
+}
+function geomap(){
+  if(!lastPos){newLine('сначала нажми УЗНАТЬ','wr',false);return}
+  var u='https://yandex.ru/maps/?pt='+lastPos.coords.longitude.toFixed(6)+','+lastPos.coords.latitude.toFixed(6)+'&z=16&l=map';
+  window.open(u,'_blank');
+}
+
+/* --- история --- */
+function histGet(){try{return JSON.parse(localStorage.getItem('nc5hist')||'[]')}catch(e){return []}}
+function histAdd(ping,jit,down){
+  var h=histGet();
+  h.push({t:new Date().toLocaleString('ru-RU'),p:Math.round(ping),j:Math.round(jit*10)/10,d:Math.round(down*10)/10});
+  if(h.length>30)h=h.slice(h.length-30);
+  try{localStorage.setItem('nc5hist',JSON.stringify(h))}catch(e){}
+}
+function histShow(){
+  var b=$('histBody'),h=histGet();b.innerHTML='';
+  if(!h.length){b.innerHTML='<div class="dim">замеров пока нет — запусти тест на экране АНАЛИЗ</div>';return}
+  var best=h.reduce(function(a,x){return x.p<a.p?x:a},h[0]);
+  var head=document.createElement('div');head.className='dim';
+  head.textContent='замеров: '+h.length+' · лучший пинг: '+best.p+' мс ('+best.t+')';
+  b.appendChild(head);
+  for(var i=0;i<h.length;i++){
+    var x=h[i],bar='';
+    var n=Math.max(1,Math.min(20,Math.round(40-Math.min(39,x.p)/10)));
+    for(var k=0;k<n;k++)bar+='▓';
+    b.appendChild(rowKV(x.t,'пинг '+x.p+' мс · джиттер '+x.j+' · '+x.d+' Мбит/с '+bar));
+  }
+}
+function histClear(){
+  try{localStorage.removeItem('nc5hist')}catch(e){}
+  $('histBody').innerHTML='<div class="dim">история сброшена</div>';
+}
+
+/* --- часы и батарея --- */
+function clock(){
+  var d=new Date();
+  $('clk').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+function netLabel(pct){
+  $('net').textContent=(navigator.onLine?'● ONLINE':'● OFFLINE')+(pct!=null?' · '+pct+'%':'');
+}
+window.addEventListener('online',function(){netLabel()});
+window.addEventListener('offline',function(){netLabel()});
+if(navigator.getBattery){
+  navigator.getBattery().then(function(b){
+    var u=function(){netLabel(Math.round(b.level*100))};
+    b.addEventListener('levelchange',u);u();
+  }).catch(function(){});
+}else{netLabel()}
+
+/* --- старт --- */
+var saved=null,th=null;
+try{saved=localStorage.getItem('nc5mode')}catch(e){}
+try{th=localStorage.getItem('nc5theme')}catch(e){}
+if(th)applyTheme(th);
+newLine('NET CONSOLE · v5','ok',false);
+newLine('слева по центру — вертикальная кнопка, тапни: режим сменится','dim',false);
+setMode(saved==='smart'?'smart':'type',true);
+clock();setInterval(clock,10000);
+})();
+</script>
+</body>
+</html>
