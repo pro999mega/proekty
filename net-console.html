@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>NET CONSOLE</title>
+<title>NET CONSOLE v1.1</title>
 <style>
 :root{--c:#22ff66;--r:34,255,102}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -18,7 +18,9 @@ body::after{content:"";position:fixed;inset:0;z-index:8;pointer-events:none;
   border-bottom:1px solid rgba(var(--r),.35)}
 #st .sp{margin-left:auto}
 #st b{font-weight:700;letter-spacing:.5px}
-#snd,#kbd{opacity:.75}
+#snd,#kbd,#ink{opacity:.75}
+#ink{transition:.15s}
+#ink.hit{opacity:1;color:#fff}
 nav{position:relative;z-index:10;display:flex;gap:5px;padding:7px 8px;border-top:1px solid rgba(var(--r),.35);overflow-x:auto}
 nav button{flex:1 0 auto;min-width:62px;padding:7px 5px;font:11px/1 "Courier New",monospace;color:inherit;letter-spacing:.5px;
   background:rgba(var(--r),.07);border:1px solid rgba(var(--r),.4);border-radius:8px}
@@ -45,7 +47,8 @@ td,th{padding:3px 4px;border-bottom:1px solid rgba(var(--r),.18);text-align:left
 canvas{width:100%;display:block;background:rgba(var(--r),.05);border:1px solid rgba(var(--r),.3);border-radius:10px}
 .pbar{height:8px;border:1px solid rgba(var(--r),.45);border-radius:6px;overflow:hidden;flex:0 0 auto}
 .pbar i{display:block;height:100%;width:0;background:var(--c);box-shadow:0 0 10px var(--c);transition:width .2s}
-#keys{position:absolute;left:-9999px;top:0;opacity:0}
+#keys{position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;border:0;outline:0;background:transparent;
+  color:transparent;caret-color:transparent;font-size:16px;z-index:40;padding:0}
 #toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:30;max-width:88vw;text-align:center;
   background:rgba(0,0,0,.9);border:1px solid var(--c);border-radius:10px;padding:8px 12px;font-size:11.5px;
   opacity:0;transition:.25s;pointer-events:none}
@@ -60,12 +63,13 @@ canvas{width:100%;display:block;background:rgba(var(--r),.05);border:1px solid r
   <span id="bt">🔋 —</span>
   <span id="nw">●</span>
   <span class="sp"></span>
+  <span id="ink">⌨ 0</span>
   <span id="snd">🔊</span>
   <span id="kbd">⌨↓</span>
 </div>
 <main>
   <section class="scr on" data-k="term">
-    <div class="h">// NET CONSOLE · STREAM</div>
+    <div class="h">// NET CONSOLE v1.1 · STREAM</div>
     <pre class="stream" id="stream-term"></pre>
     <div class="mini">ТАПНИ И ПЕЧАТАЙ · 1 нажатие = 1 символ · команды: help · ping · speed · geo · ip · stats</div>
   </section>
@@ -118,7 +122,7 @@ canvas{width:100%;display:block;background:rgba(var(--r),.05);border:1px solid r
   <button data-t="gps">🌍 GPS</button>
   <button data-t="hist">📈 ИСТОРИЯ</button>
 </nav>
-<input id="keys" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+<input id="keys" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="send" inputmode="text">
 <canvas id="mx"></canvas>
 <div id="toast"></div>
 <script>
@@ -174,7 +178,7 @@ var BANKS={
     "// точка обновлена"
   ],
   hist:[
-    "load(nc_hist) -> samples ready",
+    "load(nc_proj_hist) -> samples ready",
     "avg/min/max пересчитаны",
     "// замер добавлен в журнал",
     "trend: ping stable, jitter low"
@@ -226,7 +230,7 @@ function go(name){
   [].forEach.call(document.querySelectorAll("nav button"),function(b){
     b.classList.toggle("on",b.getAttribute("data-t")===name);
   });
-  if(name!=="analyze")focusKeys();
+  if(name!=="analyze")setTimeout(focusKeys,60);
 }
 [].forEach.call(document.querySelectorAll("nav button"),function(b){
   b.addEventListener("click",function(){go(b.getAttribute("data-t"));});
@@ -238,6 +242,7 @@ function beep(){
   if(!sound)return;
   try{
     if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume();
     var o=actx.createOscillator(), g=actx.createGain();
     o.type="square"; o.frequency.value=1250;
     g.gain.value=0.015;
@@ -251,39 +256,80 @@ function toast(t){
   clearTimeout(toast._t); toast._t=setTimeout(function(){el.classList.remove("on");},1600);
 }
 q("#snd").addEventListener("click",function(){sound=!sound;q("#snd").textContent=sound?"🔊":"🔇";toast(sound?"звук вкл":"звук выкл");});
-q("#kbd").addEventListener("click",function(){q("#keys").blur();blur();toast("клавиатура скрыта");});
+q("#kbd").addEventListener("click",function(){try{keys.blur();}catch(e){} toast("клавиатура скрыта");});
+q("#ink").addEventListener("click",function(){focusKeys();toast("печатай — ввод активен");});
 
-/* ---------- ввод: 1 нажатие = 1 символ ---------- */
+/* ---------- ВВОД: 1 нажатие = 1 символ (Android + ПК) ---------- */
 var keys=q("#keys"), buf="", tapCount=0, sesStart=Date.now();
-function focusKeys(){try{keys.focus({preventScroll:true});}catch(e){keys.focus();}}
-document.addEventListener("click",function(e){
-  if(e.target.closest("button")||e.target.closest("a"))return;
-  if(cur!=="analyze")focusKeys();
-});
-var CMDLIST=["help","ping","speed","scan","geo","ip","hist","stats","clear","ver","reset","theme green","theme blue","theme amber","theme purple"];
-function checkCmd(){
-  for(var i=0;i<CMDLIST.length;i++){
-    if(buf===CMDLIST[i]||buf.slice(-CMDLIST[i].length-1)===" "+CMDLIST[i]){
-      var c=CMDLIST[i]; buf=""; runCmd(c); return;
-    }
-  }
+function focusKeys(){
+  if(cur==="analyze")return;
+  if(document.activeElement===keys)return;
+  try{keys.focus({preventScroll:true});}catch(e){try{keys.focus();}catch(e2){}}
 }
-function onKey(e){
-  if(e.ctrlKey||e.metaKey||e.altKey)return;
-  if(e.key==="Enter"){ if(cur!=="analyze"){var l=buf.trim();buf="";if(l)runCmd(l);} e.preventDefault(); return; }
-  if(e.key==="Backspace"){ if(cur!=="analyze")S[cur].back(); e.preventDefault(); return; }
-  if(e.key.length!==1)return;
-  e.preventDefault();
-  if(cur==="analyze"){ toast("на анализе печать отключена"); return; }
-  S[cur].push();
-  tapCount++; buf=(buf+e.key).slice(-30);
-  beep(); vib(6);
+function ink(){
+  var el=q("#ink"); if(!el)return;
+  el.textContent="⌨ "+tapCount;
+  el.classList.add("hit");
+  clearTimeout(ink._t); ink._t=setTimeout(function(){el.classList.remove("hit");},200);
+}
+function press(ch){
+  if(cur==="analyze"){toast("на анализе печать отключена");return;}
+  var st=S[cur]; if(!st)return;
+  st.push();
+  tapCount++;
+  buf=(buf+(ch||"")).slice(-40);
+  ink(); beep(); vib(6);
   if(cur==="scan")scanTick();
   if(cur==="gps")gpsTick();
   checkCmd();
 }
-keys.addEventListener("keydown",onKey);
-document.addEventListener("keydown",function(e){ if(document.activeElement!==keys)onKey(e); });
+function del(){
+  var st=S[cur]; if(!st)return;
+  st.back();
+  if(buf)buf=buf.slice(0,-1);
+  vib(3);
+}
+function sendLine(){
+  var l=buf.trim(); buf="";
+  if(l){ runCmd(l); return true; }
+  return false;
+}
+var CMDLIST=["help","ping","speed","scan","geo","ip","hist","stats","clear","ver","reset","matrix","theme green","theme blue","theme amber","theme purple"];
+function checkCmd(){
+  var t=buf.trim();
+  for(var i=0;i<CMDLIST.length;i++){
+    var c=CMDLIST[i];
+    if(t===c||t.slice(-(c.length+1))===" "+c){ buf=""; runCmd(c); return; }
+  }
+}
+/* основной канал — input: ловит сам символ, а не клавишу (работает на любой Android-клавиатуре) */
+keys.addEventListener("input",function(e){
+  var t=(e&&e.inputType)||"", d=e&&e.data, txt="";
+  if(t.indexOf("delete")===0){ del(); }
+  else if(t==="insertLineBreak"||t==="insertParagraph"){ sendLine(); }
+  else if(d){ txt=d; }
+  else { txt=keys.value||""; }
+  keys.value="";
+  if(txt){ for(var i=0;i<txt.length;i++)press(txt.charAt(i)); }
+});
+keys.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){ e.preventDefault(); sendLine(); }
+},true);
+/* запасной канал для ПК, когда фокус не в поле */
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(document.activeElement===keys)return;
+  if(e.key==="Enter"){ if(sendLine())e.preventDefault(); return; }
+  if(e.key==="Backspace"){ del(); e.preventDefault(); return; }
+  if(e.key.length===1){ press(e.key); e.preventDefault(); }
+});
+document.addEventListener("click",function(e){
+  if(e.target.closest("button")||e.target.closest("a"))return;
+  if(cur!=="analyze")focusKeys();
+});
+document.addEventListener("touchend",function(e){
+  try{keys.focus({preventScroll:true});}catch(err){}
+},false);
 
 /* ---------- статус-бар ---------- */
 function tickClock(){
@@ -322,17 +368,13 @@ function scanTick(){
     scanProg=0; q("#scanp").style.width="0%";
     if(scanIdx<NETS.length){
       var n=NETS[scanIdx++];
+      q("#netbox").querySelector("tbody")||(q("#netbox").innerHTML="<table><thead><tr><th>СЕТЬ</th><th>ЗАЩИТА</th><th>КАНАЛ</th><th>СИГНАЛ</th></tr></thead><tbody></tbody></table>");
       var tr=document.createElement("tr");
       var sig=parseInt(n[3],10);
       var bars=sig>-50?"▮▮▮▮":sig>-65?"▮▮▮▯":sig>-75?"▮▮▯▯":"▮▯▯▯";
       var lock=n[1]==="OPEN"||n[1]==="WEP"?"⚠":"🔒";
       tr.innerHTML="<td>"+esc(n[0])+"</td><td>"+esc(n[1])+" "+lock+"</td><td>"+esc(n[2])+"</td><td>"+bars+" "+esc(n[3])+"</td>";
-      var tb=q("#netbox").querySelector("tbody");
-      if(!tb){
-        q("#netbox").innerHTML="<table><thead><tr><th>СЕТЬ</th><th>ЗАЩИТА</th><th>КАНАЛ</th><th>СИГНАЛ</th></tr></thead><tbody></tbody></table>";
-        tb=q("#netbox").querySelector("tbody");
-      }
-      tb.appendChild(tr);
+      q("#netbox").querySelector("tbody").appendChild(tr);
       vib(12);
     }
   } else { vib(4); }
@@ -390,7 +432,7 @@ async function speedTest(bytes,onProg){
 }
 var lastReport=[];
 function verdict(p,j,m){
-  if(m<1)return ["ПРОВАЛ","красный: скорость ниже 1 Мбит/с — играть не выйдет"];
+  if(m<1)return ["ПРОВАЛ","скорость ниже 1 Мбит/с — играть не выйдет"];
   if(p<35&&j<12&&m>10)return ["ИДЕАЛЬНО ДЛЯ CS2","пинг низкий, канал стабильный"];
   if(p<60&&j<25)return ["ИГРАБЕЛЬНО","в CS2 комфортно, редкие рывки возможны"];
   if(p<110)return ["ТЕРПИМО","играть можно, но при пиках будет лаг"];
@@ -628,7 +670,7 @@ q("#pngT").addEventListener("click",function(){
 /* ---------- команды ---------- */
 function runCmd(line){
   var parts=line.split(/\s+/); var c=(parts[0]||"").toLowerCase();
-  var s=S[cur];
+  var s=S[cur]||S.term;
   switch(c){
     case "help":
       s.say(["$ help","  ping · speed · scan · geo · ip · hist",
@@ -660,7 +702,7 @@ function runCmd(line){
         }catch(e){ s.say("  не вышло: нет доступа"); }
       })();
       break;
-    case "scan": go("scan"); s.say("$ scan --wifi (список демонстрационный)"); break;
+    case "scan": go("scan"); S.scan.say("$ scan --wifi (список демонстрационный)"); break;
     case "geo": go("gps"); geoOnce(); break;
     case "ip": doIP(); break;
     case "hist": go("hist"); renderHist(); break;
@@ -671,11 +713,11 @@ function runCmd(line){
         "  сессия: "+Math.floor(up/60)+" мин "+up%60+" с"]);
       break;
     case "clear": s.clear(); break;
-    case "ver": s.say(["NET CONSOLE v1.0 · pro999mega/proekty","собрано для Honer AI"]); break;
+    case "ver": s.say(["NET CONSOLE v1.1 · pro999mega/proekty","ввод исправлен: input-событие вместо keydown"]); break;
     case "reset":
       tapCount=0; sesStart=Date.now();
       Object.keys(S).forEach(function(k){S[k].clear();});
-      toast("сброс выполнен"); break;
+      ink(); toast("сброс выполнен"); break;
     case "theme": setTheme(parts[1]||"green"); break;
     case "matrix": matrix(); break;
     default:
@@ -710,8 +752,9 @@ function matrix(){
 
 /* ---------- старт ---------- */
 renderHist(); drawChart();
-S.term.say(["NET CONSOLE v1.0","// тапни по экрану и печатай","// help — список команд",""]);
-setTimeout(function(){focusKeys();toast("тапни и печатай 👨‍💻");},400);
+S.term.say(["NET CONSOLE v1.1","// тапни по экрану и печатай","// счётчик нажатий — вверху справа","// help — список команд",""]);
+setTimeout(function(){ toast("тапни и печатай 👨‍💻"); },400);
+setTimeout(focusKeys,600);
 </script>
 </body>
 </html>
