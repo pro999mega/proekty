@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NET CONSOLE v6</title>
+<style>
+:root{--c:#39ff8a;--bg:#040a06;--dim:#1d5133}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--c);font:14px/1.45 ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column}
+#top{display:flex;justify-content:space-between;gap:6px;padding:7px 10px;font-size:12px;border-bottom:1px solid var(--dim);flex:none}
+#screen{flex:1;overflow:auto;padding:10px 12px 140px}
+.pane{display:none}.pane.on{display:block}
+#stream{white-space:pre-wrap;word-break:break-word}
+#bufline{white-space:pre-wrap;word-break:break-word}
+.cur{display:inline-block;width:9px;height:15px;background:var(--c);vertical-align:-3px;animation:bl 1s steps(2,start) infinite}
+@keyframes bl{50%{opacity:0}}
+#sw{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:20;border:1px solid var(--c);border-left:none;border-radius:0 14px 14px 0;background:rgba(2,10,6,.8);color:var(--c);font:11px/1 ui-monospace,monospace;letter-spacing:3px;padding:14px 8px;writing-mode:vertical-rl}
+#bar{position:fixed;left:0;right:0;bottom:48px;padding:8px;background:rgba(2,8,5,.95);border-top:1px solid var(--dim)}
+.row{display:flex;gap:6px;margin-bottom:6px}
+.b{padding:11px 4px;border:1px solid var(--c);border-radius:12px;background:rgba(0,255,120,.06);color:var(--c);font:12px ui-monospace,monospace;flex:1}
+#tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:4px;padding:6px;background:#020604;border-top:1px solid var(--dim)}
+#tabs .b{font-size:11px;padding:10px 2px}
+#tabs .b.on{background:rgba(0,255,120,.18)}
+#inp{position:fixed;left:-2px;bottom:0;width:2px;height:2px;opacity:0;border:0;padding:0}
+</style>
+</head>
+<body>
+<div id="top"><span id="net">● ONLINE</span><span id="modeLab">РЕЖИМ: ПЕЧАТЬ</span><span id="clock">--:--</span><span id="bat">—</span></div>
+
+<div id="screen">
+  <div class="pane on" id="p-term"><div id="stream"></div><div id="bufline"></div></div>
+  <div class="pane" id="p-scan"><div id="scanOut">— СКАН —</div></div>
+  <div class="pane" id="p-an"><div id="anOut">— АНАЛИЗ —</div></div>
+  <div class="pane" id="p-gps"><div id="gpsOut">— GPS —</div></div>
+  <div class="pane" id="p-hist"><div id="histOut">— ИСТОРИЯ —</div></div>
+</div>
+
+<button id="sw">⌨ ПЕЧАТЬ</button>
+
+<div id="bar">
+  <div class="row">
+    <button class="b" data-act="focus">⌨ НАЧАТЬ ПЕЧАТЬ</button>
+    <button class="b" data-act="enter">⏎ ВВЕСТИ</button>
+    <button class="b" data-act="back">⌫ СТЕРЕТЬ</button>
+  </div>
+  <div class="row">
+    <button class="b" data-act="copy">📋 ОТЧЁТ</button>
+    <button class="b" data-act="hint">💡 ПОДСКАЗКА</button>
+    <button class="b" data-act="reset">🧹 СБРОС</button>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="b on" data-tab="term">⌨ ТЕРМ</button>
+  <button class="b" data-tab="scan">📡 СКАН</button>
+  <button class="b" data-tab="an">📊 АНАЛИЗ</button>
+  <button class="b" data-tab="gps">🌍 GPS</button>
+  <button class="b" data-tab="hist">📈 ИСТОРИЯ</button>
+</div>
+<input id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<script>
+var $=function(i){return document.getElementById(i)};
+var mode=localStorage.getItem('nc6mode')||'type';
+var stream=[], buf='', hist=[];
+try{hist=JSON.parse(localStorage.getItem('nc6hist')||'[]')}catch(e){hist=[]}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function paint(){
+  if(mode==='type'){
+    $('stream').innerHTML=esc(stream.join(''))+'<i class="cur"></i>';
+    $('bufline').textContent='';
+  }else{
+    $('stream').innerHTML=esc(stream.join(''));
+    $('bufline').innerHTML='&gt; '+esc(buf)+'<i class="cur"></i>';
+  }
+  $('modeLab').textContent='РЕЖИМ: '+(mode==='type'?'ПЕЧАТЬ':'УМНЫЙ');
+  $('sw').textContent=(mode==='type'?'⌨ ПЕЧАТЬ':'🧠 УМНЫЙ');
+  var sc=$('screen'); sc.scrollTop=sc.scrollHeight;
+}
+function buzz(){try{navigator.vibrate&&navigator.vibrate(7)}catch(e){}}
+function typeChar(ch){ if(mode==='type'){stream.push(ch)} else {buf+=ch} buzz(); paint(); }
+function enter(){ if(mode==='type'){stream.push('\n')} else {run(buf);buf=''} paint(); }
+function back(){ if(mode==='type'){ if(stream.length)stream.pop() } else { buf=buf.slice(0,-1) } paint(); }
+function run(s){
+  var t=(s||'').trim();
+  stream.push('\n> '+t+'\n');
+  if(!t)return;
+  var low=t.toLowerCase(), m;
+  if(/^[\d\s+\-*/().,]+$/.test(t)){
+    try{ stream.push('= '+Function('return ('+t.replace(/,/g,'.')+')')()+'\n'); }
+    catch(e){ stream.push('так не посчитать\n'); }
+    return;
+  }
+  if(low==='help'||low==='?'){
+    stream.push('12*7+3 — посчитать\nсколько слов X — разбор\nпалиндром X · rot13 X · реверс X\nкапс X · низ X · хэш X\nчисло 1 100 · время · очистить · тема blue\n');return;
+  }
+  if(low.indexOf('сколько слов')===0){
+    var w=t.slice(11).trim();
+    stream.push('символов '+w.length+', слов '+(w?w.split(/\s+/).length:0)+', букв '+((w.match(/[а-яёa-z]/gi)||[]).length)+', цифр '+((w.match(/\d/g)||[]).length)+'\n');return;
+  }
+  if(low.indexOf('палиндром')===0){
+    var p=t.slice(9).replace(/[^а-яёa-z0-9]/gi,'').toLowerCase();
+    if(!p){stream.push('пусто\n');return;}
+    var pr=p.split('').reverse().join('');
+    stream.push(p===pr?'да, палиндром\n':'нет, не палиндром\n');return;
+  }
+  if(low.indexOf('rot13')===0){
+    stream.push(t.slice(5).trim().replace(/[a-z]/gi,function(c){var b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b)})+'\n');return;
+  }
+  if(low.indexOf('реверс')===0){stream.push(t.slice(6).trim().split('').reverse().join('')+'\n');return;}
+  if(low.indexOf('капс')===0){stream.push(t.slice(4).trim().toUpperCase()+'\n');return;}
+  if(low.indexOf('низ')===0){stream.push(t.slice(3).trim().toLowerCase()+'\n');return;}
+  if(low.indexOf('хэш')===0){
+    var h=5381,z=t.slice(3).trim();
+    for(var i=0;i<z.length;i++){h=((h<<5)+h+z.charCodeAt(i))>>>0;}
+    stream.push('хэш '+h.toString(16)+'\n');return;
+  }
+  if(low.indexOf('число')===0){
+    m=t.match(/(-?\d+)\s+(-?\d+)/);
+    if(!m){stream.push('формат: число 1 100\n');return;}
+    var a=+m[1],b=+m[2]; if(a>b){var c=a;a=b;b=c;}
+    stream.push('случайное: '+(a+Math.floor(Math.random()*(b-a+1)))+'\n');return;
+  }
+  if(low.indexOf('время')===0){stream.push(new Date().toLocaleString('ru-RU')+'\n');return;}
+  if(low.indexOf('очист')===0){stream.length=0;return;}
+  if(low.indexOf('тема')===0){
+    var th=t.split(/\s+/)[1], cols={green:'#39ff8a',blue:'#5ad2ff',amber:'#ffc44d',purple:'#c08bff'};
+    if(cols[th]){document.documentElement.style.setProperty('--c',cols[th]);stream.push('тема: '+th+'\n');}
+    else{stream.push('темы: green blue amber purple\n');}
+    return;
+  }
+  stream.push('умный режим не понял — набери help\n');
+}
+var inp=$('inp'), composing=false;
+function flush(){var v=inp.value;inp.value='';if(!v)return;for(var i=0;i<v.length;i++){var ch=v.charAt(i);if(ch==='\n'){enter()}else{typeChar(ch)}}}
+inp.addEventListener('compositionstart',function(){composing=true});
+inp.addEventListener('compositionend',function(){composing=false;flush()});
+inp.addEventListener('input',function(e){if(composing)return;if(e.inputType==='deleteContentBackward'){inp.value='';back();return;}flush()});
+inp.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();inp.value='';enter();}
+  else if(e.key==='Backspace'){e.preventDefault();inp.value='';back();}
+});
+function focusInp(){try{inp.focus({preventScroll:true})}catch(e){}}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act],[data-tab]'); if(!b)return;
+  var a=b.dataset.act, t=b.dataset.tab;
+  if(t){
+    document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on')});
+    var pane=$('p-'+t); if(pane)pane.classList.add('on');
+    document.querySelectorAll('#tabs .b').forEach(function(x){x.classList.toggle('on',x===b)});
+    if(t==='scan')scanStart(); if(t==='an')anStart(); if(t==='gps')gpsStart(); if(t==='hist')histPaint();
+    paint(); setTimeout(focusInp,0); return;
+  }
+  if(a==='focus'){focusInp();}
+  else if(a==='enter'){enter();setTimeout(focusInp,0);}
+  else if(a==='back'){back();setTimeout(focusInp,0);}
+  else if(a==='hint'){stream.push('\nподсказка: тапни «НАЧАТЬ ПЕЧАТЬ» и стучи по буквам. режим — кнопка слева по центру.\n');paint();setTimeout(focusInp,0);}
+  else if(a==='reset'){stream.length=0;buf='';paint();setTimeout(focusInp,0);}
+  else if(a==='copy'){
+    var txt='NET CONSOLE v6  '+new Date().toLocaleString('ru-RU')+'\nрежим: '+mode+'\n'+stream.join('');
+    try{navigator.clipboard.writeText(txt)}catch(err){}
+    stream.push('\nотчёт скопирован\n');paint();setTimeout(focusInp,0);
+  }
+});
+$('sw').addEventListener('click',function(){
+  mode=(mode==='type')?'smart':'type';
+  localStorage.setItem('nc6mode',mode);
+  paint(); setTimeout(focusInp,0);
+});
+var NETS=['TP-LINK_2G','Rostelecom-5G','MTS_Home','Keenetic-3412','MIFI-Илюха','Dir-300_7F2A'];
+function scanStart(){
+  var o=$('scanOut'); o.textContent='— СКАН —\nпоиск сетей (демо)...'; var i=0;
+  var id=setInterval(function(){
+    if(i>=NETS.length){clearInterval(id);o.textContent+='\n\nнайдено: '+NETS.length+'\nсистема Android не отдаёт чужие Wi-Fi браузеру — это демонстрация.';return;}
+    var r=-(35+Math.floor(Math.random()*40));
+    o.textContent+='\n'+NETS[i]+'   '+r+' dBm   '+(r>-50?'отличный':r>-65?'хороший':'слабый');
+    i++;
+  },420);
+}
+function verdict(a,j){if(a<40&&j<25)return 'вердикт: идеально для CS2';if(a<80)return 'вердикт: играбельно';return 'вердикт: терпимо, будет лагать';}
+function anStart(){
+  var o=$('anOut'); o.textContent='— АНАЛИЗ —\nзамер пинга...'; var p=[],n=0;
+  function step(){
+    var t0=performance.now();
+    fetch('https://speed.cloudflare.com/__down?bytes=0&_='+Math.random(),{cache:'no-store'})
+    .catch(function(){}).then(function(){
+      p.push(performance.now()-t0); n++;
+      if(n<6){o.textContent='— АНАЛИЗ —\nзамер '+n+'/6 ...';setTimeout(step,140);return;}
+      var avg=p.reduce(function(a,b){return a+b},0)/p.length;
+      var jit=Math.max.apply(null,p)-Math.min.apply(null,p);
+      o.textContent='— АНАЛИЗ —\nпинг: '+Math.round(avg)+' мс\nджиттер: '+Math.round(jit)+' мс\n'+verdict(avg,jit)+'\nскорость: замеряю 2 МБ...';
+      var t1=performance.now();
+      fetch('https://speed.cloudflare.com/__down?bytes=2000000&_='+Math.random(),{cache:'no-store'})
+      .then(function(r){return r.arrayBuffer()}).then(function(b){
+        var sec=(performance.now()-t1)/1000, sp=(b.byteLength/1048576)*8/sec;
+        o.textContent+='\nскорость: '+sp.toFixed(1)+' Мбит/с';
+        hist.push({t:Date.now(),ping:Math.round(avg),mbit:+sp.toFixed(1)});
+        if(hist.length>40)hist.shift();
+        localStorage.setItem('nc6hist',JSON.stringify(hist));
+      }).catch(function(){o.textContent+='\nскорость: не удалось'});
+    });
+  }
+  step();
+}
+function gpsStart(){
+  var o=$('gpsOut'); o.textContent='— GPS —\nзапрашиваю координаты...';
+  if(!navigator.geolocation){o.textContent+='\nGPS не поддерживается';return;}
+  navigator.geolocation.getCurrentPosition(function(p){
+    var c=p.coords;
+    o.textContent='— GPS —\nширота: '+c.latitude.toFixed(6)+'\nдолгота: '+c.longitude.toFixed(6)+'\nточность: '+Math.round(c.accuracy)+' м'
+    +'\nвысота: '+(c.altitude?Math.round(c.altitude)+' м':'—')
+    +'\nскорость: '+(c.speed?Math.round(c.speed*3.6)+' км/ч':'—')
+    +'\nвремя: '+new Date(p.timestamp).toLocaleTimeString('ru-RU')
+    +'\n\nкарта: https://yandex.ru/maps/?pt='+c.longitude.toFixed(6)+','+c.latitude.toFixed(6)+'&z=16';
+  },function(e){o.textContent='— GPS —\nне получилось: '+e.message+'\nразреши доступ к геопозиции';},{enableHighAccuracy:true,timeout:15000});
+}
+function histPaint(){
+  var o=$('histOut');
+  if(!hist.length){o.textContent='— ИСТОРИЯ —\nпока пусто: сделай замер на экране АНАЛИЗ';return;}
+  var s='— ИСТОРИЯ —\n';
+  hist.slice(-10).forEach(function(h){s+=new Date(h.t).toLocaleTimeString('ru-RU')+'   '+h.ping+' мс   '+h.mbit+' Мбит/с\n'});
+  var mx=Math.max.apply(null,hist.map(function(h){return h.ping}))||1;
+  s+='\nграфик пинга:\n';
+  hist.forEach(function(h){s+='|'+Array(Math.max(1,Math.round(h.ping/mx*12))+1).join('▓')+' '+h.ping+'\n'});
+  o.textContent=s;
+}
+function tick(){$('clock').textContent=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
+setInterval(tick,10000); tick();
+if(navigator.getBattery){navigator.getBattery().then(function(b){
+  function u(){$('bat').textContent=Math.round(b.level*100)+'%'+(b.charging?'⚡':'')}
+  u(); b.addEventListener('levelchange',u); b.addEventListener('chargingchange',u);
+})}
+if(!navigator.onLine)$('net').textContent='○ OFFLINE';
+window.addEventListener('online',function(){$('net').textContent='● ONLINE'});
+window.addEventListener('offline',function(){$('net').textContent='○ OFFLINE'});
+stream.push('NET CONSOLE v6\nпечать идёт буква в букву — ничего не меняю.\nрежим переключается кнопкой слева по центру.\n\n');
+paint(); setTimeout(focusInp,400);
+</script>
+</body>
+</html>
