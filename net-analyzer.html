@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NET ANALYZER</title>
+<style>
+:root{--c:#39ff8a;--bg:#030a06;--dim:#17422a;--warn:#ffc857;--bad:#ff5c5c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--c);font:13px/1.45 ui-monospace,Consolas,Menlo,monospace}
+#top{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:11px;border-bottom:1px solid var(--dim);background:#05130c;position:sticky;top:0;z-index:6}
+main{padding:12px 12px 190px}
+h2{font-size:12px;letter-spacing:1px;margin:16px 0 8px;color:#9dffc6;border-bottom:1px dashed var(--dim);padding-bottom:5px}
+.pane{display:none}.pane.on{display:block}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dotted #11301f;font-size:13px}
+.row b{color:#fff;text-align:right}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell{border:1px solid var(--dim);border-radius:12px;padding:9px;background:#04140c}
+.cell span{display:block;font-size:10px;opacity:.65;letter-spacing:1px}
+.cell b{font-size:18px;color:#fff}
+#log{white-space:pre-wrap;font-size:12px;opacity:.85;margin-top:10px;min-height:40px}
+#verdict{border:1px solid var(--dim);border-radius:12px;padding:10px;margin-top:10px;font-size:13px}
+#bar{position:fixed;left:0;right:0;bottom:46px;display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:rgba(3,10,6,.95);border-top:1px solid var(--dim)}
+button{font:12px ui-monospace,monospace;color:var(--c);background:#05160e;border:1px solid var(--c);border-radius:10px;padding:10px 8px;flex:1 1 30%}
+button:active{background:#0d3a24}
+#nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:5px;padding:6px;background:#05130c;border-top:1px solid var(--dim)}
+#nav button{flex:1;font-size:11px;padding:12px 2px;border-radius:9px}
+canvas{width:100%;height:130px;background:#04140c;border:1px solid var(--dim);border-radius:10px;margin-top:8px}
+a{color:#7dffb8}
+</style>
+</head>
+<body>
+<div id="top"><span id="net">● …</span><span id="clk">--:--</span><span id="bat">--%</span></div>
+<main>
+  <div class="pane on" id="p-analyze">
+    <div class="grid">
+      <div class="cell"><span>ПИНГ</span><b id="v-ping">—</b></div>
+      <div class="cell"><span>ДЖИТТЕР</span><b id="v-jit">—</b></div>
+      <div class="cell"><span>ПОТЕРИ</span><b id="v-loss">—</b></div>
+      <div class="cell"><span>СКАЧКА</span><b id="v-down">—</b></div>
+      <div class="cell"><span>ОТДАЧА</span><b id="v-up">—</b></div>
+      <div class="cell"><span>ОЦЕНКА</span><b id="v-score">—</b></div>
+    </div>
+    <h2>КАНАЛ И ПРОВАЙДЕР</h2>
+    <div class="row"><span>IP</span><b id="v-ip">—</b></div>
+    <div class="row"><span>Провайдер</span><b id="v-isp">—</b></div>
+    <div class="row"><span>Город</span><b id="v-city">—</b></div>
+    <div class="row"><span>Тип сети</span><b id="v-net">—</b></div>
+    <div class="row"><span>RTT системы</span><b id="v-rtt">—</b></div>
+    <h2>УСТРОЙСТВО</h2>
+    <div class="row"><span>Ядра / память</span><b id="v-cpu">—</b></div>
+    <div class="row"><span>Экран</span><b id="v-scr">—</b></div>
+    <div class="row"><span>Язык</span><b id="v-lang">—</b></div>
+    <div id="verdict">Вердикт появится после анализа.</div>
+    <div id="log">Готов. Жми ▶ ЗАПУСТИТЬ АНАЛИЗ.</div>
+  </div>
+  <div class="pane" id="p-gps">
+    <h2>GPS</h2>
+    <div class="row"><span>Широта</span><b id="g-lat">—</b></div>
+    <div class="row"><span>Долгота</span><b id="g-lon">—</b></div>
+    <div class="row"><span>Точность</span><b id="g-acc">—</b></div>
+    <div class="row"><span>Высота</span><b id="g-alt">—</b></div>
+    <div class="row"><span>Скорость</span><b id="g-spd">—</b></div>
+    <div id="g-link"></div>
+    <div id="log2" style="margin-top:10px;opacity:.8">Жми «🌍 ОПРЕДЕЛИТЬ GPS» ниже.</div>
+  </div>
+  <div class="pane" id="p-hist">
+    <h2>ИСТОРИЯ ЗАМЕРОВ</h2>
+    <canvas id="chart"></canvas>
+    <div id="hlist" style="margin-top:10px">Пока пусто — сделай первый замер.</div>
+  </div>
+  <div class="pane" id="p-scan">
+    <h2>СКАН СЕТЕЙ</h2>
+    <div id="slist">Демонстрационный список: браузеру Android чужие Wi-Fi видеть запрещено системой.</div>
+  </div>
+</main>
+<div id="bar">
+  <button data-a="all">▶ ЗАПУСТИТЬ АНАЛИЗ</button>
+  <button data-a="ping">⚡ ТОЛЬКО ПИНГ</button>
+  <button data-a="speed">🚀 ТОЛЬКО СКОРОСТЬ</button>
+  <button data-a="ip">🌐 IP И ПРОВАЙДЕР</button>
+  <button data-a="gps">🌍 ОПРЕДЕЛИТЬ GPS</button>
+  <button data-a="copy">📋 КОПИРОВАТЬ ОТЧЁТ</button>
+  <button data-a="png">🖼 PNG-ОТЧЁТ</button>
+  <button data-a="clr">🧹 СБРОС ИСТОРИИ</button>
+</div>
+<div id="nav">
+  <button data-t="analyze">📊 АНАЛИЗ</button>
+  <button data-t="gps">🌍 GPS</button>
+  <button data-t="hist">📈 ИСТОРИЯ</button>
+  <button data-t="scan">📡 СКАН</button>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var HK='na_hist';
+function log(t){$('log').textContent=t}
+function say(t){$('log2').textContent=t}
+function val(i,t){$(i).textContent=t}
+setInterval(function(){var d=new Date();val('clk',('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2))},1000);
+function netUpd(){var c=navigator.connection||{},on=navigator.onLine;
+  $('net').textContent=on?'● ONLINE':'○ OFFLINE';
+  val('v-net',(c.effectiveType||'нет данных')+(c.downlink?' · ~'+c.downlink+' Мбит/с':''));
+  val('v-rtt',c.rtt?c.rtt+' мс':'нет данных');}
+window.addEventListener('online',netUpd);window.addEventListener('offline',netUpd);
+if(navigator.getBattery){navigator.getBattery().then(function(b){var f=function(){val('bat',Math.round(b.level*100)+'%'+(b.charging?'⚡':''))};f();b.addEventListener('levelchange',f);b.addEventListener('chargingchange',f)})}
+val('v-cpu',(navigator.hardwareConcurrency||'?')+' ядер / '+(navigator.deviceMemory||'?')+' ГБ');
+val('v-scr',screen.width+'×'+screen.height+' @'+window.devicePixelRatio);
+val('v-lang',navigator.language);
+netUpd();
+var R={};
+function once(){var t0=performance.now();return fetch('https://speed.cloudflare.com/__down?bytes=0&x='+Math.random(),{cache:'no-store'}).then(function(r){return r.arrayBuffer()}).then(function(){return performance.now()-t0})}
+function pingTest(n,prog){var arr=[],fail=0,i=0;
+  function step(){if(i>=n){return Promise.resolve(arr.length?fin(arr,fail,n):null)}i++;if(prog)prog(i,n);
+    return once().then(function(ms){arr.push(ms)}).catch(function(){fail++}).then(function(){return new Promise(function(r){setTimeout(r,70)})}).then(step)}
+  return step()}
+function fin(arr,fail,n){arr.sort(function(a,b){return a-b});
+  var med=arr[Math.floor(arr.length/2)],avg=arr.reduce(function(a,b){return a+b},0)/arr.length;
+  var jit=Math.sqrt(arr.reduce(function(a,b){return a+(b-avg)*(b-avg)},0)/arr.length);
+  return {med:Math.round(med),jit:Math.round(jit),loss:Math.round(fail/n*100),n:arr.length}}
+function mbps(b,ms){return Math.round((b*8/1e6)/(ms/1000)*10)/10}
+function downTest(){var t0=performance.now();
+  return fetch('https://speed.cloudflare.com/__down?bytes=2000000&x='+Math.random(),{cache:'no-store'})
+  .then(function(r){return r.arrayBuffer()})
+  .then(function(b){return mbps(b.byteLength,performance.now()-t0)})}
+function upTest(){var n=1000000,t0=performance.now();
+  return fetch('https://speed.cloudflare.com/__up?x='+Math.random(),{method:'POST',body:new Uint8Array(n),cache:'no-store'})
+  .then(function(){return mbps(n,performance.now()-t0)})}
+function ipTest(){return fetch('https://ipwho.is/').then(function(r){return r.json()}).then(function(j){
+    if(j&&j.ip){return {ip:j.ip,isp:(j.connection&&(j.connection.isp||j.connection.org))||'нет данных',city:[j.city,j.country].filter(Boolean).join(', ')||'нет данных'}}
+    throw 0}).catch(function(){
+    return fetch('https://api.ipify.org?format=json').then(function(r){return r.json()}).then(function(j){return {ip:j.ip,isp:'нет данных',city:'нет данных'}}).catch(function(){return null})})}
+function verdict(p,s){if(!p)return{ok:0,t:'Нет ответа от сервера — канал не проверить.'};
+  var msg,txt;
+  if(p.loss>5||p.med>120){msg='ПЛОХО';txt='большие потери или большой пинг — в CS2 будут рывки и «резинка».'}
+  else if(p.med>80||p.jit>20){msg='ТЕРПИМО';txt='играть можно, но пики заметны.'}
+  else if(p.med>45||p.jit>12){msg='ИГРАБЕЛЬНО';txt='для CS2 нормально, но не идеал.'}
+  else{msg='ИДЕАЛЬНО';txt='для CS2 отличный канал.'}
+  return {ok:1,t:msg+' — '+txt}}
+function score(p,s){if(!p)return null;var k=100;
+  k-=Math.min(60,p.med*0.7);k-=Math.min(20,p.jit*1.2);k-=p.loss*3;
+  if(s)k+=Math.min(6,s.scan/8);
+  return Math.max(1,Math.min(100,Math.round(k)))}
+function histGet(){try{return JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){return []}}
+function histAdd(o){var a=histGet();a.push(o);if(a.length>30)a.shift();localStorage.setItem(HK,JSON.stringify(a));drawChart();histList()}
+function histList(){var a=histGet(),el=$('hlist');
+  if(!a.length){el.textContent='Пока пусто — сделай первый замер.';return}
+  el.innerHTML=a.slice(-10).reverse().map(function(x){return '<div class="row"><span>'+x.tm+'</span><b>'+x.ping+' мс · '+x.down+' Мбит/с</b></div>'}).join('')}
+function drawChart(){var a=histGet(),cv=$('chart'),g=cv.getContext('2d');
+  cv.width=cv.clientWidth*2;cv.height=cv.clientHeight*2;g.scale(2,2);
+  var w=cv.clientWidth,h=cv.clientHeight;
+  g.clearRect(0,0,w,h);g.strokeStyle='#17422a';g.lineWidth=1;
+  for(var y=0;y<=4;y++){g.beginPath();g.moveTo(0,h*y/4);g.lineTo(w,h*y/4);g.stroke()}
+  if(a.length<2)return;
+  var mx=Math.max.apply(null,a.map(function(x){return x.ping}))*1.2;
+  g.strokeStyle='#39ff8a';g.lineWidth=2;g.beginPath();
+  a.forEach(function(x,i){var px=i*(w/(a.length-1)),py=h-(x.ping/mx*h);i?g.lineTo(px,py):g.moveTo(px,py)});
+  g.stroke();
+  g.fillStyle='#9dffc6';g.font='11px monospace';
+  g.fillText('пинг, макс '+Math.round(mx)+' мс',8,14)}
+function doPing(){log('Пингую… 8 замеров');
+  return pingTest(8,function(i,n){log('Пингую… '+i+'/'+n)}).then(function(p){
+    if(!p){log('Пинг не удался — нет связи?');return null}
+    R.ping=p;val('v-ping',p.med+' мс');val('v-jit',p.jit+' мс');val('v-loss',p.loss+' %');
+    $('v-ping').style.color=p.med<50?'#39ff8a':(p.med<90?'#ffc857':'#ff5c5c');
+    return p})}
+function doSpeed(){log('Качаю 2 МБ…');
+  return downTest().then(function(d){R.down=d;val('v-down',d+' Мбит/с');log('Отдаю 1 МБ…');
+    return upTest().catch(function(){return null})}).then(function(u){
+    if(u!==null&&u!==undefined){R.up=u;val('v-up',u+' Мбит/с')}else{val('v-up','нет данных');R.up=null}
+    log('Скорость измерена.');
+    return R})}
+function doIp(){return ipTest().then(function(j){
+    if(!j){val('v-ip','нет данных');return null}
+    val('v-ip',j.ip);val('v-isp',j.isp);val('v-city',j.city);R.ip=j;return j})}
+function report(){var l=[];
+  l.push('NET ANALYZER · '+new Date().toLocaleString('ru-RU'));
+  if(R.ping)l.push('Пинг '+R.ping.med+' мс · джиттер '+R.ping.jit+' мс · потери '+R.ping.loss+'%');
+  if(R.down)l.push('Скорость: '+R.down+' Мбит/с вниз · '+(R.up||'?')+' Мбит/с вверх');
+  if(R.ip)l.push('IP '+R.ip.ip+' · '+R.ip.isp+' · '+R.ip.city);
+  var c=navigator.connection||{};l.push('Сеть: '+(c.effectiveType||'?')+' · RTT '+(c.rtt||'?')+' мс');
+  l.push('Устройство: '+(navigator.hardwareConcurrency||'?')+' ядер · '+(navigator.deviceMemory||'?')+' ГБ · '+screen.width+'×'+screen.height);
+  if(R.gps)l.push('GPS '+R.gps.lat.toFixed(5)+', '+R.gps.lon.toFixed(5)+' (±'+Math.round(R.gps.acc)+' м)');
+  l.push(verdict(R.ping).t);
+  return l.join('\n')}
+function drawReport(){var t=report().split('\n'),cv=document.createElement('canvas'),g=cv.getContext('2d');
+  cv.width=900;cv.height=70+t.length*34;
+  g.fillStyle='#030a06';g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle='#39ff8a';g.font='bold 26px monospace';g.fillText('NET ANALYZER',26,44);
+  g.font='20px monospace';
+  t.forEach(function(s,i){g.fillStyle=i?'#c9ffdf':'#39ff8a';g.fillText(s,26,88+i*30)});
+  var url=cv.toDataURL('image/png');
+  var a=document.createElement('a');a.href=url;a.download='net-report.png';
+  if(a.click){a.click()}else{window.open(url)}
+  log('PNG-отчёт: если не сохранился сам — удерживай картинку и выбери «Скачать».')}
+function runAll(){log('Полный анализ…');
+  return doPing().then(function(){return doIp()}).then(function(){return doSpeed()}).then(function(){
+    var v=verdict(R.ping,R),s=score(R.ping,R);
+    if(s){val('v-score',s+' / 100')}
+    $('verdict').textContent=v.t;
+    histAdd({tm:new Date().toLocaleTimeString('ru-RU').slice(0,5),ping:R.ping?R.ping.med:0,down:R.down||0});
+    log('Готово. '+(R.ping?('Пинг '+R.ping.med+' мс'):''))})}
+function geo(){say('Запрашиваю разрешение…');
+  if(!navigator.geolocation){say('GPS недоступен в этом браузере.');return}
+  navigator.geolocation.getCurrentPosition(function(p){
+    R.gps={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};
+    val('g-lat',p.coords.latitude.toFixed(6));val('g-lon',p.coords.longitude.toFixed(6));
+    val('g-acc',Math.round(p.coords.accuracy)+' м');
+    val('g-alt',p.coords.altitude?Math.round(p.coords.altitude)+' м':'нет данных');
+    val('g-spd',p.coords.speed?Math.round(p.coords.speed*3.6)+' км/ч':'нет данных');
+    $('g-link').innerHTML='<div class="row"><span>Карта</span><b><a target="_blank" href="https://www.google.com/maps?q='+p.coords.latitude+','+p.coords.longitude+'">открыть</a></b></div>';
+    say('Готово. Точность '+Math.round(p.coords.accuracy)+' м.')},
+    function(e){say('Не вышло: '+e.message)},{enableHighAccuracy:true,timeout:15000,maximumAge:0})}
+function scan(){var names=['MTS_5G_A21','TP-LINK_8F2C','Rostelecom-4G','Infinix_Hotspot','Xiaomi_2A1B','WiFi-Free','Keenetic-41','DIR-615_Home'];
+  var a=names.slice(0,4+(Math.random()*4|0)).map(function(n){return '<div class="row"><span>'+n+'</span><b>'+(-42-(Math.random()*40|0))+' dBm · канал '+(1+(Math.random()*11|0))+'</b></div>'});
+  $('slist').innerHTML=a.join('')+'<div style="margin-top:8px;opacity:.7;font-size:11px">Список демонстрационный: браузеру Android чужие Wi-Fi видеть запрещено системой.</div>'}
+function copyRep(){var t=report();
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){log('Отчёт скопирован.')},function(){log('Скопировать не дал браузер — текст ниже:\n'+t)})}
+  else{log('Отчёт:\n'+t)}}
+function go(t){['analyze','gps','hist','scan'].forEach(function(k){$('p-'+k).classList.toggle('on',k===t)});
+  if(t==='hist'){drawChart();histList()}if(t==='scan'){scan()}}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.dataset.t){go(b.dataset.t);return}
+  var a=b.dataset.a;if(!a)return;
+  if(a==='all')runAll();
+  else if(a==='ping')doPing();
+  else if(a==='speed')doSpeed();
+  else if(a==='ip')doIp();
+  else if(a==='gps'){go('gps');geo()}
+  else if(a==='copy')copyRep();
+  else if(a==='png')drawReport();
+  else if(a==='clr'){localStorage.removeItem(HK);drawChart();histList();log('История очищена.')}});
+drawChart();histList();
+</script>
+</body>
+</html>
