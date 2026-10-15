@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Конструктор промптов</title>
+<style>
+:root{--bg:#0b1220;--card:#121e33;--line:#243654;--acc:#7c5cff;--txt:#e9eefb;--dim:#8496b0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:14px 10px 90px;background:linear-gradient(180deg,#0a1120,#140f2b 60%,#0a1120);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Roboto,sans-serif;min-height:100vh}
+h1{margin:0 0 2px;font-size:19px}
+h2{font-size:16px;margin:18px 0 8px;color:#c9b8ff}
+.hint{color:var(--dim);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;margin:0 0 10px}
+.gl{font-size:13px;color:#c9b8ff;margin-bottom:8px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#0f1a2c;font-size:13px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+textarea,input{width:100%;margin:6px 0 10px;padding:11px;border-radius:12px;border:1px solid var(--line);background:#0e1828;color:var(--txt);font:inherit;font-size:15px}
+textarea{min-height:64px}
+button{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:#16233a;color:var(--txt);font:inherit;font-size:13px}
+button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.out{white-space:pre-wrap;font:14px/1.5 ui-monospace,Consolas,monospace;background:#0d1728;border:1px dashed var(--line);border-radius:12px;padding:10px;margin:8px 0}
+.n{margin:7px 0;font-size:13px;display:flex;gap:8px}
+.n b{color:#c9b8ff;min-width:20px}
+.n span{flex:1}
+.n i{color:var(--dim);font-style:normal}
+.gdate{font-size:11px;color:var(--dim);margin-bottom:6px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(90px);background:var(--acc);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;transition:transform .25s}
+#toast.on{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<h1>🎨 КОНСТРУКТОР ПРОМПТОВ</h1>
+<div class="hint">для ImageFree AI · собирай промпт по частям</div>
+
+<div class="card">
+<div class="gl">1 · Задумка по-русски</div>
+<textarea id="ru" placeholder="напр. парень в наушниках на крыше ночного города"></textarea>
+<div class="gl">2 · Она же по-английски (это уйдёт в генератор)</div>
+<textarea id="en" placeholder="a guy in headphones on a rooftop of a night city"></textarea>
+</div>
+
+<div id="secs"></div>
+
+<div class="card">
+<div class="gl">Доп. детали (англ.)</div>
+<input id="extra" placeholder="rain, reflections, smoke, wet asphalt">
+<div class="gl">Негативный промпт</div>
+<input id="neg" value="blurry, low quality, extra fingers, watermark, text, deformed">
+</div>
+
+<div class="bar">
+<button class="p" id="build">⚡ Собрать промпт</button>
+<button id="rnd">🎲 Случайно</button>
+<button id="sav">💾 В галерею</button>
+<button id="clr">🧹 Очистить</button>
+</div>
+
+<div id="out"></div>
+
+<h2>🗂 Галерея промптов</h2>
+<div class="bar">
+<button id="exp">📤 Копировать всё (JSON)</button>
+<button id="impBtn">📥 Импорт</button>
+<button id="gclr">🗑 Очистить</button>
+</div>
+<div class="card" id="imp" style="display:none">
+<div class="gl">Вставь JSON из буфера</div>
+<textarea id="impT" placeholder='[{"en":"...","ru":"...","fav":false,"ts":123}]'></textarea>
+<button id="impGo">Загрузить</button>
+</div>
+<div id="gal"></div>
+
+<div id="toast"></div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var DATA=[
+ {k:'style',t:'🎨 Стиль',items:[['Кинематографично','cinematic film still, movie frame'],['Гиперреализм','hyperrealistic photograph'],['Аниме','anime style illustration'],['Киберпанк','cyberpunk art, neon city'],['Живопись','oil painting on canvas'],['3D-рендер','3D render, octane render'],['Пиксель-арт','pixel art, 16-bit'],['Минимализм','minimalist flat design'],['Комикс','comic book art, bold ink lines'],['Тёмное фэнтези','dark fantasy concept art'],['Ретро-фото','vintage 35mm film photo, grain'],['Карандаш','pencil sketch, graphite']]},
+ {k:'light',t:'💡 Свет',items:[['Мягкий рассеянный','soft diffused lighting'],['Драматичный','dramatic chiaroscuro lighting'],['Неон','neon glow lighting'],['Золотой час','golden hour sunlight'],['Контровой','backlit rim light'],['Студийный','studio softbox lighting'],['Лунный','moonlit night ambience'],['Закат','warm sunset light']]},
+ {k:'shot',t:'🎥 Ракурс и камера',items:[['Крупный план','close-up portrait'],['По пояс','medium shot'],['Общий план','wide shot'],['Сверху','top-down aerial view'],['От земли','low angle shot'],['Макро','macro shot'],['Рыбий глаз','fisheye lens'],['85 мм f/1.4','85mm lens, f/1.4']]},
+ {k:'color',t:'🌈 Цвет и настроение',items:[['Тёплые тона','warm color palette'],['Холодные тона','cool blue color palette'],['Пастель','pastel colors'],['Монохром','monochrome, black and white'],['Насыщенные','highly saturated vivid colors'],['Приглушённые','muted desaturated tones'],['Мрачно','moody dark atmosphere'],['Ярко','bright uplifting mood']]},
+ {k:'qual',t:'✨ Качество',items:[['Максимум деталей','ultra-detailed'],['8K','8k resolution'],['Резкий фокус','sharp focus'],['Малая ГРИП','shallow depth of field, bokeh'],['Проф. фото','professional photography'],['Награждённый арт','award-winning artwork']]}
+];
+var ORD=[['style','Стиль'],['light','Свет'],['shot','Ракурс и камера'],['color','Цвет и настроение'],['qual','Качество']];
+var PICK={},LAST={ru:'',en:''};
+var GAL=JSON.parse(localStorage.getItem('prGal')||'[]');
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1400);}
+function cp(t){if(!t){toast('пока пусто');return;}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('скопировано ✅')},function(){toast('скопируй вручную')});}
+ else toast('скопируй вручную');}
+function chip(k){var g=null,i;for(i=0;i<DATA.length;i++){if(DATA[i].k===k)g=DATA[i];}
+ if(!g||PICK[k]===undefined)return null;return g.items[PICK[k]];}
+function render(){
+ var h='';
+ DATA.forEach(function(g){
+  h+='<div class="card"><div class="gl">'+g.t+'</div><div class="chips" data-k="'+g.k+'">';
+  g.items.forEach(function(it,i){h+='<div class="chip" data-i="'+i+'">'+it[0]+'</div>';});
+  h+='</div></div>';
+ });
+ $('secs').innerHTML=h;
+ var cs=document.querySelectorAll('.chips'),j;
+ for(j=0;j<cs.length;j++){
+  cs[j].addEventListener('click',function(e){
+   var ch=e.target.closest('.chip');if(!ch)return;
+   var box=ch.parentNode,all=box.querySelectorAll('.chip'),n;
+   for(n=0;n<all.length;n++)all[n].classList.remove('on');
+   ch.classList.add('on');
+   PICK[box.getAttribute('data-k')]=+ch.getAttribute('data-i');
+   build();
+  });
+ }
+}
+function build(){
+ var subRu=$('ru').value.trim(),subEn=$('en').value.trim(),ex=$('extra').value.trim(),neg=$('neg').value.trim();
+ var enA=[],rl=[];
+ if(subEn)enA.push(subEn);
+ rl.push('Сюжет: '+(subRu||subEn||'—'));
+ ORD.forEach(function(o){
+  var p=chip(o[0]);if(!p)return;
+  enA.push(p[1]);rl.push(o[1]+': '+p[0]);
+ });
+ if(ex){enA.push(ex);rl.push('Детали: '+ex);}
+ var enT=enA.join(', ');
+ if(neg)enT+='\nNegative prompt: '+neg;
+ var ruT=rl.join('. ')+'.';
+ if(neg)ruT+=' Не рисовать: '+neg.replace(/,/g,', ')+'.';
+ var rows=[];
+ rows.push(['1','Сюжет',subEn||subRu||'—','что в кадре: кто, что делает, где']);
+ var st=chip('style'),li=chip('light'),sh=chip('shot'),co=chip('color'),qu=chip('qual');
+ rows.push(['2','Стиль',st?(st[0]+' / '+st[1]):'—','как нарисовано: техника и жанр']);
+ rows.push(['3','Свет',li?(li[0]+' / '+li[1]):'—','откуда свет и какая атмосфера']);
+ rows.push(['4','Ракурс',sh?(sh[0]+' / '+sh[1]):'—','камера и план']);
+ rows.push(['5','Цвет',co?(co[0]+' / '+co[1]):'—','палитра и настроение']);
+ rows.push(['6','Качество',qu?(qu[0]+' / '+qu[1]):'—','детализация и резкость']);
+ rows.push(['7','Детали',ex||'—','мелкие элементы в кадре']);
+ rows.push(['8','Негатив',neg||'—','что не рисовать']);
+ var h='<div class="card"><div class="gl">🇷🇺 Русский промпт</div><div class="out">'+esc(ruT)+'</div><button data-cp="ru">📋 Копировать русский</button></div>';
+ h+='<div class="card"><div class="gl">🇬🇧 Английский промпт — для ImageFree AI</div><div class="out">'+esc(enT)+'</div><button data-cp="en">📋 Копировать английский</button></div>';
+ h+='<div class="card"><div class="gl">🔍 Разбор — что за что отвечает</div>';
+ rows.forEach(function(r){h+='<div class="n"><b>'+r[0]+'</b><span>'+esc(r[1])+': '+esc(r[2])+'<br><i>'+r[3]+'</i></span></div>';});
+ h+='<div class="hint">скажи «убери 4» или «замени 3» — правлю точечно, не переделывая всё</div></div>';
+ $('out').innerHTML=h;
+ var bs=$('out').querySelectorAll('[data-cp]'),k;
+ for(k=0;k<bs.length;k++){
+  bs[k].onclick=function(){cp(this.getAttribute('data-cp')==='ru'?LAST.ru:LAST.en);};
+ }
+ LAST={ru:ruT,en:enT};
+}
+[['ru'],'en','extra','neg'].forEach(function(id){var el=$(typeof id==='string'?id:id[0]);el.addEventListener('input',build);});
+$('build').onclick=function(){build();toast('собрано');};
+$('rnd').onclick=function(){
+ DATA.forEach(function(g){
+  var i=Math.floor(Math.random()*g.items.length);PICK[g.k]=i;
+  var box=document.querySelector('.chips[data-k="'+g.k+'"]'),all=box.querySelectorAll('.chip'),n;
+  for(n=0;n<all.length;n++)all[n].classList.toggle('on',n===i);
+ });
+ build();toast('🎲 случайный набор');
+};
+$('clr').onclick=function(){
+ PICK={};
+ ['ru','en','extra'].forEach(function(id){$(id).value='';});
+ $('neg').value='blurry, low quality, extra fingers, watermark, text, deformed';
+ var all=document.querySelectorAll('.chip'),n;for(n=0;n<all.length;n++)all[n].classList.remove('on');
+ $('out').innerHTML='';toast('очищено');
+};
+function gSave(){
+ if(!LAST.en){toast('сначала собери промпт');return;}
+ GAL.push({en:LAST.en,ru:LAST.ru,fav:false,ts:Date.now()});
+ localStorage.setItem('prGal',JSON.stringify(GAL));gDraw();toast('в галерее ✅');
+}
+$('sav').onclick=gSave;
+function gDraw(){
+ var el=$('gal');
+ if(!GAL.length){el.innerHTML='<p class="hint">пусто — собери промпт и жми «В галерею»</p>';return;}
+ var s=GAL.slice().sort(function(a,b){return (b.fav?1:0)-(a.fav?1:0)||b.ts-a.ts;});
+ var h='';
+ s.forEach(function(g){
+  h+='<div class="card"><div class="gdate">'+(g.fav?'★ удачный · ':'')+new Date(g.ts).toLocaleString('ru-RU')+'</div>';
+  h+='<div class="out">'+esc(g.en)+'</div>';
+  h+='<div class="bar"><button data-cp2="'+g.ts+'">📋 Копировать</button><button data-fav="'+g.ts+'">★ '+(g.fav?'Снять метку':'В удачные')+'</button><button data-del="'+g.ts+'">✕ Удалить</button></div></div>';
+ });
+ el.innerHTML=h;
+ el.querySelectorAll('[data-cp2]').forEach(function(b){
+  b.onclick=function(){var ts=+b.getAttribute('data-cp2'),f=GAL.filter(function(x){return x.ts===ts})[0];cp(f?f.en:'');};
+ });
+ el.querySelectorAll('[data-fav]').forEach(function(b){
+  b.onclick=function(){var ts=+b.getAttribute('data-fav');GAL.forEach(function(x){if(x.ts===ts)x.fav=!x.fav});localStorage.setItem('prGal',JSON.stringify(GAL));gDraw();};
+ });
+ el.querySelectorAll('[data-del]').forEach(function(b){
+  b.onclick=function(){var ts=+b.getAttribute('data-del');GAL=GAL.filter(function(x){return x.ts!==ts});localStorage.setItem('prGal',JSON.stringify(GAL));gDraw();toast('удалено');};
+ });
+}
+$('exp').onclick=function(){if(!GAL.length){toast('галерея пуста');return;}cp(JSON.stringify(GAL));};
+$('impBtn').onclick=function(){var b=$('imp');b.style.display=b.style.display==='none'?'block':'none';};
+$('impGo').onclick=function(){
+ try{
+  var add=JSON.parse($('impT').value),i;
+  if(!add.length)throw 0;
+  for(i=0;i<add.length;i++){add[i].ts=add[i].ts||Date.now()+i;GAL.push(add[i]);}
+  localStorage.setItem('prGal',JSON.stringify(GAL));gDraw();$('imp').style.display='none';toast('загружено: '+add.length);
+ }catch(e){toast('не разобрал JSON');}
+};
+$('gclr').onclick=function(){if(confirm('Удалить все промпты из галереи?')){GAL=[];localStorage.setItem('prGal','[]');gDraw();toast('галерея пуста');}};
+render();build();gDraw();
+</script>
+</body>
+</html>
