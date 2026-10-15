@@ -22,24 +22,26 @@ button{padding:11px 14px;border-radius:12px;border:1px solid var(--line);backgro
 button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:700}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 .out{white-space:pre-wrap;font:14px/1.5 ui-monospace,Consolas,monospace;background:#0d1728;border:1px dashed var(--line);border-radius:12px;padding:10px;margin:8px 0}
+.warn{color:#ffc46b;font-size:13px;margin:6px 0}
 .n{margin:7px 0;font-size:13px;display:flex;gap:8px}
 .n b{color:#c9b8ff;min-width:20px}
 .n span{flex:1}
 .n i{color:var(--dim);font-style:normal}
 .gdate{font-size:11px;color:var(--dim);margin-bottom:6px}
-#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(90px);background:var(--acc);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;transition:transform .25s}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(90px);background:var(--acc);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;transition:transform .25s;z-index:9}
 #toast.on{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <h1>🎨 КОНСТРУКТОР ПРОМПТОВ</h1>
-<div class="hint">для ImageFree AI · собирай промпт по частям</div>
+<div class="hint">для ImageFree AI · сюжет всегда первый</div>
 
 <div class="card">
 <div class="gl">1 · Задумка по-русски</div>
-<textarea id="ru" placeholder="напр. парень в наушниках на крыше ночного города"></textarea>
-<div class="gl">2 · Она же по-английски (это уйдёт в генератор)</div>
-<textarea id="en" placeholder="a guy in headphones on a rooftop of a night city"></textarea>
+<textarea id="ru" placeholder="напр. бобр ужастик 4к"></textarea>
+<button id="tr">↔ Перевести в английский</button>
+<div class="gl" style="margin-top:12px">2 · Она же по-английски (уйдёт в генератор)</div>
+<textarea id="en" placeholder="beaver horror scene 4k"></textarea>
 </div>
 
 <div id="secs"></div>
@@ -77,57 +79,82 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:70
 <script>
 var $=function(i){return document.getElementById(i)};
 var DATA=[
- {k:'style',t:'🎨 Стиль',items:[['Кинематографично','cinematic film still, movie frame'],['Гиперреализм','hyperrealistic photograph'],['Аниме','anime style illustration'],['Киберпанк','cyberpunk art, neon city'],['Живопись','oil painting on canvas'],['3D-рендер','3D render, octane render'],['Пиксель-арт','pixel art, 16-bit'],['Минимализм','minimalist flat design'],['Комикс','comic book art, bold ink lines'],['Тёмное фэнтези','dark fantasy concept art'],['Ретро-фото','vintage 35mm film photo, grain'],['Карандаш','pencil sketch, graphite']]},
+ {k:'style',t:'🎨 Стиль',items:[['Кинематографично','cinematic film still'],['Гиперреализм','hyperrealistic photograph'],['Аниме','anime style illustration'],['Киберпанк','cyberpunk art, neon city'],['Живопись','oil painting on canvas'],['3D-рендер','3D render'],['Пиксель-арт','pixel art, 16-bit'],['Минимализм','minimalist flat design'],['Комикс','comic book art, bold ink lines'],['Тёмное фэнтези','dark fantasy concept art'],['Ретро-фото','vintage 35mm film photo, grain'],['Карандаш','pencil sketch, graphite']]},
  {k:'light',t:'💡 Свет',items:[['Мягкий рассеянный','soft diffused lighting'],['Драматичный','dramatic chiaroscuro lighting'],['Неон','neon glow lighting'],['Золотой час','golden hour sunlight'],['Контровой','backlit rim light'],['Студийный','studio softbox lighting'],['Лунный','moonlit night ambience'],['Закат','warm sunset light']]},
  {k:'shot',t:'🎥 Ракурс и камера',items:[['Крупный план','close-up portrait'],['По пояс','medium shot'],['Общий план','wide shot'],['Сверху','top-down aerial view'],['От земли','low angle shot'],['Макро','macro shot'],['Рыбий глаз','fisheye lens'],['85 мм f/1.4','85mm lens, f/1.4']]},
  {k:'color',t:'🌈 Цвет и настроение',items:[['Тёплые тона','warm color palette'],['Холодные тона','cool blue color palette'],['Пастель','pastel colors'],['Монохром','monochrome, black and white'],['Насыщенные','highly saturated vivid colors'],['Приглушённые','muted desaturated tones'],['Мрачно','moody dark atmosphere'],['Ярко','bright uplifting mood']]},
  {k:'qual',t:'✨ Качество',items:[['Максимум деталей','ultra-detailed'],['8K','8k resolution'],['Резкий фокус','sharp focus'],['Малая ГРИП','shallow depth of field, bokeh'],['Проф. фото','professional photography'],['Награждённый арт','award-winning artwork']]}
 ];
-var ORD=[['style','Стиль'],['light','Свет'],['shot','Ракурс и камера'],['color','Цвет и настроение'],['qual','Качество']];
+var ORD=[['style','стиль'],['light','свет'],['shot','ракурс и камера'],['color','цвет и настроение'],['qual','качество']];
+var DICT=[['ужастик','horror scene'],['хоррор','horror scene'],['4к','4k'],['бобр','beaver'],['бобёр','beaver'],['парень','young man'],['девушк','young woman'],['мужчин','man'],['женщин','woman'],['ребёнок','child'],['кот','cat'],['собак','dog'],['пёс','dog'],['волк','wolf'],['лис','fox'],['медвед','bear'],['дракон','dragon'],['робот','robot'],['воин','warrior'],['космонавт','astronaut'],['череп','skull'],['наушник','headphones'],['телефон','phone'],['книг','book'],['машин','car'],['поезд','train'],['самолёт','airplane'],['мотоцикл','motorcycle'],['крыш','rooftop'],['улиц','street'],['город','city'],['деревн','village'],['лес','forest'],['дерев','tree'],['гор','mountain'],['мор','sea'],['океан','ocean'],['пляж','beach'],['река','river'],['озер','lake'],['вод','water'],['огн','fire'],['снег','snow'],['дожд','rain'],['туман','fog'],['дым','smoke'],['неон','neon'],['закат','sunset'],['ноч','night'],['день','day'],['утр','morning'],['комнат','room'],['школ','school'],['замок','castle'],['руин','ruins'],['мост','bridge'],['космос','outer space'],['будущ','future'],['старинн','ancient'],['тёмн','dark'],['свет','light'],['красив','beautiful'],['стильн','stylish'],['страшн','scary'],['больш','big'],['маленьк','small'],['портрет','portrait'],['цвет','flowers'],['зеркал','mirror'],['лун','moon']];
 var PICK={},LAST={ru:'',en:''};
 var GAL=JSON.parse(localStorage.getItem('prGal')||'[]');
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1400);}
-function cp(t){if(!t){toast('пока пусто');return;}
- if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('скопировано ✅')},function(){toast('скопируй вручную')});}
- else toast('скопируй вручную');}
-function chip(k){var g=null,i;for(i=0;i<DATA.length;i++){if(DATA[i].k===k)g=DATA[i];}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1500);}
+function cp(t){
+ if(!t){toast('пока пусто');return;}
+ if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(t).then(function(){toast('скопировано ✅')},function(){fallback(t)});
+ }else fallback(t);
+}
+function fallback(t){
+ try{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('скопировано ✅');}
+ catch(e){toast('выдели текст и скопируй вручную');}
+}
+function toEn(s){
+ var t=' '+s.toLowerCase()+' ';
+ DICT.forEach(function(p){t=t.split(p[0]).join(' '+p[1]+' ');});
+ t=t.replace(/(^| )(и|в|на|с|по|из|у|к|для|от|под|над|о|об|а|но|это|же|бы)( |$)/g,' ');
+ var unk=[],out=[];
+ t.replace(/[^a-z0-9\-а-яё ]+/g,' ').split(/\s+/).forEach(function(w){
+  if(!w)return;
+  if(/[а-яё]/.test(w)){if(unk.indexOf(w)<0)unk.push(w);}
+  else if(w.length>1||/\d/.test(w))out.push(w);
+ });
+ return {en:out.join(' '),unk:unk};
+}
+function chip(k){var g=null,i;for(i=0;i<DATA.length;i++)if(DATA[i].k===k)g=DATA[i];
  if(!g||PICK[k]===undefined)return null;return g.items[PICK[k]];}
 function render(){
  var h='';
  DATA.forEach(function(g){
   h+='<div class="card"><div class="gl">'+g.t+'</div><div class="chips" data-k="'+g.k+'">';
   g.items.forEach(function(it,i){h+='<div class="chip" data-i="'+i+'">'+it[0]+'</div>';});
-  h+='</div></div>';
+  h+='</div><div class="hint">повторный тап по выбранному — снять</div></div>';
  });
  $('secs').innerHTML=h;
  var cs=document.querySelectorAll('.chips'),j;
  for(j=0;j<cs.length;j++){
   cs[j].addEventListener('click',function(e){
    var ch=e.target.closest('.chip');if(!ch)return;
-   var box=ch.parentNode,all=box.querySelectorAll('.chip'),n;
-   for(n=0;n<all.length;n++)all[n].classList.remove('on');
-   ch.classList.add('on');
-   PICK[box.getAttribute('data-k')]=+ch.getAttribute('data-i');
+   var box=ch.parentNode,k=box.getAttribute('data-k');
+   if(ch.classList.contains('on')){ch.classList.remove('on');delete PICK[k];}
+   else{
+    var all=box.querySelectorAll('.chip'),n;
+    for(n=0;n<all.length;n++)all[n].classList.remove('on');
+    ch.classList.add('on');PICK[k]=+ch.getAttribute('data-i');
+   }
    build();
   });
  }
 }
 function build(){
  var subRu=$('ru').value.trim(),subEn=$('en').value.trim(),ex=$('extra').value.trim(),neg=$('neg').value.trim();
- var enA=[],rl=[];
+ var unk=[];
+ if(!subEn&&subRu){var tr=toEn(subRu);subEn=tr.en;unk=tr.unk;}
+ var enA=[],parts=[];
  if(subEn)enA.push(subEn);
- rl.push('Сюжет: '+(subRu||subEn||'—'));
+ if(subRu)parts.push('сюжет: '+subRu);else if(subEn)parts.push('сюжет: '+subEn);
  ORD.forEach(function(o){
   var p=chip(o[0]);if(!p)return;
-  enA.push(p[1]);rl.push(o[1]+': '+p[0]);
+  enA.push(p[1]);parts.push(o[1]+': '+p[0]);
  });
- if(ex){enA.push(ex);rl.push('Детали: '+ex);}
+ if(ex){enA.push(ex);parts.push('детали: '+ex);}
  var enT=enA.join(', ');
  if(neg)enT+='\nNegative prompt: '+neg;
- var ruT=rl.join('. ')+'.';
- if(neg)ruT+=' Не рисовать: '+neg.replace(/,/g,', ')+'.';
+ var ruT=parts.join(', ')+'.';
+ if(neg)ruT+=' Не рисовать: '+neg.replace(/,\s*/g,', ')+'.';
  var rows=[];
  rows.push(['1','Сюжет',subEn||subRu||'—','что в кадре: кто, что делает, где']);
  var st=chip('style'),li=chip('light'),sh=chip('shot'),co=chip('color'),qu=chip('qual');
@@ -139,18 +166,25 @@ function build(){
  rows.push(['7','Детали',ex||'—','мелкие элементы в кадре']);
  rows.push(['8','Негатив',neg||'—','что не рисовать']);
  var h='<div class="card"><div class="gl">🇷🇺 Русский промпт</div><div class="out">'+esc(ruT)+'</div><button data-cp="ru">📋 Копировать русский</button></div>';
- h+='<div class="card"><div class="gl">🇬🇧 Английский промпт — для ImageFree AI</div><div class="out">'+esc(enT)+'</div><button data-cp="en">📋 Копировать английский</button></div>';
+ h+='<div class="card"><div class="gl">🇬🇧 Английский промпт — для ImageFree AI</div><div class="out">'+(enT?esc(enT):'— собери промпт')+'</div><button data-cp="en">📋 Копировать английский</button>';
+ if(!subEn)h+='<div class="warn">⚠️ пусто: впиши задумку в одно из полей сверху</div>';
+ if(unk.length)h+='<div class="warn">⚠️ не нашёл перевод: '+unk.join(', ')+' — впиши эти слова по-английски в поле выше</div>';
+ h+='</div>';
  h+='<div class="card"><div class="gl">🔍 Разбор — что за что отвечает</div>';
  rows.forEach(function(r){h+='<div class="n"><b>'+r[0]+'</b><span>'+esc(r[1])+': '+esc(r[2])+'<br><i>'+r[3]+'</i></span></div>';});
- h+='<div class="hint">скажи «убери 4» или «замени 3» — правлю точечно, не переделывая всё</div></div>';
+ h+='<div class="hint">скажи «убери 4» или «замени 3» — правлю точечно</div></div>';
  $('out').innerHTML=h;
  var bs=$('out').querySelectorAll('[data-cp]'),k;
- for(k=0;k<bs.length;k++){
-  bs[k].onclick=function(){cp(this.getAttribute('data-cp')==='ru'?LAST.ru:LAST.en);};
- }
+ for(k=0;k<bs.length;k++)bs[k].onclick=function(){cp(this.getAttribute('data-cp')==='ru'?LAST.ru:LAST.en);};
  LAST={ru:ruT,en:enT};
 }
-[['ru'],'en','extra','neg'].forEach(function(id){var el=$(typeof id==='string'?id:id[0]);el.addEventListener('input',build);});
+['ru','en','extra','neg'].forEach(function(id){$(id).addEventListener('input',build);});
+$('tr').onclick=function(){
+ var s=$('ru').value.trim();
+ if(!s){toast('сначала напиши задумку');return;}
+ var r=toEn(s);$('en').value=r.en;build();
+ toast(r.unk.length?('перевёл, но не знаю: '+r.unk.join(', ')):'переведено ✅');
+};
 $('build').onclick=function(){build();toast('собрано');};
 $('rnd').onclick=function(){
  DATA.forEach(function(g){
@@ -167,12 +201,11 @@ $('clr').onclick=function(){
  var all=document.querySelectorAll('.chip'),n;for(n=0;n<all.length;n++)all[n].classList.remove('on');
  $('out').innerHTML='';toast('очищено');
 };
-function gSave(){
+$('sav').onclick=function(){
  if(!LAST.en){toast('сначала собери промпт');return;}
  GAL.push({en:LAST.en,ru:LAST.ru,fav:false,ts:Date.now()});
  localStorage.setItem('prGal',JSON.stringify(GAL));gDraw();toast('в галерее ✅');
-}
-$('sav').onclick=gSave;
+};
 function gDraw(){
  var el=$('gal');
  if(!GAL.length){el.innerHTML='<p class="hint">пусто — собери промпт и жми «В галерею»</p>';return;}
