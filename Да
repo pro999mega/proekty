@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NET CONSOLE v3</title>
+<style>
+:root{--c:#00ff66}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:radial-gradient(120% 80% at 50% 0,#07141f 0%,#01050a 70%);color:var(--c);
+font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;user-select:none}
+#app{display:flex;flex-direction:column;height:100%;max-width:620px;margin:0 auto}
+#top{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:7px 11px;
+font-size:11px;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.08);
+background:rgba(0,0,0,.45);text-shadow:0 0 7px var(--c)}
+#live{display:flex;align-items:center;gap:5px}
+#live i{display:block;width:7px;height:7px;border-radius:50%;background:var(--c);
+box-shadow:0 0 9px var(--c);animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}
+#screens{position:relative;flex:1;overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;gap:8px;padding:10px 11px;overflow:auto}
+.scr.on{display:flex}
+h2{margin:0;font-size:12px;letter-spacing:1.2px;opacity:.85}
+button{font:inherit;font-size:12px;color:var(--c);background:rgba(0,255,102,.07);
+border:1px solid rgba(0,255,102,.35);border-radius:9px;padding:9px 10px;cursor:pointer}
+button:active{background:rgba(0,255,102,.22)}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.row button{flex:1}
+#flow{flex:1;min-height:70px;overflow:auto;white-space:pre-wrap;word-break:break-all;
+text-shadow:0 0 6px var(--c)}
+#inl{min-height:22px;border-top:1px dashed rgba(255,255,255,.15);padding-top:6px}
+#bar{display:flex;gap:5px;padding:8px 9px calc(9px + env(safe-area-inset-bottom));
+border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.5)}
+#bar button{flex:1;font-size:10.5px;padding:9px 3px}
+#bar button.act{background:rgba(0,255,102,.22);border-color:var(--c)}
+#inp{position:fixed;top:0;left:0;width:100%;height:1px;opacity:0;border:0;padding:0;
+background:transparent;z-index:1}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+td,th{border-bottom:1px solid rgba(255,255,255,.09);padding:5px 4px;text-align:left}
+.bar{height:9px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--c);box-shadow:0 0 10px var(--c);transition:width .4s}
+.big{font-size:22px;font-weight:700;text-shadow:0 0 12px var(--c)}
+.note{font-size:10.5px;opacity:.55}
+#hist{display:flex;align-items:flex-end;gap:3px;height:110px;border:1px solid rgba(255,255,255,.1);
+border-radius:10px;padding:6px;overflow-x:auto}
+#hist div{flex:0 0 12px;background:var(--c);border-radius:3px 3px 0 0;opacity:.85;min-height:2px}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);padding:8px 14px;
+background:rgba(0,0,0,.85);border:1px solid var(--c);border-radius:10px;font-size:11.5px;
+opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;max-width:90%}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="top">
+  <span id="live"><i></i><span id="net">ONLINE</span></span>
+  <span id="mode">РЕЖИМ: КОД</span>
+  <span><span id="clock">--:--</span> · <span id="bat">--%</span></span>
+</div>
+<div id="screens">
+
+<section class="scr on" id="sTerm">
+  <h2>⌨ ТЕРМИНАЛ · 1 НАЖАТИЕ = 1 СИМВОЛ</h2>
+  <div id="flow">// тапни «НАЧАТЬ ПЕЧАТЬ» и стучи по клавишам
+</div>
+  <div id="inl">&gt; <span id="cur">█</span></div>
+  <div class="row">
+    <button onclick="focusKeys()" style="border-color:var(--c)">⌨ НАЧАТЬ ПЕЧАТЬ</button>
+    <button onclick="setCmd()" id="bCmd">⌘ КОМАНДА</button>
+  </div>
+  <div class="row">
+    <button onclick="doEnter()">⏎ ВЫПОЛНИТЬ</button>
+    <button onclick="hideKeys()">⌨↓ СКРЫТЬ</button>
+    <button onclick="nextTheme()">🎨 ТЕМА</button>
+    <button onclick="toggleSound(this)">🔊 ЗВУК</button>
+    <button onclick="clearFlow()">🧹 ОЧИСТИТЬ</button>
+  </div>
+  <div class="note">Печать работает только здесь. Команды: help · ping · speed · geo · ip · scan · hist · theme · clear</div>
+</section>
+
+<section class="scr" id="sScan">
+  <h2>📡 СКАНЕР СЕТЕЙ</h2>
+  <div class="row"><button onclick="scanRun()" style="border-color:var(--c)">🔄 СКАНИРОВАТЬ</button>
+  <button onclick="scanStop()">■ СТОП</button></div>
+  <table id="netTab"><thead><tr><th>SSID</th><th>ШИФР</th><th>КАН</th><th>СИГНАЛ</th></tr></thead><tbody></tbody></table>
+  <div class="note">Список демонстрационный: Android запрещает сайтам видеть соседние Wi-Fi — обойти в браузере нельзя. Реальные цифры канала — на экране АНАЛИЗ.</div>
+</section>
+
+<section class="scr" id="sAnalyze">
+  <h2>📊 АНАЛИЗ КАНАЛА · РЕАЛЬНО</h2>
+  <div class="row"><button onclick="runTest()" style="border-color:var(--c)">▶ ЗАПУСТИТЬ ТЕСТ</button>
+  <button onclick="copyRep()">📋 ОТЧЁТ</button></div>
+  <div class="big" id="pingV">-- мс</div>
+  <div class="note" id="pingS">пинг: 6 замеров через speed.cloudflare.com</div>
+  <div class="bar"><i id="dlBar"></i></div>
+  <div id="dlV" style="font-size:12px">скорость: —</div>
+  <table id="anTab"></table>
+  <div id="verd" style="font-size:12px"></div>
+  <div class="note">Тест качает ~2 МБ — на мобильном интернете это заметно.</div>
+</section>
+
+<section class="scr" id="sGps">
+  <h2>🌍 GPS · РЕАЛЬНЫЕ КООРДИНАТЫ</h2>
+  <div class="row"><button onclick="geoOnce()" style="border-color:var(--c)">📍 ЗАХВАТИТЬ</button>
+  <button onclick="geoWatch()" id="bWatch">🛰 СЛЕЖЕНИЕ</button>
+  <button onclick="geoMap()">🗺 КАРТА</button></div>
+  <div id="geoOut" style="font-size:12px;white-space:pre-wrap">—</div>
+  <div class="note">Нужно разрешение на геолокацию и включённый GPS.</div>
+</section>
+
+<section class="scr" id="sHist">
+  <h2>📈 ИСТОРИЯ ЗАМЕРОВ</h2>
+  <div id="hist"></div>
+  <div id="histTxt" style="font-size:12px;white-space:pre-wrap">замеров нет</div>
+  <div class="row"><button onclick="histDraw()">🔄 ОБНОВИТЬ</button>
+  <button onclick="histClear()">🗑 ОЧИСТИТЬ ИСТОРИЮ</button></div>
+  <div class="note">Выше столбик — хуже канал. Данные лежат в памяти телефона.</div>
+</section>
+
+</div>
+<div id="bar">
+  <button class="act" id="bTerm" onclick="show('sTerm')">⌨ ТЕРМ</button>
+  <button id="bScan" onclick="show('sScan')">📡 СКАН</button>
+  <button id="bAn" onclick="show('sAnalyze')">📊 АНАЛИЗ</button>
+  <button id="bGps" onclick="show('sGps')">🌍 GPS</button>
+  <button id="bHist" onclick="show('sHist')">📈 ИСТОРИЯ</button>
+</div>
+</div>
+<input id="inp" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+<div id="toast"></div>
+
+<script>
+var $=function(id){return document.getElementById(id)};
+var flow=$('flow'), inp=$('inp'), inl=$('inl');
+var stream='', buf='', cmdMode=false, sound=true, chars=0;
+var THEMES=[['#00ff66','зелёная'],['#35b7ff','синяя'],['#ffb020','янтарная'],['#b56bff','фиолетовая']];
+var ti=0, AC=null, last={busy:false}, lastGeo=null, watchId=null, scanT=null, si=0;
+
+/* ---------- интерфейс ---------- */
+function show(id){
+  var a=document.querySelectorAll('.scr'), i;
+  for(i=0;i<a.length;i++) a[i].classList.toggle('on', a[i].id===id);
+  var ids=['sTerm','sScan','sAnalyze','sGps','sHist'], bt=['bTerm','bScan','bAn','bGps','bHist'];
+  for(i=0;i<ids.length;i++) $(bt[i]).classList.toggle('act', ids[i]===id);
+  if(id==='sTerm'){ inp.disabled=false; setTimeout(function(){inp.focus()},40); }
+  else { inp.disabled=true; try{inp.blur()}catch(e){} }
+  if(id==='sHist') histDraw();
+}
+function toast(t){
+  var el=$('toast'); el.textContent=t; el.classList.add('on');
+  clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('on')},1500);
+}
+function focusKeys(){
+  show('sTerm'); inp.disabled=false;
+  inp.focus(); setTimeout(function(){inp.focus()},80);
+  window.scrollTo(0,0);
+  toast('клавиатура активна — стучи!');
+}
+function hideKeys(){ try{inp.blur()}catch(e){} toast('клавиатура скрыта · тапни «НАЧАТЬ ПЕЧАТЬ»'); }
+function nextTheme(){
+  ti=(ti+1)%THEMES.length;
+  document.documentElement.style.setProperty('--c', THEMES[ti][0]);
+  toast('тема: '+THEMES[ti][1]);
+}
+function toggleSound(b){
+  sound=!sound; b.textContent=sound?'🔊 ЗВУК':'🔇 ЗВУК';
+  toast(sound?'звук включён':'звук выключен');
+}
+function clearFlow(){ stream=''; flow.textContent=''; }
+function put(s){
+  stream+=s;
+  if(stream.length>8000) stream=stream.slice(-8000);
+  flow.textContent=stream;
+  flow.scrollTop=flow.scrollHeight;
+}
+function beep(){
+  if(navigator.vibrate) try{navigator.vibrate(6)}catch(e){}
+  if(!sound) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    var o=AC.createOscillator(), g=AC.createGain();
+    o.type='square'; o.frequency.value=700+Math.random()*320;
+    g.gain.value=0.015; o.connect(g); g.connect(AC.destination);
+    o.start(); o.stop(AC.currentTime+0.02);
+  }catch(e){}
+}
+
+/* ---------- ввод: только в терминале ---------- */
+function typeChar(c){
+  chars++; beep();
+  if(cmdMode){ buf+=c; drawLine(); }
+  else put(c);
+}
+function back(){
+  if(cmdMode){ buf=buf.slice(0,-1); drawLine(); }
+  else { stream=stream.slice(0,-1); flow.textContent=stream; }
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function drawLine(){ inl.innerHTML='&gt; '+esc(buf)+'<span>█</span>'; }
+function setCmd(){
+  cmdMode=!cmdMode;
+  $('bCmd').textContent=cmdMode?'⌘ КОМАНДА ✓':'⌘ КОМАНДА';
+  $('mode').textContent='РЕЖИМ: '+(cmdMode?'КОМАНДА':'КОД');
+  if(!cmdMode) buf='';
+  drawLine();
+  try{inp.focus()}catch(e){}
+  toast(cmdMode?'режим команды: набери и нажми ⏎':'режим кода: стучи — идут символы');
+}
+function doEnter(){ exec(); }
+
+/* главный слушатель: input + beforeinput (Android отдаёт символы именно здесь) */
+inp.addEventListener('input', function(e){
+  var t=e.inputType||'';
+  if(t.indexOf('delete')===0){ back(); inp.value=''; return; }
+  var d=e.data;
+  if(d===null||d===undefined||d==='') d=inp.value;
+  if(d){
+    for(var i=0;i<d.length;i++){
+      var ch=d.charAt(i);
+      if(ch==='\n') exec(); else typeChar(ch);
+    }
+  }
+  inp.value='';
+});
+inp.addEventListener('beforeinput', function(e){
+  if(e.inputType==='insertLineBreak'){ e.preventDefault(); exec(); }
+});
+inp.addEventListener('keydown', function(e){
+  if(e.isComposing||e.keyCode===229) return;
+  if(e.key==='Enter'){ e.preventDefault(); exec(); return; }
+  if(e.key==='Backspace'){ e.preventDefault(); back(); return; }
+  if(e.key&&e.key.length===1){ e.preventDefault(); typeChar(e.key); }
+});
+
+/* ---------- команды ---------- */
+function exec(){
+  if(!cmdMode){ put('\n'); return; }
+  var c=buf.trim(); buf=''; drawLine();
+  if(c) cmdf(c);
+}
+function cmdf(c){
+  var a=c.split(/\s+/), k=a[0].toLowerCase();
+  put('\n> '+c+'\n');
+  if(k==='help') put('help · ping · speed · geo · ip · scan · hist · theme · clear · ver');
+  else if(k==='ping'||k==='speed'){ show('sAnalyze'); runTest(); }
+  else if(k==='geo'){ show('sGps'); geoOnce(); }
+  else if(k==='scan'){ show('sScan'); scanRun(); }
+  else if(k==='hist'){ show('sHist'); histDraw(); }
+  else if(k==='ip') ipInfo();
+  else if(k==='theme'){ if(a[1]){ a[1]=a[1].toLowerCase();
+      var idx={'green':0,'зелёная':0,'blue':1,'синяя':1,'amber':2,'янтарная':2,'purple':3,'фиолетовая':3}[a[1]];
+      if(idx===undefined) put('темы: green · blue · amber · purple');
+      else{ ti=idx; document.documentElement.style.setProperty('--c',THEMES[ti][0]); put('тема: '+THEMES[ti][1]); }
+    } else nextTheme(); }
+  else if(k==='clear'){ clearFlow(); }
+  else if(k==='ver') put('net-console v3 · печать только в терминале · вход через input-событие');
+  else if(k==='1337'){ put('добро пожаловать, кодер 😎'); document.body.style.filter='hue-rotate(120deg)';
+    setTimeout(function(){document.body.style.filter=''},900); }
+  else if(k==='rm'){ put('хорошая попытка 😄 ничего не удалено'); }
+  else put('команда не найдена: '+k+' — набери help');
+}
+
+/* ---------- реальный анализ ---------- */
+async function runTest(){
+  if(last.busy) return;
+  last.busy=true;
+  var u=function(b){ return 'https://speed.cloudflare.com/__down?bytes='+b+'&r='+Math.random(); };
+  var pings=[], i;
+  $('pingV').textContent='…'; $('pingS').textContent='идут замеры пинга…';
+  try{
+    for(i=0;i<6;i++){
+      var t0=performance.now();
+      await fetch(u(1),{cache:'no-store'});
+      var dt=performance.now()-t0;
+      pings.push(dt);
+      $('pingV').textContent=Math.round(dt)+' мс';
+      $('pingS').textContent='замер '+(i+1)+' из 6';
+    }
+    var mn=Math.min.apply(null,pings), mx=Math.max.apply(null,pings), sum=0;
+    for(i=0;i<pings.length;i++) sum+=pings[i];
+    var avg=sum/pings.length, jit=0;
+    for(i=1;i<pings.length;i++) jit+=Math.abs(pings[i]-pings[i-1]);
+    jit/=(pings.length-1);
+    $('pingV').textContent=Math.round(avg)+' мс';
+    $('pingS').textContent='мин '+Math.round(mn)+' · сред '+Math.round(avg)+' · макс '+Math.round(mx)+' · джиттер '+Math.round(jit)+' мс';
+    anInfo(mn,avg,mx,jit);
+    var mb='—';
+    try{
+      $('dlV').textContent='скорость: качаю 2 МБ…';
+      var t1=performance.now();
+      var r=await fetch(u(2000000),{cache:'no-store'});
+      var b=await r.arrayBuffer();
+      var sec=(performance.now()-t1)/1000;
+      mb=(b.byteLength*8/1e6/sec);
+      $('dlBar').style.width=Math.min(100, mb/50*100)+'%';
+      $('dlV').textContent='скорость: '+mb.toFixed(1)+' Мбит/с · '+(b.byteLength/1048576).toFixed(1)+' МБ за '+sec.toFixed(1)+' с';
+      $('verd').textContent='вердикт CS2: '+(avg<40&&jit<15?'идеально 🎯':(avg<80&&jit<30?'играбельно 👍':'терпимо, лучше провод ⚠️'));
+      mb=mb.toFixed(1);
+    }catch(e){
+      $('dlV').textContent='скорость не измерить: '+e.message;
+    }
+    histAdd(Math.round(avg), mb, Math.round(jit));
+    last={avg:Math.round(avg), mb:mb, jit:Math.round(jit), busy:false};
+  }catch(e){
+    $('pingS').textContent='ошибка сети: '+e.message+' (проверь интернет)';
+    last.busy=false;
+  }
+}
+function row(a,b){ return '<tr><td style="opacity:.65">'+a+'</td><td>'+b+'</td></tr>'; }
+function anInfo(mn,avg,mx,jit){
+  var c=navigator.connection||{};
+  $('anTab').innerHTML=
+    row('Тип соединения',(c.type||'—')+' / '+(c.effectiveType||'—'))+
+    row('Заявлено браузером',(c.downlink!=null?c.downlink+' Мбит/с':'—')+' · RTT '+(c.rtt!=null?c.rtt+' мс':'—'))+
+    row('Экономия трафика', c.saveData?'включена':'выключена')+
+    row('Пинг мин/сред/макс', Math.round(mn)+' / '+Math.round(avg)+' / '+Math.round(mx)+' мс')+
+    row('Джиттер', Math.round(jit)+' мс')+
+    row('Ядра CPU', String(navigator.hardwareConcurrency||'?'))+
+    row('ОЗУ (класс)', String(navigator.deviceMemory||'?')+' ГБ')+
+    row('Экран', window.screen.width+'×'+window.screen.height+' @'+window.devicePixelRatio+'x')+
+    row('Пояс', Intl.DateTimeFormat().resolvedOptions().timeZone||'—')+
+    row('Сеть', navigator.onLine?'онлайн':'офлайн');
+}
+function copyRep(){
+  var c=navigator.connection||{};
+  var t='ОТЧЁТ NET CONSOLE 3 — '+new Date().toLocaleString('ru-RU')+
+    '\nping: '+$('pingS').textContent+
+    '\n'+$('dlV').textContent+
+    '\n'+$('verd').textContent+
+    '\nтип: '+(c.type||'—')+' / '+(c.effectiveType||'—')+
+    '\nсеть: '+(navigator.onLine?'онлайн':'офлайн');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){toast('отчёт скопирован')}).catch(function(){put('\n'+t+'\n')});
+  } else { put('\n'+t+'\n'); }
+}
+function ipInfo(){
+  put('запрос IP…\n');
+  fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(j){
+    put('IP: '+(j.ip||'?')+'\nпровайдер: '+(j.org||'?')+'\nгород: '+(j.city||'?')+', '+(j.country_name||'?'));
+  }).catch(function(){
+    fetch('https://api.ipify.org?format=json').then(function(r){return r.json()}).then(function(j){
+      put('IP: '+j.ip+'\n(провайдер недоступен)');
+    }).catch(function(){ put('не удалось получить IP — нет сети или блокировка'); });
+  });
+}
+
+/* ---------- сканер (демо) ---------- */
+var NETS=[['TP-LINK_4F2A','WPA2',6],['Rostelecom-58A1','WPA2',1],['MTS_Home','WPA/WPA2',11],
+['Keenetic-7712','WPA2',9],['DIR-615','WPA2',13],['Xiaomi_A1B2','WPA2',3],['FreeWiFi','открытая',5],
+['Dom.ru-5G','WPA3',7],['Router-X','WPA2',4],['iPhone_Hotspot','WPA3',2]];
+function scanRun(){
+  clearInterval(scanT); si=0;
+  $('netTab').querySelector('tbody').innerHTML='';
+  scanT=setInterval(function(){
+    if(si>=NETS.length){ clearInterval(scanT); return; }
+    var n=NETS[si++], lvl=Math.floor(Math.random()*40)+60;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+n[0]+'</td><td>'+n[1]+'</td><td>'+n[2]+
+      '</td><td><div class="bar" style="width:70px"><i style="width:'+lvl+'%"></i></div></td>';
+    $('netTab').querySelector('tbody').appendChild(tr);
+    if(navigator.vibrate) try{navigator.vibrate(4)}catch(e){}
+  }, 500);
+}
+function scanStop(){ clearInterval(scanT); }
+
+/* ---------- GPS ---------- */
+function geoOnce(){
+  var o=$('geoOut');
+  if(!navigator.geolocation){ o.textContent='геолокация недоступна в этом браузере'; return; }
+  o.textContent='запрос координат…';
+  navigator.geolocation.getCurrentPosition(function(p){
+    var c=p.coords;
+    o.textContent='широта: '+c.latitude.toFixed(6)+'\nдолгота: '+c.longitude.toFixed(6)+
+      '\nточность: ±'+Math.round(c.accuracy)+' м'+
+      (c.altitude!=null?'\nвысота: '+Math.round(c.altitude)+' м':'')+
+      (c.speed!=null&&c.speed>0?'\nскорость: '+(c.speed*3.6).toFixed(1)+' км/ч':'')+
+      (c.heading!=null?'\nазимут: '+Math.round(c.heading)+'°':'')+
+      '\nвремя: '+new Date(p.timestamp).toLocaleTimeString('ru-RU');
+    lastGeo=c;
+  }, function(e){
+    o.textContent='ошибка: '+e.message+'\nвключи геолокацию и разреши доступ';
+  }, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+}
+function geoWatch(){
+  var b=$('bWatch'), o=$('geoOut');
+  if(watchId!==null){
+    navigator.geolocation.clearWatch(watchId); watchId=null;
+    b.textContent='🛰 СЛЕЖЕНИЕ'; toast('слежение остановлено'); return;
+  }
+  if(!navigator.geolocation){ o.textContent='геолокация недоступна'; return; }
+  b.textContent='⏹ СТОП';
+  watchId=navigator.geolocation.watchPosition(function(p){
+    var c=p.coords;
+    o.textContent='СЛЕЖЕНИЕ АКТИВНО\nширота: '+c.latitude.toFixed(6)+'\nдолгота: '+c.longitude.toFixed(6)+
+      '\nточность: ±'+Math.round(c.accuracy)+' м'+
+      (c.speed!=null?'\nскорость: '+(c.speed*3.6).toFixed(1)+' км/ч':'')+
+      '\nобновлено: '+new Date().toLocaleTimeString('ru-RU');
+    lastGeo=c;
+  }, function(e){ o.textContent='ошибка слежения: '+e.message; },
+  {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+}
+function geoMap(){
+  if(!lastGeo){ toast('сначала «ЗАХВАТИТЬ»'); return; }
+  var u='https://yandex.ru/maps/?pt='+lastGeo.longitude.toFixed(6)+','+lastGeo.latitude.toFixed(6)+'&z=17&l=map';
+  window.open(u,'_blank');
+}
+
+/* ---------- история ---------- */
+var HK='nc3_hist';
+function histGet(){ try{ return JSON.parse(localStorage.getItem(HK)||'[]'); }catch(e){ return []; } }
+function histAdd(p,d,j){
+  var h=histGet();
+  h.push({t:Date.now(), p:p, d:d, j:j});
+  if(h.length>60) h=h.slice(-60);
+  try{ localStorage.setItem(HK,JSON.stringify(h)); }catch(e){}
+  histDraw();
+}
+function histDraw(){
+  var h=histGet(), box=$('hist'), txt=$('histTxt'), i;
+  if(!h.length){ box.innerHTML=''; txt.textContent='замеров нет — запусти тест на экране АНАЛИЗ'; return; }
+  var mx=1;
+  for(i=0;i<h.length;i++) if(h[i].p>mx) mx=h[i].p;
+  var html='';
+  for(i=0;i<h.length;i++){
+    var v=Math.max(3, Math.round(h[i].p/mx*100));
+    html+='<div style="height:'+v+'%" title="'+h[i].p+' мс"></div>';
+  }
+  box.innerHTML=html;
+  var L=h[h.length-1];
+  txt.textContent='замеров: '+h.length+'\nпоследний: '+L.p+' мс · '+L.d+' Мбит/с · джиттер '+L.j+' мс\nкогда: '+new Date(L.t).toLocaleString('ru-RU');
+}
+function histClear(){
+  try{ localStorage.removeItem(HK); }catch(e){}
+  histDraw(); toast('история очищена');
+}
+
+/* ---------- часы, батарея, сеть ---------- */
+function tick(){
+  var d=new Date();
+  $('clock').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+setInterval(tick,1000); tick();
+function netUpd(){ $('net').textContent=navigator.onLine?'ONLINE':'OFFLINE'; }
+window.addEventListener('online',netUpd); window.addEventListener('offline',netUpd); netUpd();
+if(navigator.getBattery){
+  navigator.getBattery().then(function(b){
+    function u(){ $('bat').textContent=Math.round(b.level*100)+'%'+(b.charging?'⚡':''); }
+    b.addEventListener('levelchange',u); b.addEventListener('chargingchange',u); u();
+  }).catch(function(){});
+}
+
+/* старт */
+show('sTerm');
+drawLine();
+histDraw();
+</script>
+</body>
+</html>
