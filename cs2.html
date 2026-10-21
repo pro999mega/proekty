@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05080f">
+<title>CS2 · Лаунчер</title>
+<style>
+:root{
+  --bg:#05080f;
+  --txt:#eef4ff;
+  --mut:#8ea3c4;
+  --mut2:#64789a;
+  --panel:rgba(18,26,43,.6);
+  --line:rgba(140,170,220,.13);
+  --line2:rgba(140,170,220,.26);
+  --acc:#ffa42b;
+  --acc2:#ff6a2b;
+  --blue:#5aa2ff;
+  --ok:#35e08d;
+  --err:#ff5f70;
+  --r:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;
+  color:var(--txt);
+  min-height:100dvh;
+  padding:0 14px calc(46px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+  position:relative;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1100px 620px at 82% -12%,rgba(255,120,20,.17),transparent 62%),
+    radial-gradient(880px 520px at -8% 6%,rgba(70,130,255,.15),transparent 62%),
+    radial-gradient(700px 500px at 50% 100%,rgba(120,70,255,.1),transparent 65%),
+    var(--bg);
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.28;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.32'/></svg>");
+  mix-blend-mode:overlay;
+}
+.aurora{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;opacity:.42}
+.a1{width:460px;height:460px;background:radial-gradient(circle,#ff8a1f,transparent 68%);top:-190px;right:-150px;animation:drift1 20s ease-in-out infinite}
+.a2{width:420px;height:420px;background:radial-gradient(circle,#1f6bff,transparent 68%);top:38%;left:-190px;animation:drift2 24s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(-60px,60px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,-50px)}}
+
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto}
+
+/* шапка */
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 4px 20px;
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{
+  width:42px;height:42px;border-radius:14px;flex:0 0 auto;display:grid;place-items:center;
+  background:linear-gradient(150deg,#ffc45c,#ff6a1f);
+  box-shadow:0 12px 26px -12px rgba(255,120,20,.9),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.logo svg{width:17px;height:17px;fill:#1c1104}
+.b-name{font-size:13.5px;font-weight:800;letter-spacing:1.5px;line-height:1.1}
+.b-sub{font-size:11px;color:var(--mut2);margin-top:3px;letter-spacing:.3px}
+.pill{
+  display:flex;align-items:center;gap:7px;flex:0 0 auto;
+  padding:8px 12px;border-radius:999px;font-size:11px;font-weight:700;
+  color:var(--mut);background:rgba(255,255,255,.045);
+  border:1px solid var(--line);backdrop-filter:blur(12px);white-space:nowrap;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 9px var(--ok);animation:blink 2.4s ease-in-out infinite}
+.pill.warn .dot{background:var(--acc);box-shadow:0 0 9px var(--acc)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* стекло */
+.glass{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  backdrop-filter:blur(24px) saturate(140%);
+  -webkit-backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:0 30px 70px -40px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.055);
+}
+
+/* герой */
+.hero{
+  position:relative;overflow:hidden;padding:34px 22px 24px;text-align:center;
+  border-radius:30px;
+}
+.hero::before{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(circle at 50% -20%,rgba(255,150,40,.28),transparent 60%);
+}
+.hero-in{position:relative;z-index:2}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  padding:6px 12px;border-radius:999px;margin-bottom:16px;
+  color:#ffd493;background:rgba(255,164,43,.11);border:1px solid rgba(255,164,43,.28);
+}
+.chip i{width:5px;height:5px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+h1{
+  font-size:clamp(30px,9vw,46px);line-height:1;letter-spacing:-1.6px;font-weight:900;
+  background:linear-gradient(175deg,#ffffff 12%,#a9c1e4 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.sub{
+  color:var(--mut);font-size:13px;line-height:1.6;
+  margin:11px auto 22px;max-width:320px;
+}
+.play{
+  position:relative;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:19px;border:none;border-radius:18px;cursor:pointer;font-family:inherit;
+  font-size:17px;font-weight:900;letter-spacing:.2px;color:#20140a;overflow:hidden;
+  background:linear-gradient(135deg,#ffcb5e,#ff7d1f 55%,#ff5e14);
+  box-shadow:0 20px 44px -18px rgba(255,130,20,.95),inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform .13s ease,filter .2s ease,box-shadow .2s ease;
+}
+.play:hover{filter:brightness(1.06);box-shadow:0 24px 52px -18px rgba(255,130,20,1)}
+.play:active{transform:scale(.976)}
+.play svg{width:20px;height:20px;fill:currentColor}
+.play::after{
+  content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-18deg);animation:shine 4.2s ease-in-out infinite;
+}
+@keyframes shine{0%,72%{left:-60%}100%{left:130%}}
+.play.busy{pointer-events:none;filter:saturate(.55) brightness(.94)}
+.play.busy::after{animation:none}
+.bar{
+  position:absolute;left:0;bottom:0;height:3px;width:0;border-radius:0 3px 3px 0;
+  background:rgba(30,15,0,.55);transition:width .35s ease;
+}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.mini{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:12px 8px;border-radius:14px;cursor:pointer;font-family:inherit;
+  font-size:12.5px;font-weight:700;text-decoration:none;color:var(--txt);
+  background:rgba(255,255,255,.05);border:1px solid var(--line);
+  transition:background .16s,border-color .16s,transform .12s;
+}
+.mini:hover{background:rgba(255,255,255,.095);border-color:var(--line2)}
+.mini:active{transform:scale(.97)}
+.mini svg{width:14px;height:14px;fill:var(--mut)}
+.last{margin-top:14px;font-size:11px;color:var(--mut2);letter-spacing:.2px}
+
+/* секции */
+.sec{margin-top:13px}
+.card{padding:19px}
+.h{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.h h2{font-size:11.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut)}
+.h .count{
+  margin-left:auto;font-size:11px;font-weight:700;color:var(--mut);
+  background:rgba(255,255,255,.055);border:1px solid var(--line);
+  padding:3px 9px;border-radius:999px;
+}
+
+/* быстрый доступ */
+.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.q{
+  display:flex;flex-direction:column;gap:9px;padding:14px;border-radius:17px;
+  text-decoration:none;color:var(--txt);background:rgba(255,255,255,.04);
+  border:1px solid var(--line);transition:background .16s,border-color .16s,transform .12s;
+}
+.q:hover{background:rgba(255,255,255,.08);border-color:var(--line2);transform:translateY(-2px)}
+.q:active{transform:scale(.98)}
+.q .ic{
+  width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(150deg,rgba(90,162,255,.22),rgba(90,162,255,.07));
+  border:1px solid rgba(90,162,255,.2);
+}
+.q .ic svg{width:16px;height:16px;fill:var(--blue)}
+.q b{font-size:13px;font-weight:700}
+.q small{font-size:11px;color:var(--mut);margin-top:-5px}
+
+/* игры */
+.glist{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.game{
+  position:relative;display:flex;align-items:center;gap:10px;
+  padding:12px 30px 12px 11px;border-radius:16px;text-align:left;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);
+  color:var(--txt);font-family:inherit;cursor:pointer;
+  transition:background .16s,border-color .16s,transform .12s;
+}
+.game:hover{background:rgba(255,255,255,.08);border-color:var(--line2)}
+.game:active{transform:scale(.977)}
+.av{
+  width:32px;height:32px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;
+  font-size:12.5px;font-weight:900;color:#0d1523;letter-spacing:-.3px;
+  background:linear-gradient(150deg,#a8ccff,#5f95e6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+}
+.game .tx{min-width:0}
+.game b{display:block;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game small{font-size:10.5px;color:var(--mut2)}
+.del{
+  position:absolute;top:6px;right:6px;width:19px;height:19px;border-radius:50%;
+  border:none;cursor:pointer;display:grid;place-items:center;line-height:1;
+  font-size:12px;color:#9db0cc;background:rgba(255,255,255,.07);
+  transition:background .15s,color .15s;
+}
+.del:hover{background:var(--err);color:#fff}
+
+/* форма */
+.form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.form input{
+  width:100%;padding:13px 14px;border-radius:13px;font-family:inherit;font-size:14px;
+  color:var(--txt);background:rgba(0,0,0,.32);border:1px solid var(--line);
+  outline:none;transition:border-color .16s,background .16s;
+}
+.form input::placeholder{color:#5b6f90}
+.form input:focus{border-color:rgba(255,164,43,.55);background:rgba(0,0,0,.48)}
+.add{
+  grid-column:1/-1;padding:14px;border:none;border-radius:13px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:800;color:#20140a;
+  background:linear-gradient(135deg,#ffcb5e,#ff7d1f);
+  transition:filter .16s,transform .12s;
+}
+.add:hover{filter:brightness(1.06)}
+.add:active{transform:scale(.985)}
+.note{font-size:11.8px;line-height:1.7;color:var(--mut2);margin-top:11px}
+.note b{color:#c2d5f0;font-weight:700}
+.tag-id{
+  display:inline-block;padding:1px 6px;border-radius:6px;font-size:11px;font-weight:800;
+  color:#ffd08a;background:rgba(255,164,43,.14);
+}
+
+/* переключатель */
+.toggle-row{
+  display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:16px;
+  background:rgba(255,255,255,.035);border:1px solid var(--line);cursor:pointer;
+  margin-top:16px;transition:background .16s,border-color .16s;
+}
+.toggle-row:hover{background:rgba(255,255,255,.07);border-color:var(--line2)}
+.toggle-row .tx{flex:1;min-width:0}
+.toggle-row b{display:block;font-size:13px;font-weight:700}
+.toggle-row small{font-size:11px;color:var(--mut2)}
+.switch{
+  position:relative;width:44px;height:26px;flex:0 0 auto;border-radius:999px;
+  background:rgba(255,255,255,.1);border:1px solid var(--line);
+  transition:background .22s,border-color .22s;
+}
+.switch::after{
+  content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+  background:#c6d5ea;transition:transform .26s cubic-bezier(.2,.9,.2,1),background .22s;
+}
+.toggle-row.on .switch{background:rgba(53,224,141,.28);border-color:rgba(53,224,141,.45)}
+.toggle-row.on .switch::after{transform:translateX(18px);background:#35e08d}
+
+/* app id */
+.ids{display:grid;gap:6px}
+.idrow{
+  display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;
+  background:rgba(255,255,255,.03);border:1px solid transparent;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .12s;
+}
+.idrow:hover{background:rgba(255,255,255,.07);border-color:var(--line)}
+.idrow:active{transform:scale(.99)}
+.idrow b{flex:1;font-size:12.5px;font-weight:600}
+.idrow code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--mut);
+  background:rgba(0,0,0,.34);padding:3px 8px;border-radius:7px;
+}
+
+/* bat */
+.dl{
+  display:flex;align-items:center;gap:12px;padding:15px;border-radius:17px;
+  text-decoration:none;color:var(--txt);
+  background:linear-gradient(135deg,rgba(90,162,255,.16),rgba(90,162,255,.04));
+  border:1px solid rgba(90,162,255,.26);
+  transition:background .16s,transform .12s;
+}
+.dl:hover{background:linear-gradient(135deg,rgba(90,162,255,.26),rgba(90,162,255,.08))}
+.dl:active{transform:scale(.985)}
+.dl .ic{
+  width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;
+  background:rgba(90,162,255,.2);
+}
+.dl .ic svg{width:18px;height:18px;fill:var(--blue)}
+.dl b{display:block;font-size:13px;font-weight:700}
+.dl small{font-size:11.5px;color:var(--mut)}
+
+footer{text-align:center;font-size:10.8px;line-height:1.8;color:#4e627f;margin-top:26px}
+
+/* тост */
+.toast{
+  position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));
+  transform:translate(-50%,160%);z-index:60;
+  display:flex;align-items:center;gap:8px;
+  padding:12px 18px;border-radius:14px;font-size:12.5px;font-weight:600;
+  color:var(--txt);background:rgba(16,26,44,.97);
+  border:1px solid var(--line2);backdrop-filter:blur(18px);
+  box-shadow:0 20px 44px -16px #000;max-width:90vw;text-align:center;
+  transition:transform .34s cubic-bezier(.2,1.25,.4,1);
+}
+.toast.show{transform:translate(-50%,0)}
+
+/* анимация появления */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media(min-width:560px){
+  .grid4{grid-template-columns:repeat(4,1fr)}
+  .glist{grid-template-columns:repeat(3,1fr)}
+  .hero{padding:44px 36px 30px}
+  h1{font-size:46px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div>
+<div class="aurora a2"></div>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+      <div>
+        <div class="b-name">STEAM LAUNCHER</div>
+        <div class="b-sub">Counter-Strike 2 · App 730</div>
+      </div>
+    </div>
+    <div class="pill" id="status"><span class="dot"></span><span id="statusText">Проверяю…</span></div>
+  </header>
+
+  <section class="hero glass">
+    <div class="hero-in">
+      <div class="chip"><i></i><span id="heroChip">Готов к запуску</span></div>
+      <h1>Counter-Strike&nbsp;2</h1>
+      <p class="sub">Один тап — Steam откроется сам и поднимет игру. Без поиска, без лишних окон.</p>
+
+      <button class="play" id="play">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="playLabel">Играть</span>
+        <span class="bar" id="bar"></span>
+      </button>
+
+      <div class="duo">
+        <button class="mini" id="copy">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+          Скопировать
+        </button>
+        <a class="mini" href="steam://open/main">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+          Открыть Steam
+        </a>
+      </div>
+
+      <div class="last" id="last"></div>
+    </div>
+  </section>
+
+  <section class="sec reveal">
+    <div class="glass card">
+      <div class="h"><h2>Быстрый доступ</h2></div>
+      <div class="grid4">
+        <a class="q" href="steam://store/730">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10-4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 2 3 6v14a2 2 0 0 0 2 2h3.1a3.5 3.5 0 0 1 3.4-3.9l1.3-1.9A3.5 3.5 0 0 1 15 15V9H5.4L7 6h11v9h2V2H6z"/></svg></div>
+          <b>Магазин</b><small>Страница CS2</small>
+        </a>
+        <a class="q" href="steam://url/Inventory">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-6 0h-4V4h4v2z"/></svg></div>
+          <b>Инвентарь</b><small>Скины и предметы</small>
+        </a>
+        <a class="q" href="steam://friends/status/online">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z"/></svg></div>
+          <b>Друзья</b><small>Кто сейчас в сети</small>
+        </a>
+        <a class="q" href="steam://open/downloads">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v10l3.5-3.5 1.4 1.4L12 16l-4.9-5.1 1.4-1.4L12 13V3zM5 19h14v2H5z"/></svg></div>
+          <b>Загрузки</b><small>Обновления игр</small>
+        </a>
+      </div>
+
+      <div class="toggle-row" id="autoRow">
+        <div class="tx">
+          <b>Автозапуск</b>
+          <small>Игра стартует сама через секунду</small>
+        </div>
+        <div class="switch"></div>
+      </div>
+
+      <p class="note" id="hint">
+        <b>Впервые:</b> браузер спросит «Открыть Steam?» — поставь галочку <b>«Всегда разрешать»</b> и больше не увидишь.
+      </p>
+    </div>
+  </section>
+
+  <section class="sec reveal">
+    <div class="glass card">
+      <div class="h">
+        <h2>Мои игры</h2>
+        <span class="count" id="count">6</span>
+      </div>
+      <div class="glist" id="games">
+        <button class="game" data-id="570"><div class="av">D</div><div class="tx"><b>Dota 2</b><small>App 570</small></div></button>
+        <button class="game" data-id="440"><div class="av">T</div><div class="tx"><b>Team Fortress 2</b><small>App 440</small></div></button>
+        <button class="game" data-id="252490"><div class="av">R</div><div class="tx"><b>Rust</b><small>App 252490</small></div></button>
+        <button class="game" data-id="271590"><div class="av">G</div><div class="tx"><b>GTA V</b><small>App 271590</small></div></button>
+        <button class="game" data-id="578080"><div class="av">P</div><div class="tx"><b>PUBG</b><small>App 578080</small></div></button>
+        <button class="game" data-id="1172470"><div class="av">A</div><div class="tx"><b>Apex Legends</b><small>App 1172470</small></div></button>
+      </div>
+
+      <div class="form">
+        <input type="text" id="gName" placeholder="Название игры" maxlength="26" autocomplete="off">
+        <input type="number" id="gId" placeholder="App ID" inputmode="numeric" autocomplete="off">
+        <button class="add" id="addGame">+ Добавить игру</button>
+      </div>
+
+      <p class="note">App ID — цифры из адреса магазина: <span class="tag-id">store.steampowered.com/app/<b>730</b>/</span></p>
+    </div>
+  </section>
+
+  <section class="sec reveal">
+    <div class="glass card">
+      <div class="h"><h2>Шпаргалка App ID</h2></div>
+      <div class="ids">
+        <div class="idrow" data-copy="730"><b>Counter-Strike 2</b><code>730</code></div>
+        <div class="idrow" data-copy="570"><b>Dota 2</b><code>570</code></div>
+        <div class="idrow" data-copy="440"><b>Team Fortress 2</b><code>440</code></div>
+        <div class="idrow" data-copy="252490"><b>Rust</b><code>252490</code></div>
+        <div class="idrow" data-copy="271590"><b>Grand Theft Auto V</b><code>271590</code></div>
+        <div class="idrow" data-copy="578080"><b>PUBG: Battlegrounds</b><code>578080</code></div>
+        <div class="idrow" data-copy="1172470"><b>Apex Legends</b><code>1172470</code></div>
+        <div class="idrow" data-copy="413150"><b>Stardew Valley</b><code>413150</code></div>
+      </div>
+      <p class="note">Тап по строке копирует ссылку <b>steam://rungameid/ID</b></p>
+    </div>
+  </section>
+
+  <section class="sec reveal">
+    <div class="glass card">
+      <div class="h"><h2>Ярлык на рабочий стол</h2></div>
+      <a class="dl" href="https://raw.githubusercontent.com/pro999mega/proekty/main/cs2.bat" download>
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16 6 10h4V3h4v7h4l-6 6zM4 18h16v3H4z"/></svg></div>
+        <div>
+          <b>Скачать cs2.bat</b>
+          <small>Запуск без браузера, двойным кликом</small>
+        </div>
+      </a>
+      <p class="note">Правый клик по файлу → <b>Отправить</b> → <b>Рабочий стол (создать ярлык)</b>.</p>
+    </div>
+  </section>
+
+  <footer>
+    Работает только на ПК с установленным Steam.<br>
+    Страница ничего не скачивает и не хранит — только открывает ссылку протокола.
+  </footer>
+</div>
+
+<div class="toast" id="toast"><span id="toastText"></span></div>
+
+<script>
+(function(){
+  'use strict';
+
+  var KEY_AUTO = 'cs2_autostart_v1';
+  var KEY_GAMES = 'cs2_custom_games_v1';
+  var KEY_LAST = 'cs2_last_launch';
+  var isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  var $ = function(id){ return document.getElementById(id); };
+  var toastEl = $('toast'), toastText = $('toastText'), toastTimer;
+
+  function toast(msg, ms){
+    toastText.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, ms || 2300);
+  }
+
+  function copy(text, okMsg){
+    function fb(){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-100px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast(okMsg); }
+      catch(e){ toast('Скопировать не вышло'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }).catch(fb);
+    } else { fb(); }
+  }
+
+  /* ---------- статус ---------- */
+  var status = $('status'), statusText = $('statusText'), heroChip = $('heroChip');
+  if (isPhone){
+    status.classList.add('warn');
+    statusText.textContent = 'Телефон · нужен ПК';
+    heroChip.textContent = 'Только с компьютера';
+    $('hint').innerHTML = 'С телефона игра не запустится: ссылки <b>steam://</b> понимает только компьютер со Steam. Нажми <b>«Скопировать»</b> и открой ссылку на ПК.';
+  } else {
+    statusText.textContent = 'ПК · готово';
+  }
+
+  /* ---------- время последнего запуска ---------- */
+  function paintLast(){
+    var el = $('last'), t = parseInt(localStorage.getItem(KEY_LAST) || '0', 10);
+    if (!t){ el.textContent = 'Ещё не запускал с этой страницы'; return; }
+    var diff = Date.now() - t;
+    var min = Math.floor(diff / 60000);
+    var txt;
+    if (min < 1) txt = 'только что';
+    else if (min < 60) txt = min + ' мин назад';
+    else if (min < 1440) txt = Math.floor(min / 60) + ' ч назад';
+    else txt = Math.floor(min / 1440) + ' дн назад';
+    el.textContent = 'Последний запуск: ' + txt;
+  }
+  paintLast();
+
+  /* ---------- запуск ---------- */
+  var playBtn = $('play'), playLabel = $('playLabel'), bar = $('bar'), busy = false;
+
+  function launch(id){
+    if (!id || busy) return;
+
+    if (isPhone){
+      copy('steam://rungameid/' + id, 'Ссылка скопирована — открой на ПК');
+      return;
+    }
+
+    busy = true;
+    playBtn.classList.add('busy');
+    playLabel.textContent = 'Открываю Steam…';
+    bar.style.width = '35%';
+
+    localStorage.setItem(KEY_LAST, String(Date.now()));
+    paintLast();
+
+    setTimeout(function(){
+      playLabel.textContent = 'Запускаю игру…';
+      bar.style.width = '78%';
+    }, 700);
+
+    window.location.href = 'steam://rungameid/' + encodeURIComponent(id);
+
+    setTimeout(function(){
+      bar.style.width = '100%';
+      playLabel.textContent = 'Готово';
+      setTimeout(function(){
+        busy = false;
+        playBtn.classList.remove('busy');
+        playLabel.textContent = 'Играть';
+        bar.style.width = '0%';
+      }, 900);
+    }, 1700);
+  }
+
+  playBtn.addEventListener('click', function(){ launch('730'); });
+
+  $('copy').addEventListener('click', function(){
+    copy('steam://rungameid/730', 'steam://rungameid/730 скопировано');
+  });
+
+  /* ---------- свои игры ---------- */
+  var box = $('games'), count = $('count');
+
+  function loadGames(){
+    try { return JSON.parse(localStorage.getItem(KEY_GAMES)) || []; }
+    catch(e){ return []; }
+  }
+  function saveGames(l){ localStorage.setItem(KEY_GAMES, JSON.stringify(l)); }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function paintCount(){ count.textContent = box.querySelectorAll('.game').length; }
+
+  function renderCustom(){
+    box.querySelectorAll('.custom').forEach(function(n){ n.remove(); });
+    loadGames().forEach(function(g){
+      var b = document.createElement('button');
+      b.className = 'game custom';
+      b.dataset.uid = g.uid;
+      b.dataset.id = g.id;
+      b.innerHTML =
+        '<div class="av">' + esc((g.name || '?').trim().charAt(0).toUpperCase() || '?') + '</div>' +
+        '<div class="tx"><b>' + esc(g.name) + '</b><small>App ' + esc(g.id) + '</small></div>' +
+        '<button class="del" aria-label="Удалить">×</button>';
+      box.appendChild(b);
+    });
+    paintCount();
+  }
+
+  box.addEventListener('click', function(e){
+    var del = e.target.closest('.del');
+    if (del){
+      e.preventDefault();
+      e.stopPropagation();
+      var card = del.closest('.game');
+      var uid = card.dataset.uid;
+      var name = card.querySelector('b') ? card.querySelector('b').textContent : '';
+      saveGames(loadGames().filter(function(g){ return g.uid !== uid; }));
+      renderCustom();
+      toast('«' + name + '» удалена');
+      return;
+    }
+    var g = e.target.closest('.game');
+    if (g && g.dataset.id) launch(g.dataset.id);
+  });
+
+  $('addGame').addEventListener('click', function(){
+    var nameEl = $('gName'), idEl = $('gId');
+    var name = nameEl.value.trim(), id = idEl.value.trim();
+    if (!name){ nameEl.focus(); toast('Впиши название игры'); return; }
+    if (!/^\d{1,8}$/.test(id)){ idEl.focus(); toast('App ID — только цифры'); return; }
+    var list = loadGames();
+    list.push({ uid: 'g' + Date.now(), name: name, id: id });
+    saveGames(list);
+    nameEl.value = '';
+    idEl.value = '';
+    renderCustom();
+    toast('«' + name + '» добавлена');
+  });
+
+  /* ---------- автозапуск ---------- */
+  var autoRow = $('autoRow');
+  var autoOn = localStorage.getItem(KEY_AUTO) === '1';
+
+  function paintToggle(){ autoRow.classList.toggle('on', autoOn); }
+  paintToggle();
+
+  autoRow.addEventListener('click', function(){
+    autoOn = !autoOn;
+    localStorage.setItem(KEY_AUTO, autoOn ? '1' : '0');
+    paintToggle();
+    toast(autoOn ? 'Автозапуск включён' : 'Автозапуск выключен');
+  });
+
+  if (autoOn && !isPhone){
+    setTimeout(function(){ launch('730'); }, 1000);
+  }
+
+  /* ---------- шпаргалка ---------- */
+  document.querySelectorAll('.idrow[data-copy]').forEach(function(row){
+    row.addEventListener('click', function(){
+      copy('steam://rungameid/' + row.dataset.copy, 'App ' + row.dataset.copy + ' скопирован');
+    });
+  });
+
+  /* ---------- появление секций ---------- */
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.08 });
+    items.forEach(function(el){ io.observe(el); });
+  } else {
+    items.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  renderCustom();
+})();
+</script>
+</body>
+</html>
