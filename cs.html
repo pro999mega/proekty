@@ -7,7 +7,7 @@
 <style>
 :root{
   --bg:#070b14; --panel:#101a2c; --panel2:#16233a; --line:#22334f;
-  --txt:#e9f0ff; --mut:#8ea4c6; --acc:#f5a524; --blue:#3b82f6; --green:#22c55e;
+  --txt:#e9f0ff; --mut:#8ea4c6; --acc:#f5a524; --blue:#3b82f6; --green:#22c55e; --red:#ef4444;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
@@ -37,7 +37,7 @@ h1{font-size:23px; letter-spacing:-.4px; margin-bottom:6px;}
   font-size:18px; font-weight:800; letter-spacing:.2px;
   box-shadow:0 16px 34px -16px rgba(245,165,36,.85);
   transition:transform .12s ease, filter .12s ease;
-  text-decoration:none;
+  text-decoration:none; font-family:inherit;
 }
 .play:active{transform:scale(.975); filter:brightness(1.06);}
 .play small{display:block; font-size:11.5px; font-weight:600; opacity:.72; margin-top:3px;}
@@ -51,20 +51,26 @@ h1{font-size:23px; letter-spacing:-.4px; margin-bottom:6px;}
 .btn:hover, .btn:active{background:#1d2d47; border-color:#31496c;}
 .games{display:grid; grid-template-columns:repeat(auto-fit,minmax(152px,1fr)); gap:10px;}
 .game{
-  background:var(--panel2); border:1px solid var(--line); border-radius:15px;
-  padding:14px 12px; text-align:left; cursor:pointer; color:var(--txt);
+  position:relative; background:var(--panel2); border:1px solid var(--line); border-radius:15px;
+  padding:14px 30px 14px 12px; text-align:left; cursor:pointer; color:var(--txt);
   font-family:inherit; font-size:13.5px; font-weight:700; line-height:1.3;
   transition:border-color .15s ease, transform .12s ease;
 }
 .game:active{transform:scale(.97);}
 .game span{display:block; font-size:11px; font-weight:500; color:var(--mut); margin-top:4px;}
+.game .del{
+  position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
+  border:none; background:#22304a; color:#94a9c9; font-size:13px; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.game .del:hover{background:var(--red); color:#fff;}
 h2{font-size:13px; text-transform:uppercase; letter-spacing:1.1px; color:var(--mut); margin-bottom:12px;}
-.idrow{display:flex; gap:9px; margin-top:4px;}
-input[type=number]{
-  flex:1; background:#0b1422; border:1px solid var(--line); border-radius:13px;
+.idrow{display:flex; gap:9px; margin-top:4px; flex-wrap:wrap;}
+input[type=text], input[type=number]{
+  flex:1; min-width:110px; background:#0b1422; border:1px solid var(--line); border-radius:13px;
   padding:13px 14px; color:var(--txt); font-size:15px; font-family:inherit; outline:none;
 }
-input[type=number]:focus{border-color:var(--acc);}
+input:focus{border-color:var(--acc);}
 .go{
   padding:13px 20px; border:none; border-radius:13px; cursor:pointer;
   background:var(--blue); color:#fff; font-weight:800; font-size:14px; font-family:inherit;
@@ -78,6 +84,16 @@ input[type=number]:focus{border-color:var(--acc);}
   margin-bottom:14px;
 }
 .ok{color:var(--green);}
+.switch{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px;
+  background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:13px 14px;}
+.switch p{font-size:13px; font-weight:600;}
+.switch small{display:block; font-size:11.5px; color:var(--mut); font-weight:400; margin-top:3px;}
+.tog{width:48px; height:28px; border-radius:20px; background:#2a3b57; border:none; position:relative;
+  cursor:pointer; flex:0 0 auto; transition:background .18s ease;}
+.tog::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+  background:#8ea4c6; transition:transform .18s ease, background .18s ease;}
+.tog.on{background:rgba(34,197,94,.28);}
+.tog.on::after{transform:translateX(20px); background:var(--green);}
 table{width:100%; border-collapse:collapse; font-size:12.8px; margin-top:6px;}
 td{padding:7px 4px; border-bottom:1px solid #1b273c; color:#cddaf0;}
 td:last-child{text-align:right; color:var(--mut); font-variant-numeric:tabular-nums;}
@@ -99,18 +115,25 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
   </div>
 
   <div class="card">
-    <a class="play" href="steam://rungameid/730">
+    <button class="play" id="mainplay">
       <span style="font-size:26px">▶</span>
       <span>Играть в CS2
         <small>Запустит Steam и Counter-Strike 2</small>
       </span>
-    </a>
+    </button>
 
     <div class="row">
       <a class="btn" href="steam://open/main">🖥 Открыть Steam</a>
       <a class="btn" href="steam://store/730">🛒 Магазин CS2</a>
       <a class="btn" href="steam://url/Inventory">🎒 Инвентарь</a>
       <a class="btn" href="steam://friends/status/online">💬 Друзья</a>
+    </div>
+
+    <div class="switch">
+      <p>Автозапуск CS2
+        <small>Открыл страницу — игра стартует сама</small>
+      </p>
+      <button class="tog" id="autotog" aria-label="Автозапуск"></button>
     </div>
 
     <p class="note">
@@ -121,7 +144,7 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
 
   <div class="card">
     <h2>Другие игры</h2>
-    <div class="games">
+    <div class="games" id="games">
       <button class="game" data-id="570">Dota 2<span>App ID 570</span></button>
       <button class="game" data-id="440">Team Fortress 2<span>App ID 440</span></button>
       <button class="game" data-id="252490">Rust<span>App ID 252490</span></button>
@@ -132,14 +155,16 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
   </div>
 
   <div class="card">
-    <h2>Запустить любую игру</h2>
+    <h2>Добавить свою игру</h2>
     <div class="idrow">
-      <input type="number" id="appid" placeholder="Введи App ID, например 730" inputmode="numeric">
-      <button class="go" id="gorun">Запуск</button>
+      <input type="text" id="gname" placeholder="Название" maxlength="24">
+      <input type="number" id="gid" placeholder="App ID, напр. 730" inputmode="numeric">
+      <button class="go" id="addgame">Добавить</button>
     </div>
     <p class="note">
-      App ID — номер игры в Steam. Найти можно в адресе страницы магазина:
-      <b>store.steampowered.com/app/<span class="ok">730</span>/</b> — вот эти цифры и есть ID.
+      App ID — номер игры в Steam. Найти можно в адресе магазина:
+      <b>store.steampowered.com/app/<span class="ok">730</span>/</b> — эти цифры и есть ID.
+      Добавленные игры сохраняются в этом браузере.
     </p>
   </div>
 
@@ -173,6 +198,10 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
 </div>
 
 <script>
+(function(){
+  var KEY_AUTO = 'cs_autostart';
+  var KEY_GAMES = 'cs_custom_games';
+
   if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     document.getElementById('phone').style.display = 'block';
   }
@@ -182,19 +211,90 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
     window.location.href = 'steam://rungameid/' + encodeURIComponent(id);
   }
 
-  document.querySelectorAll('.game').forEach(function(b){
-    b.addEventListener('click', function(){ launch(b.dataset.id); });
+  document.getElementById('mainplay').addEventListener('click', function(){
+    launch('730');
   });
 
-  document.getElementById('gorun').addEventListener('click', function(){
-    var v = document.getElementById('appid').value.trim();
-    if (!v) { document.getElementById('appid').focus(); return; }
-    launch(v);
+  document.querySelectorAll('.game[data-id]').forEach(function(b){
+    b.addEventListener('click', function(e){
+      if (e.target.classList.contains('del')) return;
+      launch(b.dataset.id);
+    });
   });
 
-  document.getElementById('appid').addEventListener('keydown', function(e){
-    if (e.key === 'Enter') document.getElementById('gorun').click();
+  // ---- свои игры ----
+  var box = document.getElementById('games');
+
+  function loadGames(){
+    var raw = localStorage.getItem(KEY_GAMES);
+    if (!raw) return [];
+    try { return JSON.parse(raw) || []; } catch(e){ return []; }
+  }
+
+  function saveGames(list){
+    localStorage.setItem(KEY_GAMES, JSON.stringify(list));
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function renderCustom(){
+    box.querySelectorAll('.custom').forEach(function(n){ n.remove(); });
+    loadGames().forEach(function(g, i){
+      var b = document.createElement('button');
+      b.className = 'game custom';
+      b.dataset.id = g.id;
+      b.innerHTML = esc(g.name) + '<span>App ID ' + esc(g.id) + '</span>' +
+                    '<button class="del" title="Удалить">×</button>';
+      b.addEventListener('click', function(e){
+        if (e.target.classList.contains('del')) {
+          e.stopPropagation();
+          var list = loadGames();
+          list.splice(i, 1);
+          saveGames(list);
+          renderCustom();
+          return;
+        }
+        launch(g.id);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  document.getElementById('addgame').addEventListener('click', function(){
+    var name = document.getElementById('gname');
+    var id = document.getElementById('gid');
+    var n = name.value.trim();
+    var v = id.value.trim();
+    if (!n || !v) { (n ? id : name).focus(); return; }
+    var list = loadGames();
+    list.push({ name: n, id: v });
+    saveGames(list);
+    name.value = '';
+    id.value = '';
+    renderCustom();
   });
+
+  // ---- автозапуск ----
+  var tog = document.getElementById('autotog');
+  var autoOn = localStorage.getItem(KEY_AUTO) === '1';
+  tog.classList.toggle('on', autoOn);
+
+  tog.addEventListener('click', function(){
+    autoOn = !autoOn;
+    localStorage.setItem(KEY_AUTO, autoOn ? '1' : '0');
+    tog.classList.toggle('on', autoOn);
+  });
+
+  if (autoOn && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    setTimeout(function(){ launch('730'); }, 900);
+  }
+
+  renderCustom();
+})();
 </script>
 </body>
 </html>
