@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#03070d">
+<title>J.A.R.V.I.S.</title>
+<style>
+  :root{
+    --bg:#03070d;
+    --bg2:#071522;
+    --cyan:#38e6ff;
+    --cyan-dim:#1b7f96;
+    --accent:#7cf3ff;
+    --text:#d8f4ff;
+    --muted:#6f93a3;
+    --danger:#ff5f7a;
+    --ok:#4dffa6;
+    --radius:20px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #0b2b40 0%, transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, #0a1d33 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    background-attachment:fixed;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(56,230,255,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,230,255,.055) 1px, transparent 1px);
+    background-size:44px 44px;
+    pointer-events:none;
+    mask-image:radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+    -webkit-mask-image:radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+  }
+
+  header{
+    display:flex; align-items:center; gap:10px;
+    padding:max(12px, env(safe-area-inset-top)) 16px 8px;
+    position:relative; z-index:5;
+  }
+  .brand{
+    font-weight:700; letter-spacing:.28em; font-size:13px;
+    color:var(--accent); text-shadow:0 0 18px rgba(56,230,255,.55);
+  }
+  .brand small{display:block; font-weight:400; font-size:9px; letter-spacing:.2em; color:var(--muted); margin-top:2px}
+  .status{
+    margin-left:auto; display:flex; align-items:center; gap:7px;
+    font-size:11px; letter-spacing:.08em; color:var(--muted); text-transform:uppercase;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok); box-shadow:0 0 10px var(--ok)}
+  .dot.busy{background:var(--cyan); box-shadow:0 0 10px var(--cyan); animation:blink .9s infinite}
+  .icon-btn{
+    width:38px;height:38px;flex:0 0 38px;
+    display:grid;place-items:center;
+    background:rgba(56,230,255,.07);
+    border:1px solid rgba(56,230,255,.22);
+    border-radius:12px; color:var(--accent);
+    font-size:16px; cursor:pointer; transition:.2s;
+  }
+  .icon-btn:active{transform:scale(.94)}
+  .icon-btn.on{background:rgba(56,230,255,.2); border-color:var(--cyan)}
+
+  #log{
+    flex:1; overflow-y:auto; padding:6px 16px 4px;
+    display:flex; flex-direction:column; gap:10px;
+    position:relative; z-index:2;
+    scroll-behavior:smooth;
+  }
+  #log::-webkit-scrollbar{width:3px}
+  #log::-webkit-scrollbar-thumb{background:rgba(56,230,255,.3); border-radius:3px}
+
+  .msg{
+    max-width:88%; padding:11px 14px; border-radius:16px;
+    font-size:14.5px; line-height:1.5; white-space:pre-wrap;
+    animation:pop .22s ease-out;
+    word-wrap:break-word;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:linear-gradient(145deg, rgba(56,230,255,.16), rgba(56,230,255,.07));
+    border:1px solid rgba(56,230,255,.3);
+    border-bottom-right-radius:5px;
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background:rgba(9,26,38,.82);
+    border:1px solid rgba(56,230,255,.14);
+    border-bottom-left-radius:5px;
+  }
+  .msg.bot b{color:var(--accent)}
+  .msg.sys{
+    align-self:center; font-size:11.5px; color:var(--muted);
+    background:none; border:1px dashed rgba(56,230,255,.18); border-radius:10px;
+    padding:6px 12px; text-align:center; max-width:94%;
+  }
+  .msg.err{border-color:rgba(255,95,122,.45); color:#ffc0cb}
+
+  .speak-btn{
+    display:inline-block; margin-top:8px; font-size:11px;
+    color:var(--cyan-dim); cursor:pointer; letter-spacing:.05em;
+  }
+
+  /* центральный круг */
+  #stage{
+    position:relative; display:grid; place-items:center;
+    padding:8px 0 10px; flex:0 0 auto; z-index:1;
+  }
+  .orb{
+    position:relative; width:132px; height:132px; display:grid; place-items:center;
+  }
+  .ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:1px solid rgba(56,230,255,.28);
+  }
+  .ring.r1{animation:spin 14s linear infinite; border-style:dashed; border-color:rgba(56,230,255,.35)}
+  .ring.r2{inset:12px; border-color:rgba(56,230,255,.16); animation:spin 22s linear infinite reverse}
+  .ring.r3{
+    inset:24px; border:1px solid rgba(56,230,255,.25);
+    border-top-color:transparent; border-bottom-color:transparent;
+    animation:spin 6s linear infinite;
+  }
+  .core{
+    width:66px;height:66px;border-radius:50%;
+    background:radial-gradient(circle at 50% 40%, #b9f7ff 0%, #38e6ff 32%, #0b6c85 68%, #05202c 100%);
+    box-shadow:0 0 26px rgba(56,230,255,.55), 0 0 70px rgba(56,230,255,.22), inset 0 0 18px rgba(255,255,255,.35);
+    transition:.28s;
+  }
+  .orb.listen .core{animation:breathe 1.1s ease-in-out infinite}
+  .orb.listen .ring.r1{border-color:var(--cyan)}
+  .orb.speaking .core{animation:breathe .55s ease-in-out infinite}
+
+  /* ввод */
+  footer{
+    padding:8px 14px max(14px, env(safe-area-inset-bottom));
+    display:flex; gap:9px; align-items:center;
+    position:relative; z-index:5;
+  }
+  #inp{
+    flex:1; min-width:0;
+    background:rgba(9,26,38,.9);
+    border:1px solid rgba(56,230,255,.22);
+    border-radius:16px; color:var(--text);
+    padding:13px 15px; font-size:15px; font-family:inherit;
+    outline:none; transition:.2s;
+  }
+  #inp:focus{border-color:rgba(56,230,255,.6); box-shadow:0 0 0 3px rgba(56,230,255,.1)}
+  #inp::placeholder{color:#4d6b7a}
+  .round{
+    width:50px;height:50px;flex:0 0 50px;border-radius:50%;
+    display:grid;place-items:center; font-size:20px;
+    border:1px solid rgba(56,230,255,.3);
+    background:rgba(56,230,255,.1); color:var(--accent);
+    cursor:pointer; transition:.2s;
+  }
+  .round:active{transform:scale(.92)}
+  .round.rec{
+    background:var(--danger); border-color:var(--danger); color:#fff;
+    box-shadow:0 0 22px rgba(255,95,122,.6);
+    animation:breathe 1s ease-in-out infinite;
+  }
+  .round.send{background:linear-gradient(145deg,#38e6ff,#1197b8); color:#03222c; border:none; font-weight:700}
+  .round:disabled{opacity:.4}
+
+  /* настройки */
+  #sheet{
+    position:fixed; inset:0; z-index:50;
+    background:rgba(2,8,13,.72); backdrop-filter:blur(6px);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  #sheet.open{display:flex}
+  .panel{
+    width:100%; max-width:560px; max-height:88vh; overflow-y:auto;
+    background:linear-gradient(180deg,#081a26,#050f17);
+    border:1px solid rgba(56,230,255,.25);
+    border-radius:22px 22px 0 0;
+    padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+    animation:up .25s ease-out;
+  }
+  .panel h2{margin:0 0 4px; font-size:15px; letter-spacing:.16em; color:var(--accent); text-transform:uppercase}
+  .panel p.hint{margin:0 0 16px; font-size:12px; color:var(--muted); line-height:1.5}
+  label{display:block; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px}
+  input[type=text], input[type=password], select{
+    width:100%; background:rgba(3,14,20,.9); color:var(--text);
+    border:1px solid rgba(56,230,255,.2); border-radius:12px;
+    padding:12px 13px; font-size:14px; font-family:inherit; outline:none;
+  }
+  input:focus,select:focus{border-color:rgba(56,230,255,.55)}
+  .row{display:flex; gap:10px; align-items:center; margin-top:16px}
+  .row .grow{flex:1}
+  .btn{
+    border:1px solid rgba(56,230,255,.3); background:rgba(56,230,255,.12);
+    color:var(--accent); border-radius:12px; padding:12px 16px;
+    font-size:13.5px; font-family:inherit; cursor:pointer; transition:.2s;
+  }
+  .btn.primary{background:linear-gradient(145deg,#38e6ff,#1197b8); color:#03222c; border:none; font-weight:600}
+  .btn:active{transform:scale(.97)}
+  .switch{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px}
+  .switch span{font-size:13.5px}
+  .tgl{
+    width:50px;height:28px;border-radius:20px;flex:0 0 50px;
+    background:rgba(56,230,255,.13); border:1px solid rgba(56,230,255,.25);
+    position:relative; cursor:pointer; transition:.2s;
+  }
+  .tgl::after{
+    content:""; position:absolute; top:3px; left:3px; width:20px;height:20px;
+    border-radius:50%; background:#5f8494; transition:.2s;
+  }
+  .tgl.on{background:rgba(56,230,255,.3); border-color:var(--cyan)}
+  .tgl.on::after{left:25px; background:var(--cyan); box-shadow:0 0 12px var(--cyan)}
+  .link-sites{font-size:12px; color:var(--muted); line-height:1.7; margin-top:14px}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes breathe{0%,100%{transform:scale(1); opacity:1}50%{transform:scale(1.13); opacity:.82}}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  @keyframes pop{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+  @keyframes up{from{transform:translateY(24px); opacity:.6}to{transform:none; opacity:1}}
+
+  @media (min-height:760px){
+    .orb{width:150px;height:150px}
+    .core{width:74px;height:74px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">J.A.R.V.I.S.<small>JUST A RATHER VERY INTELLIGENT SYSTEM</small></div>
+  <div class="status"><span id="statDot" class="dot"></span><span id="statTxt">готов</span></div>
+  <button class="icon-btn" id="btnSettings" title="Настройки">⚙</button>
+</header>
+
+<main id="log"></main>
+
+<div id="stage">
+  <div class="orb" id="orb">
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <div class="core"></div>
+  </div>
+</div>
+
+<footer>
+  <input id="inp" type="text" inputmode="text" autocomplete="off" placeholder="Скажи что-нибудь…">
+  <button class="round" id="btnMic" title="Говорить">🎙</button>
+  <button class="round send" id="btnSend" title="Отправить">➤</button>
+</footer>
+
+<div id="sheet">
+  <div class="panel">
+    <h2>Настройки</h2>
+    <p class="hint">Ключ OpenRouter хранится только в этом браузере (localStorage) и уходит напрямую на openrouter.ai. В код файла он не записан.</p>
+
+    <label for="keyInp">API-ключ OpenRouter</label>
+    <input id="keyInp" type="password" placeholder="sk-or-v1-…" autocomplete="off">
+
+    <label for="modelInp">Модель</label>
+    <input id="modelInp" type="text" list="models" placeholder="meta-llama/llama-3.3-70b-instruct:free" autocomplete="off">
+    <datalist id="models">
+      <option value="meta-llama/llama-3.3-70b-instruct:free"></option>
+      <option value="deepseek/deepseek-chat-v3-0324:free"></option>
+      <option value="google/gemini-2.0-flash-exp:free"></option>
+      <option value="qwen/qwen-2.5-72b-instruct:free"></option>
+      <option value="microsoft/phi-3-mini-128k-instruct:free"></option>
+    </datalist>
+
+    <div class="switch">
+      <span>Озвучивать ответы</span>
+      <div class="tgl" id="tglTts"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="btnClear">Очистить историю</button>
+      <button class="btn primary grow" id="btnSave">Сохранить</button>
+    </div>
+
+    <div class="link-sites">
+      Без ключа работают команды: <b>время</b>, <b>дата</b>, <b>погода</b>, <b>открой ютуб</b>, <b>открой вк</b>, <b>стоп</b>, <b>очисти</b>.
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LS_KEY='jarvis_key', LS_MODEL='jarvis_model', LS_TTS='jarvis_tts', LS_HIST='jarvis_hist';
+  var DEFAULT_MODEL='meta-llama/llama-3.3-70b-instruct:free';
+
+  var el = {
+    log: document.getElementById('log'),
+    inp: document.getElementById('inp'),
+    mic: document.getElementById('btnMic'),
+    send: document.getElementById('btnSend'),
+    orb: document.getElementById('orb'),
+    statDot: document.getElementById('statDot'),
+    statTxt: document.getElementById('statTxt'),
+    sheet: document.getElementById('sheet'),
+    keyInp: document.getElementById('keyInp'),
+    modelInp: document.getElementById('modelInp'),
+    tglTts: document.getElementById('tglTts')
+  };
+
+  var state = {
+    key: localStorage.getItem(LS_KEY) || '',
+    model: localStorage.getItem(LS_MODEL) || DEFAULT_MODEL,
+    tts: localStorage.getItem(LS_TTS) !== '0',
+    history: [],
+    busy: false,
+    recog: null,
+    listening: false
+  };
+
+  try { state.history = JSON.parse(localStorage.getItem(LS_HIST) || '[]'); } catch(e){ state.history = []; }
+
+  /* ---------- утилиты ---------- */
+
+  function setStatus(text, busy){
+    el.statTxt.textContent = text;
+    el.statDot.className = 'dot' + (busy ? ' busy' : '');
+  }
+
+  function addMsg(role, text){
+    var d = document.createElement('div');
+    d.className = 'msg ' + role;
+    d.textContent = text;
+    el.log.appendChild(d);
+    el.log.scrollTop = el.log.scrollHeight;
+    return d;
+  }
+
+  function escapeSafe(s){ return String(s); }
+
+  function saveHist(){
+    try { localStorage.setItem(LS_HIST, JSON.stringify(state.history.slice(-40))); } catch(e){}
+  }
+
+  function nowStr(){
+    var d = new Date();
+    return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function dateStr(){
+    var d = new Date();
+    var s = d.toLocaleDateString('ru-RU',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  /* ---------- озвучка ---------- */
+
+  var voices = [];
+  function loadVoices(){
+    try { voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; } catch(e){ voices = []; }
+  }
+  if (window.speechSynthesis){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickRuVoice(){
+    if (!voices.length) loadVoices();
+    var ru = voices.filter(function(v){ return /^ru/i.test(v.lang); });
+    if (!ru.length) return null;
+    var pref = ru.find(function(v){ return /yuri|dmitry|pavel|milena|google/i.test(v.name); });
+    return pref || ru[0];
+  }
+
+  function speak(text){
+    if (!state.tts || !window.speechSynthesis) return;
+    var clean = String(text).replace(/[*_`#>]/g,'').replace(/\s+/g,' ').slice(0,600);
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(clean);
+      u.lang = 'ru-RU';
+      u.rate = 1.02;
+      u.pitch = 0.95;
+      var v = pickRuVoice();
+      if (v) u.voice = v;
+      u.onstart = function(){ el.orb.classList.add('speaking'); };
+      u.onend = function(){ el.orb.classList.remove('speaking'); };
+      u.onerror = function(){ el.orb.classList.remove('speaking'); };
+      window.speechSynthesis.speak(u);
+    } catch(e){}
+  }
+
+  function stopSpeak(){
+    if (window.speechSynthesis) try { window.speechSynthesis.cancel(); } catch(e){}
+    el.orb.classList.remove('speaking');
+  }
+
+  /* ---------- погода (Open-Meteo, без ключа) ---------- */
+
+  var WEATHER_CODES = {
+    0:'ясно',1:'почти ясно',2:'переменная облачность',3:'пасмурно',
+    45:'туман',48:'изморозь',51:'слабая морось',53:'морось',55:'сильная морось',
+    61:'небольшой дождь',63:'дождь',65:'сильный дождь',
+    66:'ледяной дождь',67:'сильный ледяной дождь',
+    71:'небольшой снег',73:'снег',75:'сильный снег',77:'снежная крупа',
+    80:'ливень',81:'сильный ливень',82:'сильнейший ливень',
+    85:'снежные заряды',86:'сильные снежные заряды',
+    95:'гроза',96:'гроза с градом',99:'сильная гроза с градом'
+  };
+
+  function getWeather(){
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=54.317&longitude=48.4036'
+      + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m'
+      + '&daily=temperature_2m_max,temperature_2m_min,weather_code'
+      + '&timezone=Europe%2FSamara&forecast_days=2';
+    return fetch(url).then(function(r){
+      if (!r.ok) throw new Error('погода недоступна');
+      return r.json();
+    }).then(function(d){
+      var c = d.current;
+      var desc = WEATHER_CODES[c.weather_code] || ('код ' + c.weather_code);
+      var t = Math.round(c.temperature_2m);
+      var feels = Math.round(c.apparent_temperature);
+      var wind = Math.round(c.wind_speed_10m);
+      var line = 'В Ульяновске сейчас ' + t + '°, ' + desc + '. Ощущается как ' + feels
+        + '°, ветер ' + wind + ' м/с, влажность ' + Math.round(c.relative_humidity_2m) + '%.';
+      if (d.daily && d.daily.temperature_2m_max){
+        var mx = Math.round(d.daily.temperature_2m_max[0]);
+        var mn = Math.round(d.daily.temperature_2m_min[0]);
+        line += ' Сегодня от ' + mn + '° до ' + mx + '°.';
+      }
+      return line;
+    });
+  }
+
+  /* ---------- сайты ---------- */
+
+  var SITES = {
+    'ютуб':'https://youtube.com','youtube':'https://youtube.com','ютьюб':'https://youtube.com',
+    'вк':'https://vk.com','vk':'https://vk.com','вконтакте':'https://vk.com',
+    'телеграм':'https://web.telegram.org','telegram':'https://web.telegram.org',
+    'гугл':'https://google.com','google':'https://google.com',
+    'яндекс':'https://ya.ru','яндекс карты':'https://yandex.ru/maps',
+    'стим':'https://store.steampowered.com','steam':'https://store.steampowered.com',
+    'гитхаб':'https://github.com','github':'https://github.com',
+    'кинопоиск':'https://hd.kinopoisk.ru','почта':'https://mail.google.com',
+    'погода':'https://yandex.ru/pogoda/ulyanovsk'
+  };
+
+  /* ---------- локальные команды ---------- */
+
+  function tryLocal(text){
+    var t = text.toLowerCase().replace(/[!?.,]/g,'').trim();
+
+    if (/^(стоп|замолчи|тихо|хватит)$/.test(t)){
+      stopSpeak();
+      return Promise.resolve('Молчу, сэр.');
+    }
+    if (/^очисти/.test(t) || /очистить историю/.test(t)){
+      state.history = []; saveHist(); el.log.innerHTML = '';
+      addMsg('sys','История очищена');
+      return Promise.resolve('История очищена.');
+    }
+    if (/\b(время|который час|сколько времени)\b/.test(t)){
+      return Promise.resolve('Сейчас ' + nowStr() + '.');
+    }
+    if (/\b(дата|какое сегодня число|какой сегодня день)\b/.test(t)){
+      return Promise.resolve(dateStr() + '.');
+    }
+    if (/\bпогод/.test(t)){
+      return getWeather().catch(function(){ return 'Не смог получить погоду — проверь интернет.'; });
+    }
+    var m = t.match(/^(открой|запусти|включи)\s+(.+)$/);
+    if (m){
+      var target = m[2].trim();
+      if (SITES[target]){
+        window.open(SITES[target], '_blank');
+        return Promise.resolve('Открываю ' + target + '.');
+      }
+      var guess = 'https://' + target.replace(/\s+/g,'') + '.ru';
+      window.open(guess, '_blank');
+      return Promise.resolve('Пробую открыть ' + target + '.');
+    }
+    return null;
+  }
+
+  /* ---------- запрос к модели ---------- */
+
+  var SYSTEM_PROMPT = 'Ты Джарвис — голосовой ИИ-помощник пользователя по имени Илюха, живёт в Ульяновске. '
+    + 'Отвечай по-русски, кратко и по делу: 1–3 предложения, если не просят подробнее. '
+    + 'Пиши без markdown-разметки, звёздочек и списков, потому что ответ читается вслух. '
+    + 'Характер: спокойный, собранный, с лёгкой иронией, иногда обращайся «сэр». '
+    + 'Если чего-то не знаешь — скажи прямо, не выдумывай цифры и факты.';
+
+  function askModel(text){
+    if (!state.key){
+      return Promise.resolve('Ключ не установлен, сэр. Откройте настройки и вставьте ключ OpenRouter — тогда я смогу отвечать на любые вопросы.');
+    }
+
+    var msgs = [{role:'system', content:SYSTEM_PROMPT}];
+    state.history.slice(-10).forEach(function(h){
+      msgs.push({role:h.role, content:h.content});
+    });
+    msgs.push({role:'user', content:text});
+
+    return fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + state.key,
+        'HTTP-Referer': location.href,
+        'X-Title':'Jarvis HUD'
+      },
+      body: JSON.stringify({
+        model: state.model || DEFAULT_MODEL,
+        messages: msgs,
+        temperature: 0.7,
+        max_tokens: 700
+      })
+    }).then(function(r){
+      return r.text().then(function(raw){
+        var data;
+        try { data = JSON.parse(raw); } catch(e){ throw new Error('Странный ответ сервера'); }
+        if (!r.ok){
+          var m = (data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
+          throw new Error(m);
+        }
+        if (!data.choices || !data.choices.length) throw new Error('Пустой ответ модели');
+        return data.choices[0].message.content.trim();
+      });
+    });
+  }
+
+  /* ---------- основной цикл ---------- */
+
+  function handle(text){
+    text = String(text || '').trim();
+    if (!text || state.busy) return;
+
+    addMsg('user', text);
+    state.history.push({role:'user', content:text});
+    saveHist();
+
+    state.busy = true;
+    setStatus('думаю', true);
+    el.send.disabled = true;
+
+    var local;
+    try { local = tryLocal(text); } catch(e){ local = null; }
+
+    var p = local ? local : askModel(text);
+
+    p.then(function(answer){
+      addMsg('bot', answer);
+      state.history.push({role:'assistant', content:answer});
+      saveHist();
+      speak(answer);
+    }).catch(function(err){
+      var msg = 'Ошибка: ' + (err && err.message ? err.message : 'неизвестная') + '. Проверь ключ и модель в настройках.';
+      addMsg('err bot', msg);
+      setStatus('ошибка', false);
+    }).then(function(){
+      state.busy = false;
+      el.send.disabled = false;
+      if (el.statTxt.textContent === 'думаю') setStatus('готов', false);
+    });
+  }
+
+  /* ---------- ввод ---------- */
+
+  el.send.addEventListener('click', function(){
+    var v = el.inp.value;
+    el.inp.value = '';
+    handle(v);
+  });
+
+  el.inp.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); el.send.click(); }
+  });
+
+  /* ---------- микрофон ---------- */
+
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SR){
+    el.mic.style.opacity = '.4';
+    el.mic.addEventListener('click', function(){
+      addMsg('sys','Браузер не поддерживает распознавание речи. Открой в Comet или Chrome.');
+    });
+  } else {
+    state.recog = new SR();
+    state.recog.lang = 'ru-RU';
+    state.recog.continuous = false;
+    state.recog.interimResults = true;
+    state.recog.maxAlternatives = 1;
+
+    state.recog.onstart = function(){
+      state.listening = true;
+      el.mic.classList.add('rec');
+      el.orb.classList.add('listen');
+      setStatus('слушаю', true);
+    };
+
+    state.recog.onresult = function(e){
+      var interim = '', final = '';
+      for (var i = e.resultIndex; i < e.results.length; i++){
+        var res = e.results[i];
+        if (res.isFinal) final += res[0].transcript;
+        else interim += res[0].transcript;
+      }
+      if (interim) el.inp.value = interim;
+      if (final){
+        el.inp.value = '';
+        handle(final);
+      }
+    };
+
+    state.recog.onerror = function(e){
+      state.listening = false;
+      el.mic.classList.remove('rec');
+      el.orb.classList.remove('listen');
+      setStatus('готов', false);
+      if (e.error === 'not-allowed'){
+        addMsg('sys','Доступ к микрофону запрещён. Разреши его в настройках браузера для этой страницы.');
+      } else if (e.error === 'no-speech'){
+        addMsg('sys','Тишина в микрофоне — попробуй ещё раз.');
+      } else if (e.error === 'network'){
+        addMsg('sys','Распознавание не дотянулось до сети. Проверь VPN.');
+      } else if (e.error !== 'aborted'){
+        addMsg('sys','Ошибка микрофона: ' + e.error);
+      }
+    };
+
+    state.recog.onend = function(){
+      state.listening = false;
+      el.mic.classList.remove('rec');
+      el.orb.classList.remove('listen');
+      if (el.statTxt.textContent === 'слушаю') setStatus('готов', false);
+    };
+
+    el.mic.addEventListener('click', function(){
+      if (state.listening){
+        try { state.recog.stop(); } catch(e){}
+        return;
+      }
+      stopSpeak();
+      try { state.recog.start(); } catch(e){}
+    });
+  }
+
+  /* ---------- настройки ---------- */
+
+  function openSheet(){
+    el.keyInp.value = state.key;
+    el.modelInp.value = state.model;
+    el.tglTts.classList.toggle('on', state.tts);
+    el.sheet.classList.add('open');
+  }
+  function closeSheet(){ el.sheet.classList.remove('open'); }
+
+  document.getElementById('btnSettings').addEventListener('click', openSheet);
+  el.sheet.addEventListener('click', function(e){ if (e.target === el.sheet) closeSheet(); });
+
+  el.tglTts.addEventListener('click', function(){
+    state.tts = !state.tts;
+    el.tglTts.classList.toggle('on', state.tts);
+    if (!state.tts) stopSpeak();
+  });
+
+  document.getElementById('btnSave').addEventListener('click', function(){
+    state.key = el.keyInp.value.trim();
+    state.model = el.modelInp.value.trim() || DEFAULT_MODEL;
+    localStorage.setItem(LS_KEY, state.key);
+    localStorage.setItem(LS_MODEL, state.model);
+    localStorage.setItem(LS_TTS, state.tts ? '1' : '0');
+    closeSheet();
+    addMsg('sys', state.key ? 'Настройки сохранены. Ключ на месте.' : 'Настройки сохранены. Ключа нет — работают только локальные команды.');
+  });
+
+  document.getElementById('btnClear').addEventListener('click', function(){
+    state.history = [];
+    saveHist();
+    el.log.innerHTML = '';
+    addMsg('sys','История очищена');
+    closeSheet();
+  });
+
+  /* ---------- восстановление диалога ---------- */
+
+  (function restore(){
+    if (!state.history.length){
+      addMsg('sys','Джарвис на связи. Нажми 🎙 и говори — или напиши в поле ниже.');
+    } else {
+      state.history.slice(-14).forEach(function(h){
+        addMsg(h.role === 'user' ? 'user' : 'bot', h.content);
+      });
+      addMsg('sys','Диалог восстановлен');
+    }
+    if (!state.key){
+      addMsg('sys','Ключ не задан: пока работают команды «время», «погода», «открой ютуб». Настройки — по шестерёнке.');
+    }
+  })();
+
+  setStatus('готов', false);
+})();
+</script>
+</body>
+</html>
