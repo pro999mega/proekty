@@ -2,194 +2,354 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Запуск CS2 · Steam</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070c16">
+<title>CS2 · Запуск</title>
 <style>
 :root{
-  --bg:#070b14; --panel:#101a2c; --panel2:#16233a; --line:#22334f;
-  --txt:#e9f0ff; --mut:#8ea4c6; --acc:#f5a524; --blue:#3b82f6; --green:#22c55e; --red:#ef4444;
+  --bg:#070c16; --txt:#eaf1ff; --mut:#8698b8; --mut2:#5f7characters;
+  --glass:rgba(15,24,40,.72); --line:rgba(126,167,230,.14);
+  --acc:#ffb020; --acc2:#ff6a00; --blue:#4b9cff; --ok:#2fe08a; --err:#ff5a6a;
+  --r:26px;
 }
-*{box-sizing:border-box; margin:0; padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:radial-gradient(1100px 600px at 50% -10%,#15243f,#070b14 62%);
-  color:var(--txt); min-height:100vh; padding:22px 14px 40px;
-  -webkit-font-smoothing:antialiased;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  background:var(--bg); color:var(--txt); min-height:100dvh;
+  padding:18px 14px calc(40px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative;
 }
-.wrap{max-width:760px; margin:0 auto;}
-header{text-align:center; margin-bottom:22px;}
-.logo{
-  width:64px; height:64px; margin:0 auto 14px; border-radius:20px;
-  background:linear-gradient(145deg,#f5a524,#e2641a);
-  display:flex; align-items:center; justify-content:center; font-size:32px;
-  box-shadow:0 12px 30px -12px rgba(245,165,36,.7);
+/* фон */
+.glow{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;pointer-events:none;z-index:0}
+.g1{width:520px;height:520px;background:radial-gradient(circle,#ff8a00,transparent 70%);top:-220px;left:-140px;animation:float1 18s ease-in-out infinite}
+.g2{width:480px;height:480px;background:radial-gradient(circle,#1e5fff,transparent 70%);top:32%;right:-200px;animation:float2 22s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,50px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-70px,-40px)}}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(120,160,220,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,160,220,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 0%,#000 20%,transparent 75%);
+  -webkit-mask-image:radial-gradient(circle at 50% 0%,#000 20%,transparent 75%);
 }
-h1{font-size:23px; letter-spacing:-.4px; margin-bottom:6px;}
-.sub{color:var(--mut); font-size:13.5px; line-height:1.5;}
-.card{
-  background:var(--panel); border:1px solid var(--line); border-radius:20px;
-  padding:18px; margin-bottom:14px;
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto}
+
+/* шапка */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:11px}
+.mark{
+  width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--acc),var(--acc2));
+  box-shadow:0 10px 26px -10px rgba(255,140,0,.85); font-size:17px;color:#20140a;
+  transition:transform .3s cubic-bezier(.2,1.4,.4,1);
 }
+.brand:active .mark{transform:rotate(-8deg) scale(.94)}
+.name{font-size:13.5px;font-weight:800;letter-spacing:1.6px}
+.tag{font-size:11px;color:var(--mut);margin-top:2px;letter-spacing:.3px}
+.pill{
+  display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:11.5px;
+  font-weight:600;color:var(--mut);backdrop-filter:blur(10px);white-space:nowrap;
+}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 2s infinite}
+.pill.warn i{background:var(--acc);box-shadow:0 0 10px var(--acc)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* стекло */
+.glass{
+  background:var(--glass);border:1px solid var(--line);border-radius:var(--r);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  box-shadow:0 24px 60px -32px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* герой */
+.hero{position:relative;overflow:hidden;padding:30px 22px 24px;text-align:center;margin-bottom:14px;animation:up .5s both}
+.hero::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 50% -30%,rgba(255,150,0,.22),transparent 62%);
+}
+.hero-in{position:relative;z-index:2}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:1.4px;
+  padding:6px 12px;border-radius:999px;color:#ffd08a;background:rgba(255,160,32,.12);
+  border:1px solid rgba(255,160,32,.3);margin-bottom:16px;
+}
+h1{font-size:clamp(28px,8.5vw,42px);line-height:1.05;letter-spacing:-1.2px;font-weight:900;
+  background:linear-gradient(180deg,#fff,#9fb8dd);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.lead{color:var(--mut);font-size:13.5px;line-height:1.55;margin:10px auto 22px;max-width:340px}
 .play{
-  display:flex; align-items:center; justify-content:center; gap:12px;
-  width:100%; padding:20px; border:none; border-radius:16px; cursor:pointer;
-  background:linear-gradient(135deg,#f5a524,#e8761c); color:#1a1206;
-  font-size:18px; font-weight:800; letter-spacing:.2px;
-  box-shadow:0 16px 34px -16px rgba(245,165,36,.85);
-  transition:transform .12s ease, filter .12s ease;
-  text-decoration:none; font-family:inherit;
+  position:relative;width:100%;border:none;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:11px;
+  padding:19px;border-radius:17px;font-size:17.5px;font-weight:900;letter-spacing:.3px;
+  color:#1a1004;background:linear-gradient(135deg,#ffc247,#ff7a00);
+  box-shadow:0 18px 40px -16px rgba(255,130,0,.85),inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .14s ease,box-shadow .2s ease,filter .2s ease;overflow:hidden;
 }
-.play:active{transform:scale(.975); filter:brightness(1.06);}
-.play small{display:block; font-size:11.5px; font-weight:600; opacity:.72; margin-top:3px;}
-.row{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:12px;}
-.btn{
-  display:block; text-align:center; padding:13px 12px; border-radius:14px;
-  background:var(--panel2); border:1px solid var(--line); color:var(--txt);
-  text-decoration:none; font-size:13.5px; font-weight:600;
-  transition:background .15s ease, border-color .15s ease;
+.play:hover{filter:brightness(1.05);box-shadow:0 22px 48px -16px rgba(255,130,0,.95)}
+.play:active{transform:scale(.978)}
+.play svg{width:21px;height:21px;fill:currentColor;flex:0 0 auto}
+.play.launching{pointer-events:none;filter:saturate(.7) brightness(.95)}
+.mini-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+.mini{
+  display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:700;color:var(--txt);
+  padding:12px 8px;border-radius:14px;background:rgba(255,255,255,.055);
+  border:1px solid var(--line);transition:background .16s,border-color .16s,transform .12s;
 }
-.btn:hover, .btn:active{background:#1d2d47; border-color:#31496c;}
-.games{display:grid; grid-template-columns:repeat(auto-fit,minmax(152px,1fr)); gap:10px;}
+.mini:hover{background:rgba(255,255,255,.1);border-color:rgba(126,167,230,.32)}
+.mini:active{transform:scale(.97)}
+.mini svg{width:14px;height:14px;fill:var(--mut);flex:0 0 auto}
+
+/* секции */
+.sec{margin-top:14px;animation:up .5s both}
+.sec:nth-of-type(2){animation-delay:.05s}
+.sec:nth-of-type(3){animation-delay:.1s}
+.sec:nth-of-type(4){animation-delay:.15s}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card{padding:18px}
+.head{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.head h2{font-size:12px;font-weight:800;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase}
+.head .cnt{
+  margin-left:auto;font-size:11px;font-weight:700;color:var(--mut);
+  background:rgba(255,255,255,.06);padding:4px 9px;border-radius:999px;
+}
+
+/* быстрые действия */
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.q{
+  display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;text-decoration:none;
+  background:rgba(255,255,255,.045);border:1px solid var(--line);color:var(--txt);
+  transition:background .16s,transform .12s,border-color .16s;
+}
+.q:hover{background:rgba(255,255,255,.085);border-color:rgba(126,167,230,.3)}
+.q:active{transform:scale(.975)}
+.q .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.07)}
+.q .ic svg{width:16px;height:16px;fill:var(--blue)}
+.q b{font-size:13px;font-weight:700}
+.q span{font-size:11px;color:var(--mut);margin-top:-4px}
+
+/* игры */
+.games{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
 .game{
-  position:relative; background:var(--panel2); border:1px solid var(--line); border-radius:15px;
-  padding:14px 30px 14px 12px; text-align:left; cursor:pointer; color:var(--txt);
-  font-family:inherit; font-size:13.5px; font-weight:700; line-height:1.3;
-  transition:border-color .15s ease, transform .12s ease;
+  position:relative;display:flex;align-items:center;gap:10px;padding:13px 34px 13px 12px;
+  border-radius:15px;background:rgba(255,255,255,.045);border:1px solid var(--line);
+  cursor:pointer;color:var(--txt);font-family:inherit;text-align:left;
+  transition:background .16s,transform .12s,border-color .16s;
 }
-.game:active{transform:scale(.97);}
-.game span{display:block; font-size:11px; font-weight:500; color:var(--mut); margin-top:4px;}
-.game .del{
-  position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%;
-  border:none; background:#22304a; color:#94a9c9; font-size:13px; line-height:1;
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
+.game:hover{background:rgba(255,255,255,.085);border-color:rgba(126,167,230,.3)}
+.game:active{transform:scale(.975)}
+.game .av{
+  width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;
+  font-size:12px;font-weight:900;color:#131a28;
+  background:linear-gradient(145deg,#9dc9ff,#5b93e0);
 }
-.game .del:hover{background:var(--red); color:#fff;}
-h2{font-size:13px; text-transform:uppercase; letter-spacing:1.1px; color:var(--mut); margin-bottom:12px;}
-.idrow{display:flex; gap:9px; margin-top:4px; flex-wrap:wrap;}
-input[type=text], input[type=number]{
-  flex:1; min-width:110px; background:#0b1422; border:1px solid var(--line); border-radius:13px;
-  padding:13px 14px; color:var(--txt); font-size:15px; font-family:inherit; outline:none;
+.game .tx{min-width:0}
+.game b{display:block;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game small{font-size:10.5px;color:var(--mut)}
+.del{
+  position:absolute;top:7px;right:7px;width:20px;height:20px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.07);color:#93a8c8;font-size:12px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;transition:background .15s,color .15s;
 }
-input:focus{border-color:var(--acc);}
-.go{
-  padding:13px 20px; border:none; border-radius:13px; cursor:pointer;
-  background:var(--blue); color:#fff; font-weight:800; font-size:14px; font-family:inherit;
+.del:hover{background:var(--err);color:#fff}
+.empty{padding:16px 4px;text-align:center;color:var(--mut);font-size:12.5px;line-height:1.6}
+
+/* форма */
+.form{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.form input{
+  width:100%;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:13px;
+  padding:13px 14px;color:var(--txt);font-size:14px;font-family:inherit;outline:none;
+  transition:border-color .16s,background .16s;
 }
-.go:active{filter:brightness(1.15);}
-.note{font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:11px;}
-.note b{color:#c7d7f0;}
-.warn{
-  background:rgba(245,165,36,.09); border:1px solid rgba(245,165,36,.32);
-  border-radius:15px; padding:14px 15px; font-size:12.8px; line-height:1.6; color:#f3d9a8;
-  margin-bottom:14px;
+.form input::placeholder{color:#5f7395}
+.form input:focus{border-color:rgba(255,160,32,.6);background:rgba(0,0,0,.5)}
+.add{
+  grid-column:1/-1;padding:14px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;
+  font-size:13.5px;font-weight:800;color:#1a1004;background:linear-gradient(135deg,#ffc247,#ff7a00);
+  transition:filter .16s,transform .12s;
 }
-.ok{color:var(--green);}
-.switch{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px;
-  background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:13px 14px;}
-.switch p{font-size:13px; font-weight:600;}
-.switch small{display:block; font-size:11.5px; color:var(--mut); font-weight:400; margin-top:3px;}
-.tog{width:48px; height:28px; border-radius:20px; background:#2a3b57; border:none; position:relative;
-  cursor:pointer; flex:0 0 auto; transition:background .18s ease;}
-.tog::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
-  background:#8ea4c6; transition:transform .18s ease, background .18s ease;}
-.tog.on{background:rgba(34,197,94,.28);}
-.tog.on::after{transform:translateX(20px); background:var(--green);}
-table{width:100%; border-collapse:collapse; font-size:12.8px; margin-top:6px;}
-td{padding:7px 4px; border-bottom:1px solid #1b273c; color:#cddaf0;}
-td:last-child{text-align:right; color:var(--mut); font-variant-numeric:tabular-nums;}
-tr:last-child td{border-bottom:none;}
-footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line-height:1.6;}
+.add:active{transform:scale(.98);filter:brightness(1.08)}
+.note{font-size:12px;color:var(--mut);line-height:1.65;margin-top:11px}
+.note b{color:#c3d6f2;font-weight:700}
+.appid{background:rgba(255,176,32,.12);color:#ffce7a;padding:1px 6px;border-radius:5px;font-weight:700;font-size:11.5px}
+
+/* таблица id */
+.ids{display:grid;gap:6px}
+.idr{
+  display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;
+  background:rgba(255,255,255,.035);border:1px solid transparent;cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.idr:hover{background:rgba(255,255,255,.075);border-color:var(--line)}
+.idr b{font-size:12.5px;font-weight:600;flex:1}
+.idr code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--mut);
+  background:rgba(0,0,0,.35);padding:3px 8px;border-radius:7px;
+}
+
+/* bat */
+.dl{
+  display:flex;align-items:center;gap:12px;padding:15px;border-radius:16px;text-decoration:none;
+  background:linear-gradient(135deg,rgba(75,156,255,.16),rgba(75,156,255,.05));
+  border:1px solid rgba(75,156,255,.3);color:var(--txt);transition:transform .12s,background .16s;
+}
+.dl:hover{background:linear-gradient(135deg,rgba(75,156,255,.24),rgba(75,156,255,.08))}
+.dl:active{transform:scale(.98)}
+.dl .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(75,156,255,.2);flex:0 0 auto}
+.dl .ic svg{width:18px;height:18px;fill:var(--blue)}
+.dl b{display:block;font-size:13px;font-weight:700}
+.dl span{font-size:11.5px;color:var(--mut)}
+
+footer{text-align:center;color:#4f6384;font-size:11px;margin-top:24px;line-height:1.7}
+
+/* тост */
+.toast{
+  position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,140%);
+  background:rgba(20,32,52,.96);border:1px solid rgba(126,167,230,.28);color:var(--txt);
+  padding:12px 20px;border-radius:14px;font-size:12.5px;font-weight:600;z-index:50;
+  backdrop-filter:blur(16px);box-shadow:0 16px 40px -14px #000;transition:transform .32s cubic-bezier(.2,1.3,.4,1);
+  max-width:90vw;text-align:center;
+}
+.toast.show{transform:translate(-50%,0)}
+@media(min-width:560px){
+  .quick{grid-template-columns:repeat(4,1fr)}
+  .games{grid-template-columns:repeat(3,1fr)}
+  .hero{padding:40px 34px 30px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<div class="glow g1"></div><div class="glow g2"></div>
+
 <div class="wrap">
 
-  <header>
-    <div class="logo">🎯</div>
-    <h1>Запуск Counter-Strike 2</h1>
-    <p class="sub">Один клик — Steam поднимается, CS2 стартует.<br>Страница работает через протокол <b>steam://</b></p>
-  </header>
-
-  <div id="phone" class="warn" style="display:none">
-    📱 Похоже, ты с телефона. Ссылки <b>steam://</b> открываются только на компьютере, где установлен Steam.
+  <div class="top">
+    <div class="brand">
+      <div class="mark">▶</div>
+      <div>
+        <div class="name">STEAM LAUNCHER</div>
+        <div class="tag">Counter-Strike 2 · App 730</div>
+      </div>
+    </div>
+    <div class="pill" id="status"><i></i><span>Проверяю…</span></div>
   </div>
 
-  <div class="card">
-    <button class="play" id="mainplay">
-      <span style="font-size:26px">▶</span>
-      <span>Играть в CS2
-        <small>Запустит Steam и Counter-Strike 2</small>
-      </span>
-    </button>
-
-    <div class="row">
-      <a class="btn" href="steam://open/main">🖥 Открыть Steam</a>
-      <a class="btn" href="steam://store/730">🛒 Магазин CS2</a>
-      <a class="btn" href="steam://url/Inventory">🎒 Инвентарь</a>
-      <a class="btn" href="steam://friends/status/online">💬 Друзья</a>
+  <section class="hero glass">
+    <div class="hero-in">
+      <div class="badge">● READY</div>
+      <h1>Counter-Strike 2</h1>
+      <p class="lead">Один тап — Steam поднимется сам и запустит игру.</p>
+      <button class="play" id="mainplay">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="playlabel">Играть</span>
+      </button>
+      <div class="mini-row">
+        <button class="mini" id="copyLink">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+          Скопировать ссылку
+        </button>
+        <a class="mini" href="steam://open/main">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm5 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+          Открыть Steam
+        </a>
+      </div>
     </div>
+  </section>
 
-    <div class="switch">
-      <p>Автозапуск CS2
-        <small>Открыл страницу — игра стартует сама</small>
+  <section class="sec">
+    <div class="glass card">
+      <div class="head"><h2>Быстрый доступ</h2></div>
+      <div class="quick">
+        <a class="q" href="steam://store/730">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10-4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 2 3 6v14a2 2 0 0 0 2 2h3.1a3.5 3.5 0 0 1 3.4-3.9l1.3-1.9A3.5 3.5 0 0 1 15 15V9H5.4L7 6h11v9h2V2H6z"/></svg></div>
+          <b>Магазин</b><span>Страница CS2</span>
+        </a>
+        <a class="q" href="steam://url/Inventory">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-6 0h-4V4h4v2z"/></svg></div>
+          <b>Инвентарь</b><span>Скины и предметы</span>
+        </a>
+        <a class="q" href="steam://friends/status/online">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z"/></svg></div>
+          <b>Друзья</b><span>Кто в сети</span>
+        </a>
+        <a class="q" href="steam://open/downloads">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v10l3.5-3.5 1.4 1.4L12 16l-4.9-5.1 1.4-1.4L12 13V3zM5 19h14v2H5z"/></svg></div>
+          <b>Загрузки</b><span>Обновления</span>
+        </a>
+      </div>
+
+      <div class="head" style="margin-top:18px">
+        <h2>Автозапуск</h2>
+      </div>
+      <div class="idr" id="autorow" style="background:rgba(255,255,255,.035)">
+        <b>Старт при открытии страницы<small style="display:block;color:var(--mut);font-weight:400;font-size:11px;margin-top:3px">Игра запустится сама через секунду</small></b>
+        <button class="del" id="autotog" style="position:static;width:42px;height:24px;border-radius:20px;background:#2a3b57;transition:background .2s"></button>
+      </div>
+      <p class="note" id="hint">
+        <b>Первый раз:</b> браузер спросит «Открыть Steam?» — поставь галочку <b>«Всегда разрешать»</b>.
       </p>
-      <button class="tog" id="autotog" aria-label="Автозапуск"></button>
     </div>
+  </section>
 
-    <p class="note">
-      <b>Первый запуск:</b> браузер спросит «Открыть Steam?» — поставь галочку
-      <b>«Всегда разрешать»</b> и нажми «Открыть». Больше спрашивать не будет.
-    </p>
-  </div>
+  <section class="sec">
+    <div class="glass card">
+      <div class="head">
+        <h2>Мои игры</h2>
+        <span class="cnt" id="cnt">6</span>
+      </div>
+      <div class="games" id="games">
+        <button class="game" data-id="570"><div class="av">D</div><div class="tx"><b>Dota 2</b><small>App 570</small></div></button>
+        <button class="game" data-id="440"><div class="av">T</div><div class="tx"><b>Team Fortress 2</b><small>App 440</small></div></button>
+        <button class="game" data-id="252490"><div class="av">R</div><div class="tx"><b>Rust</b><small>App 252490</small></div></button>
+        <button class="game" data-id="271590"><div class="av">G</div><div class="tx"><b>GTA V</b><small>App 271590</small></div></button>
+        <button class="game" data-id="578080"><div class="av">P</div><div class="tx"><b>PUBG</b><small>App 578080</small></div></button>
+        <button class="game" data-id="1172470"><div class="av">A</div><div class="tx"><b>Apex Legends</b><small>App 1172470</small></div></button>
+      </div>
 
-  <div class="card">
-    <h2>Другие игры</h2>
-    <div class="games" id="games">
-      <button class="game" data-id="570">Dota 2<span>App ID 570</span></button>
-      <button class="game" data-id="440">Team Fortress 2<span>App ID 440</span></button>
-      <button class="game" data-id="252490">Rust<span>App ID 252490</span></button>
-      <button class="game" data-id="271590">GTA V<span>App ID 271590</span></button>
-      <button class="game" data-id="578080">PUBG<span>App ID 578080</span></button>
-      <button class="game" data-id="1172470">Apex Legends<span>App ID 1172470</span></button>
+      <div class="form">
+        <input type="text" id="gname" placeholder="Название игры" maxlength="24">
+        <input type="number" id="gid" placeholder="App ID" inputmode="numeric">
+        <button class="add" id="addgame">+ Добавить игру</button>
+      </div>
+      <p class="note">
+        App ID — цифры из адреса магазина:
+        <span class="appid">store.steampowered.com/app/<b style="color:#20140a">730</b>/</span>
+      </p>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>Добавить свою игру</h2>
-    <div class="idrow">
-      <input type="text" id="gname" placeholder="Название" maxlength="24">
-      <input type="number" id="gid" placeholder="App ID, напр. 730" inputmode="numeric">
-      <button class="go" id="addgame">Добавить</button>
+  <section class="sec">
+    <div class="glass card">
+      <div class="head"><h2>Шпаргалка App ID</h2></div>
+      <div class="ids">
+        <div class="idr" data-copy-id="730"><b>Counter-Strike 2</b><code>730</code></div>
+        <div class="idr" data-copy-id="570"><b>Dota 2</b><code>570</code></div>
+        <div class="idr" data-copy-id="440"><b>Team Fortress 2</b><code>440</code></div>
+        <div class="idr" data-copy-id="252490"><b>Rust</b><code>252490</code></div>
+        <div class="idr" data-copy-id="271590"><b>Grand Theft Auto V</b><code>271590</code></div>
+        <div class="idr" data-copy-id="578080"><b>PUBG: Battlegrounds</b><code>578080</code></div>
+        <div class="idr" data-copy-id="1172470"><b>Apex Legends</b><code>1172470</code></div>
+        <div class="idr" data-copy-id="413150"><b>Stardew Valley</b><code>413150</code></div>
+      </div>
+      <p class="note">Нажми на строку — скопируется ссылка <b>steam://rungameid/ID</b></p>
     </div>
-    <p class="note">
-      App ID — номер игры в Steam. Найти можно в адресе магазина:
-      <b>store.steampowered.com/app/<span class="ok">730</span>/</b> — эти цифры и есть ID.
-      Добавленные игры сохраняются в этом браузере.
-    </p>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>Ярлык на рабочий стол</h2>
-    <p class="note">
-      Нужен запуск без браузера? Скачай готовый скрипт
-      <a href="https://raw.githubusercontent.com/pro999mega/proekty/main/cs2.bat" download style="color:var(--acc);font-weight:700">cs2.bat</a>
-      — он сам поднимает Steam, ждёт загрузки и стартует CS2.
-      Правый клик по файлу → «Отправить» → «Рабочий стол (создать ярлык)».
-    </p>
-  </div>
-
-  <div class="card">
-    <h2>Шпаргалка App ID</h2>
-    <table>
-      <tr><td>Counter-Strike 2</td><td>730</td></tr>
-      <tr><td>Dota 2</td><td>570</td></tr>
-      <tr><td>Team Fortress 2</td><td>440</td></tr>
-      <tr><td>Rust</td><td>252490</td></tr>
-      <tr><td>GTA V</td><td>271590</td></tr>
-      <tr><td>PUBG</td><td>578080</td></tr>
-      <tr><td>Apex Legends</td><td>1172470</td></tr>
-    </table>
-  </div>
+  <section class="sec">
+    <div class="glass card">
+      <div class="head"><h2>Ярлык на рабочий стол</h2></div>
+      <a class="dl" href="https://raw.githubusercontent.com/pro999mega/proekty/main/cs2.bat" download>
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16 6 10h4V3h4v7h4l-6 6zM4 18h16v3H4z"/></svg></div>
+        <div>
+          <b>Скачать cs2.bat</b>
+          <span>Запуск без браузера, одним двойным кликом</span>
+        </div>
+      </a>
+      <p class="note">Правый клик по файлу → <b>Отправить</b> → <b>Рабочий стол (создать ярлык)</b>.</p>
+    </div>
+  </section>
 
   <footer>
     Работает только на ПК с установленным Steam.<br>
@@ -197,71 +357,135 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
   </footer>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 (function(){
+  'use strict';
   var KEY_AUTO = 'cs_autostart';
   var KEY_GAMES = 'cs_custom_games';
+  var isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    document.getElementById('phone').style.display = 'block';
+  /* ---------- тост ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
   }
+
+  /* ---------- статус ---------- */
+  var status = document.getElementById('status');
+  if (isPhone){
+    status.classList.add('warn');
+    status.querySelector('span').textContent = 'Телефон · нужен ПК';
+    document.querySelector('.hero .badge').textContent = '● ТОЛЬКО С ПК';
+    document.getElementById('hint').innerHTML =
+      'С телефона игра не запустится — <b>steam://</b> понимает только компьютер со Steam. ' +
+      'Нажми <b>«Скопировать ссылку»</b> и открой её на ПК.';
+  } else {
+    status.querySelector('span').textContent = 'ПК · готово';
+  }
+
+  /* ---------- копирование ---------- */
+  function copy(text, okMsg){
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast(okMsg); }
+      catch(e){ toast('Не удалось скопировать'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  /* ---------- запуск ---------- */
+  var playBtn = document.getElementById('mainplay');
+  var playLabel = document.getElementById('playlabel');
+  var busy = false;
 
   function launch(id){
-    if (!id) return;
+    if (!id || busy) return;
+    if (isPhone){
+      copy('steam://rungameid/' + id, 'Ссылка скопирована — открой её на ПК');
+      return;
+    }
+    busy = true;
+    playBtn.classList.add('launching');
+    playLabel.textContent = 'Запускаю…';
     window.location.href = 'steam://rungameid/' + encodeURIComponent(id);
+    setTimeout(function(){
+      busy = false;
+      playBtn.classList.remove('launching');
+      playLabel.textContent = 'Играть';
+    }, 2600);
   }
 
-  document.getElementById('mainplay').addEventListener('click', function(){
-    launch('730');
+  playBtn.addEventListener('click', function(){ launch('730'); });
+
+  document.getElementById('copyLink').addEventListener('click', function(){
+    copy('steam://rungameid/730', 'steam://rungameid/730 скопировано');
   });
 
-  document.querySelectorAll('.game[data-id]').forEach(function(b){
+  /* ---------- игры ---------- */
+  var box = document.getElementById('games');
+  var cnt = document.getElementById('cnt');
+
+  box.querySelectorAll('.game[data-id]').forEach(function(b){
     b.addEventListener('click', function(e){
-      if (e.target.classList.contains('del')) return;
+      if (e.target.closest('.del')) return;
       launch(b.dataset.id);
     });
   });
 
-  // ---- свои игры ----
-  var box = document.getElementById('games');
-
   function loadGames(){
-    var raw = localStorage.getItem(KEY_GAMES);
-    if (!raw) return [];
-    try { return JSON.parse(raw) || []; } catch(e){ return []; }
+    try { return JSON.parse(localStorage.getItem(KEY_GAMES)) || []; }
+    catch(e){ return []; }
   }
-
-  function saveGames(list){
-    localStorage.setItem(KEY_GAMES, JSON.stringify(list));
-  }
+  function saveGames(list){ localStorage.setItem(KEY_GAMES, JSON.stringify(list)); }
 
   function esc(s){
-    return String(s).replace(/[&<>"]/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
 
   function renderCustom(){
     box.querySelectorAll('.custom').forEach(function(n){ n.remove(); });
-    loadGames().forEach(function(g, i){
+    var list = loadGames();
+    list.forEach(function(g, i){
       var b = document.createElement('button');
       b.className = 'game custom';
       b.dataset.id = g.id;
-      b.innerHTML = esc(g.name) + '<span>App ID ' + esc(g.id) + '</span>' +
-                    '<button class="del" title="Удалить">×</button>';
+      b.innerHTML =
+        '<div class="av">' + esc(String(g.name).trim().charAt(0).toUpperCase() || '?') + '</div>' +
+        '<div class="tx"><b>' + esc(g.name) + '</b><small>App ' + esc(g.id) + '</small></div>' +
+        '<button class="del" aria-label="Удалить">×</button>';
       b.addEventListener('click', function(e){
-        if (e.target.classList.contains('del')) {
+        if (e.target.closest('.del')){
           e.stopPropagation();
-          var list = loadGames();
-          list.splice(i, 1);
-          saveGames(list);
+          var l = loadGames();
+          l.splice(i, 1);
+          saveGames(l);
           renderCustom();
+          toast('Игра удалена');
           return;
         }
         launch(g.id);
       });
       box.appendChild(b);
     });
+    cnt.textContent = box.querySelectorAll('.game').length;
   }
 
   document.getElementById('addgame').addEventListener('click', function(){
@@ -269,29 +493,42 @@ footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line
     var id = document.getElementById('gid');
     var n = name.value.trim();
     var v = id.value.trim();
-    if (!n || !v) { (n ? id : name).focus(); return; }
+    if (!n){ name.focus(); toast('Впиши название'); return; }
+    if (!v || !/^\d+$/.test(v)){ id.focus(); toast('App ID — только цифры'); return; }
     var list = loadGames();
     list.push({ name: n, id: v });
     saveGames(list);
     name.value = '';
     id.value = '';
     renderCustom();
+    toast('«' + n + '» добавлена');
   });
 
-  // ---- автозапуск ----
+  /* ---------- autozapusk ---------- */
   var tog = document.getElementById('autotog');
   var autoOn = localStorage.getItem(KEY_AUTO) === '1';
-  tog.classList.toggle('on', autoOn);
-
+  function paint(){
+    tog.style.background = autoOn ? 'rgba(47,224,138,.3)' : '#2a3b57';
+    tog.style.boxShadow = autoOn ? '0 0 0 1px rgba(47,224,138,.4)' : 'none';
+  }
+  paint();
   tog.addEventListener('click', function(){
     autoOn = !autoOn;
     localStorage.setItem(KEY_AUTO, autoOn ? '1' : '0');
-    tog.classList.toggle('on', autoOn);
+    paint();
+    toast(autoOn ? 'Автозапуск включён' : 'Автозапуск выключен');
   });
 
-  if (autoOn && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+  if (autoOn && !isPhone){
     setTimeout(function(){ launch('730'); }, 900);
   }
+
+  /* ---------- шпаргалка ---------- */
+  document.querySelectorAll('.idr[data-copy-id]').forEach(function(row){
+    row.addEventListener('click', function(){
+      copy('steam://rungameid/' + row.dataset.copyId, 'Ссылка на App ' + row.dataset.copyId + ' скопирована');
+    });
+  });
 
   renderCustom();
 })();
