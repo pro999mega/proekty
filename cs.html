@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Запуск CS2 · Steam</title>
+<style>
+:root{
+  --bg:#070b14; --panel:#101a2c; --panel2:#16233a; --line:#22334f;
+  --txt:#e9f0ff; --mut:#8ea4c6; --acc:#f5a524; --blue:#3b82f6; --green:#22c55e;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(1100px 600px at 50% -10%,#15243f,#070b14 62%);
+  color:var(--txt); min-height:100vh; padding:22px 14px 40px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px; margin:0 auto;}
+header{text-align:center; margin-bottom:22px;}
+.logo{
+  width:64px; height:64px; margin:0 auto 14px; border-radius:20px;
+  background:linear-gradient(145deg,#f5a524,#e2641a);
+  display:flex; align-items:center; justify-content:center; font-size:32px;
+  box-shadow:0 12px 30px -12px rgba(245,165,36,.7);
+}
+h1{font-size:23px; letter-spacing:-.4px; margin-bottom:6px;}
+.sub{color:var(--mut); font-size:13.5px; line-height:1.5;}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:20px;
+  padding:18px; margin-bottom:14px;
+}
+.play{
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  width:100%; padding:20px; border:none; border-radius:16px; cursor:pointer;
+  background:linear-gradient(135deg,#f5a524,#e8761c); color:#1a1206;
+  font-size:18px; font-weight:800; letter-spacing:.2px;
+  box-shadow:0 16px 34px -16px rgba(245,165,36,.85);
+  transition:transform .12s ease, filter .12s ease;
+  text-decoration:none;
+}
+.play:active{transform:scale(.975); filter:brightness(1.06);}
+.play small{display:block; font-size:11.5px; font-weight:600; opacity:.72; margin-top:3px;}
+.row{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:12px;}
+.btn{
+  display:block; text-align:center; padding:13px 12px; border-radius:14px;
+  background:var(--panel2); border:1px solid var(--line); color:var(--txt);
+  text-decoration:none; font-size:13.5px; font-weight:600;
+  transition:background .15s ease, border-color .15s ease;
+}
+.btn:hover, .btn:active{background:#1d2d47; border-color:#31496c;}
+.games{display:grid; grid-template-columns:repeat(auto-fit,minmax(152px,1fr)); gap:10px;}
+.game{
+  background:var(--panel2); border:1px solid var(--line); border-radius:15px;
+  padding:14px 12px; text-align:left; cursor:pointer; color:var(--txt);
+  font-family:inherit; font-size:13.5px; font-weight:700; line-height:1.3;
+  transition:border-color .15s ease, transform .12s ease;
+}
+.game:active{transform:scale(.97);}
+.game span{display:block; font-size:11px; font-weight:500; color:var(--mut); margin-top:4px;}
+h2{font-size:13px; text-transform:uppercase; letter-spacing:1.1px; color:var(--mut); margin-bottom:12px;}
+.idrow{display:flex; gap:9px; margin-top:4px;}
+input[type=number]{
+  flex:1; background:#0b1422; border:1px solid var(--line); border-radius:13px;
+  padding:13px 14px; color:var(--txt); font-size:15px; font-family:inherit; outline:none;
+}
+input[type=number]:focus{border-color:var(--acc);}
+.go{
+  padding:13px 20px; border:none; border-radius:13px; cursor:pointer;
+  background:var(--blue); color:#fff; font-weight:800; font-size:14px; font-family:inherit;
+}
+.go:active{filter:brightness(1.15);}
+.note{font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:11px;}
+.note b{color:#c7d7f0;}
+.warn{
+  background:rgba(245,165,36,.09); border:1px solid rgba(245,165,36,.32);
+  border-radius:15px; padding:14px 15px; font-size:12.8px; line-height:1.6; color:#f3d9a8;
+  margin-bottom:14px;
+}
+.ok{color:var(--green);}
+table{width:100%; border-collapse:collapse; font-size:12.8px; margin-top:6px;}
+td{padding:7px 4px; border-bottom:1px solid #1b273c; color:#cddaf0;}
+td:last-child{text-align:right; color:var(--mut); font-variant-numeric:tabular-nums;}
+tr:last-child td{border-bottom:none;}
+footer{text-align:center; color:#506osimplify; }
+footer{text-align:center; color:#556a88; font-size:11.5px; margin-top:26px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">🎯</div>
+    <h1>Запуск Counter-Strike 2</h1>
+    <p class="sub">Один клик — Steam поднимается, CS2 стартует.<br>Страница работает через протокол <b>steam://</b></p>
+  </header>
+
+  <div id="phone" class="warn" style="display:none">
+    📱 Похоже, ты с телефона. Ссылки <b>steam://</b> открываются только на компьютере, где установлен Steam.
+  </div>
+
+  <div class="card">
+    <a class="play" href="steam://rungameid/730">
+      <span style="font-size:26px">▶</span>
+      <span>Играть в CS2
+        <small>Запустит Steam и Counter-Strike 2</small>
+      </span>
+    </a>
+
+    <div class="row">
+      <a class="btn" href="steam://open/main">🖥 Открыть Steam</a>
+      <a class="btn" href="steam://store/730">🛒 Магазин CS2</a>
+      <a class="btn" href="steam://url/Inventory">🎒 Инвентарь</a>
+      <a class="btn" href="steam://friends/status/online">💬 Друзья</a>
+    </div>
+
+    <p class="note">
+      <b>Первый запуск:</b> браузер спросит «Открыть Steam?» — поставь галочку
+      <b>«Всегда разрешать»</b> и нажми «Открыть». Больше спрашивать не будет.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Другие игры</h2>
+    <div class="games">
+      <button class="game" data-id="570">Dota 2<span>App ID 570</span></button>
+      <button class="game" data-id="440">Team Fortress 2<span>App ID 440</span></button>
+      <button class="game" data-id="252490">Rust<span>App ID 252490</span></button>
+      <button class="game" data-id="271590">GTA V<span>App ID 271590</span></button>
+      <button class="game" data-id="578080">PUBG<span>App ID 578080</span></button>
+      <button class="game" data-id="1172470">Apex Legends<span>App ID 1172470</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Запустить любую игру</h2>
+    <div class="idrow">
+      <input type="number" id="appid" placeholder="Введи App ID, например 730" inputmode="numeric">
+      <button class="go" id="gorun">Запуск</button>
+    </div>
+    <p class="note">
+      App ID — номер игры в Steam. Найти можно в адресе страницы магазина:
+      <b>store.steampowered.com/app/<span class="ok">730</span>/</b> — вот эти цифры и есть ID.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Ярлык на рабочий стол</h2>
+    <p class="note">
+      Нужен запуск без браузера? Скачай готовый скрипт
+      <a href="https://raw.githubusercontent.com/pro999mega/proekty/main/cs2.bat" download style="color:var(--acc);font-weight:700">cs2.bat</a>
+      — он сам поднимает Steam, ждёт загрузки и стартует CS2.
+      Правый клик по файлу → «Отправить» → «Рабочий стол (создать ярлык)».
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Шпаргалка App ID</h2>
+    <table>
+      <tr><td>Counter-Strike 2</td><td>730</td></tr>
+      <tr><td>Dota 2</td><td>570</td></tr>
+      <tr><td>Team Fortress 2</td><td>440</td></tr>
+      <tr><td>Rust</td><td>252490</td></tr>
+      <tr><td>GTA V</td><td>271590</td></tr>
+      <tr><td>PUBG</td><td>578080</td></tr>
+      <tr><td>Apex Legends</td><td>1172470</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    Работает только на ПК с установленным Steam.<br>
+    Страница ничего не скачивает и не хранит — просто открывает ссылку протокола.
+  </footer>
+</div>
+
+<script>
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    document.getElementById('phone').style.display = 'block';
+  }
+
+  function launch(id){
+    if (!id) return;
+    window.location.href = 'steam://rungameid/' + encodeURIComponent(id);
+  }
+
+  document.querySelectorAll('.game').forEach(function(b){
+    b.addEventListener('click', function(){ launch(b.dataset.id); });
+  });
+
+  document.getElementById('gorun').addEventListener('click', function(){
+    var v = document.getElementById('appid').value.trim();
+    if (!v) { document.getElementById('appid').focus(); return; }
+    launch(v);
+  });
+
+  document.getElementById('appid').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') document.getElementById('gorun').click();
+  });
+</script>
+</body>
+</html>
