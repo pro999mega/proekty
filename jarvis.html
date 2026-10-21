@@ -61,6 +61,7 @@
   }
   .dot{width:7px;height:7px;border-radius:50%;background:var(--ok); box-shadow:0 0 10px var(--ok)}
   .dot.busy{background:var(--cyan); box-shadow:0 0 10px var(--cyan); animation:blink .9s infinite}
+  .dot.err{background:var(--danger); box-shadow:0 0 10px var(--danger)}
   .icon-btn{
     width:38px;height:38px;flex:0 0 38px;
     display:grid;place-items:center;
@@ -199,6 +200,7 @@
   input:focus,select:focus{border-color:rgba(56,230,255,.55)}
   .row{display:flex; gap:10px; align-items:center; margin-top:16px}
   .row .grow{flex:1}
+  .row.wrap{flex-wrap:wrap}
   .btn{
     border:1px solid rgba(56,230,255,.3); background:rgba(56,230,255,.12);
     color:var(--accent); border-radius:12px; padding:12px 16px;
@@ -206,6 +208,7 @@
   }
   .btn.primary{background:linear-gradient(145deg,#38e6ff,#1197b8); color:#03222c; border:none; font-weight:600}
   .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.45}
   .switch{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px}
   .switch span{font-size:13.5px}
   .tgl{
@@ -220,6 +223,13 @@
   .tgl.on{background:rgba(56,230,255,.3); border-color:var(--cyan)}
   .tgl.on::after{left:25px; background:var(--cyan); box-shadow:0 0 12px var(--cyan)}
   .link-sites{font-size:12px; color:var(--muted); line-height:1.7; margin-top:14px}
+  .testbox{
+    margin-top:14px; font-size:12.5px; line-height:1.6;
+    border:1px dashed rgba(56,230,255,.22); border-radius:12px;
+    padding:10px 12px; color:var(--muted); min-height:20px;
+  }
+  .testbox.ok{color:var(--ok); border-color:rgba(77,255,166,.4)}
+  .testbox.bad{color:var(--danger); border-color:rgba(255,95,122,.4)}
 
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes breathe{0%,100%{transform:scale(1); opacity:1}50%{transform:scale(1.13); opacity:.82}}
@@ -261,30 +271,26 @@
 <div id="sheet">
   <div class="panel">
     <h2>Настройки</h2>
-    <p class="hint">Ключ OpenRouter хранится только в этом браузере (localStorage) и уходит напрямую на openrouter.ai. В код файла он не записан.</p>
+    <p class="hint">Ключ хранится только в этом браузере и уходит напрямую провайдеру. Поддерживаются <b>OpenRouter</b> (sk-or-v1-…) и <b>Groq</b> (gsk_…) — провайдер определяется по ключу автоматически.</p>
 
-    <label for="keyInp">API-ключ OpenRouter</label>
-    <input id="keyInp" type="password" placeholder="sk-or-v1-…" autocomplete="off">
+    <label for="keyInp">API-ключ</label>
+    <input id="keyInp" type="password" placeholder="sk-or-v1-… или gsk_…" autocomplete="off">
 
-    <label for="modelInp">Модель</label>
-    <input id="modelInp" type="text" list="models" placeholder="meta-llama/llama-3.3-70b-instruct:free" autocomplete="off">
-    <datalist id="models">
-      <option value="meta-llama/llama-3.3-70b-instruct:free"></option>
-      <option value="deepseek/deepseek-chat-v3-0324:free"></option>
-      <option value="google/gemini-2.0-flash-exp:free"></option>
-      <option value="qwen/qwen-2.5-72b-instruct:free"></option>
-      <option value="microsoft/phi-3-mini-128k-instruct:free"></option>
-    </datalist>
+    <label for="modelInp">Модель (можно оставить пустым — подберу сам)</label>
+    <input id="modelInp" type="text" placeholder="авто: сначала бесплатные, потом резервные" autocomplete="off">
 
     <div class="switch">
       <span>Озвучивать ответы</span>
       <div class="tgl" id="tglTts"></div>
     </div>
 
-    <div class="row">
+    <div class="row wrap">
+      <button class="btn" id="btnTest">Проверить ключ</button>
       <button class="btn" id="btnClear">Очистить историю</button>
       <button class="btn primary grow" id="btnSave">Сохранить</button>
     </div>
+
+    <div class="testbox" id="testBox">Здесь появится результат проверки.</div>
 
     <div class="link-sites">
       Без ключа работают команды: <b>время</b>, <b>дата</b>, <b>погода</b>, <b>открой ютуб</b>, <b>открой вк</b>, <b>стоп</b>, <b>очисти</b>.
@@ -296,8 +302,8 @@
 (function(){
   "use strict";
 
-  var LS_KEY='jarvis_key', LS_MODEL='jarvis_model', LS_TTS='jarvis_tts', LS_HIST='jarvis_hist';
-  var DEFAULT_MODEL='meta-llama/llama-3.3-70b-instruct:free';
+  var LS_KEY='jarvis_key', LS_MODEL='jarvis_model', LS_TTS='jarvis_tts', LS_HIST='jarvis_hist', LS_WORK='jarvis_work_model';
+  var SS_FREE='jarvis_free_models';
 
   var el = {
     log: document.getElementById('log'),
@@ -310,12 +316,13 @@
     sheet: document.getElementById('sheet'),
     keyInp: document.getElementById('keyInp'),
     modelInp: document.getElementById('modelInp'),
-    tglTts: document.getElementById('tglTts')
+    tglTts: document.getElementById('tglTts'),
+    testBox: document.getElementById('testBox')
   };
 
   var state = {
     key: localStorage.getItem(LS_KEY) || '',
-    model: localStorage.getItem(LS_MODEL) || DEFAULT_MODEL,
+    model: localStorage.getItem(LS_MODEL) || '',
     tts: localStorage.getItem(LS_TTS) !== '0',
     history: [],
     busy: false,
@@ -325,11 +332,19 @@
 
   try { state.history = JSON.parse(localStorage.getItem(LS_HIST) || '[]'); } catch(e){ state.history = []; }
 
+  function providerOf(key){ return /^gsk_/.test(key) ? 'groq' : 'openrouter'; }
+
+  function shortModel(id){
+    if (!id) return 'модель';
+    var s = id.split('/').pop().replace(':free','').replace(/-/g,' ');
+    return s.length > 22 ? s.slice(0,22) + '…' : s;
+  }
+
   /* ---------- утилиты ---------- */
 
-  function setStatus(text, busy){
+  function setStatus(text, mode){
     el.statTxt.textContent = text;
-    el.statDot.className = 'dot' + (busy ? ' busy' : '');
+    el.statDot.className = 'dot' + (mode === 'busy' ? ' busy' : (mode === 'err' ? ' err' : ''));
   }
 
   function addMsg(role, text){
@@ -340,8 +355,6 @@
     el.log.scrollTop = el.log.scrollHeight;
     return d;
   }
-
-  function escapeSafe(s){ return String(s); }
 
   function saveHist(){
     try { localStorage.setItem(LS_HIST, JSON.stringify(state.history.slice(-40))); } catch(e){}
@@ -379,7 +392,7 @@
 
   function speak(text){
     if (!state.tts || !window.speechSynthesis) return;
-    var clean = String(text).replace(/[*_`#>]/g,'').replace(/\s+/g,' ').slice(0,600);
+    var clean = String(text).replace(/[*_`#>|]/g,'').replace(/\s+/g,' ').slice(0,600);
     try {
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(clean);
@@ -489,49 +502,195 @@
     return null;
   }
 
-  /* ---------- запрос к модели ---------- */
+  /* ---------- список моделей ---------- */
 
-  var SYSTEM_PROMPT = 'Ты Джарвис — голосовой ИИ-помощник пользователя по имени Илюха, живёт в Ульяновске. '
-    + 'Отвечай по-русски, кратко и по делу: 1–3 предложения, если не просят подробнее. '
-    + 'Пиши без markdown-разметки, звёздочек и списков, потому что ответ читается вслух. '
-    + 'Характер: спокойный, собранный, с лёгкой иронией, иногда обращайся «сэр». '
-    + 'Если чего-то не знаешь — скажи прямо, не выдумывай цифры и факты.';
-
-  function askModel(text){
-    if (!state.key){
-      return Promise.resolve('Ключ не установлен, сэр. Откройте настройки и вставьте ключ OpenRouter — тогда я смогу отвечать на любые вопросы.');
+  function fetchFreeModels(){
+    var cached = null;
+    try { cached = sessionStorage.getItem(SS_FREE); } catch(e){}
+    if (cached){
+      try { return Promise.resolve(JSON.parse(cached)); } catch(e){}
     }
+    return fetch('https://openrouter.ai/api/v1/models').then(function(r){
+      if (!r.ok) throw new Error('список моделей недоступен');
+      return r.json();
+    }).then(function(j){
+      var ids = (j.data || [])
+        .filter(function(m){ return /:free$/.test(m.id); })
+        .map(function(m){ return m.id; });
+      try { sessionStorage.setItem(SS_FREE, JSON.stringify(ids)); } catch(e){}
+      return ids;
+    }).catch(function(){ return []; });
+  }
 
+  function fetchGroqModels(key){
+    return fetch('https://api.groq.com/openai/v1/models', {
+      headers:{ 'Authorization':'Bearer ' + key }
+    }).then(function(r){
+      if (!r.ok) return [];
+      return r.json();
+    }).then(function(j){
+      return (j.data || []).map(function(m){ return m.id; }).filter(function(id){
+        return !/whisper|tts|guard|embed|rerank/i.test(id);
+      });
+    }).catch(function(){ return []; });
+  }
+
+  /* ---------- вызов моделей ---------- */
+
+  function buildMessages(text){
     var msgs = [{role:'system', content:SYSTEM_PROMPT}];
     state.history.slice(-10).forEach(function(h){
       msgs.push({role:h.role, content:h.content});
     });
     msgs.push({role:'user', content:text});
+    return msgs;
+  }
 
+  function callOpenRouter(model, msgs, key){
     return fetch('https://openrouter.ai/api/v1/chat/completions', {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'Authorization':'Bearer ' + state.key,
+        'Authorization':'Bearer ' + key,
         'HTTP-Referer': location.href,
         'X-Title':'Jarvis HUD'
       },
       body: JSON.stringify({
-        model: state.model || DEFAULT_MODEL,
+        model: model,
         messages: msgs,
         temperature: 0.7,
         max_tokens: 700
       })
     }).then(function(r){
       return r.text().then(function(raw){
-        var data;
-        try { data = JSON.parse(raw); } catch(e){ throw new Error('Странный ответ сервера'); }
+        var data = null;
+        try { data = JSON.parse(raw); } catch(e){}
         if (!r.ok){
-          var m = (data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
-          throw new Error(m);
+          var text = (data && data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
+          var e = new Error(text);
+          e.status = r.status;
+          throw e;
         }
-        if (!data.choices || !data.choices.length) throw new Error('Пустой ответ модели');
+        if (!data || !data.choices || !data.choices.length){
+          var e2 = new Error('пустой ответ');
+          e2.status = 0;
+          throw e2;
+        }
         return data.choices[0].message.content.trim();
+      });
+    });
+  }
+
+  function callGroq(model, msgs, key){
+    return fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: msgs,
+        temperature: 0.7,
+        max_tokens: 700
+      })
+    }).then(function(r){
+      return r.text().then(function(raw){
+        var data = null;
+        try { data = JSON.parse(raw); } catch(e){}
+        if (!r.ok){
+          var text = (data && data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
+          var e = new Error(text);
+          e.status = r.status;
+          throw e;
+        }
+        if (!data || !data.choices || !data.choices.length){
+          var e2 = new Error('пустой ответ');
+          e2.status = 0;
+          throw e2;
+        }
+        return data.choices[0].message.content.trim();
+      });
+    });
+  }
+
+  function friendlyError(err, provider, tried){
+    var st = err && err.status;
+    if (st === 401 || st === 403){
+      return 'Ключ не принят. Проверь, что он скопирован целиком и не отозван в личном кабинете.';
+    }
+    if (st === 402){
+      return 'Провайдер требует оплату: модель платная либо дневной лимит бесплатных запросов закончился. Подожди сутки или вставь ключ Groq.';
+    }
+    if (st === 429){
+      return 'Все бесплатные провайдеры сейчас заняты (лимит запросов). Попробуй через минуту.';
+    }
+    if (st === 404){
+      return 'Модель не найдена — её сняли с раздачи. Очисти поле «Модель» в настройках, я подберу рабочую сам.';
+    }
+    if (st >= 500 || st === 0){
+      return 'Провайдер модели перегружен и не ответил. Я перебрал ' + tried + ' вариантов — попробуй ещё раз через минуту.';
+    }
+    return 'Не получилось: ' + (err && err.message ? err.message : 'неизвестная ошибка') + '.';
+  }
+
+  function askModel(text){
+    if (!state.key){
+      return Promise.resolve('Ключ не установлен, сэр. Откройте настройки и вставьте ключ — тогда я смогу отвечать на любые вопросы.');
+    }
+
+    var provider = providerOf(state.key);
+    var msgs = buildMessages(text);
+
+    return Promise.resolve().then(function(){
+      var extra;
+      if (provider === 'groq') extra = fetchGroqModels(state.key);
+      else extra = fetchFreeModels();
+
+      return extra.then(function(list){
+        var candidates = [];
+        if (state.model) candidates.push(state.model);
+        var work = localStorage.getItem(LS_WORK);
+        if (work) candidates.push(work);
+
+        (list || []).forEach(function(id){ candidates.push(id); });
+
+        if (!candidates.length){
+          candidates = provider === 'groq'
+            ? ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+            : ['meta-llama/llama-3.3-70b-instruct:free'];
+        }
+
+        var seen = {};
+        candidates = candidates.filter(function(c){
+          if (!c || seen[c]) return false;
+          seen[c] = true;
+          return true;
+        }).slice(0, 6);
+
+        var lastErr = null;
+        var idx = 0;
+
+        function attempt(){
+          if (idx >= candidates.length) return Promise.reject(lastErr || new Error('нет моделей'));
+          var model = candidates[idx++];
+          setStatus('пробую ' + shortModel(model), 'busy');
+          var call = provider === 'groq' ? callGroq : callOpenRouter;
+          return call(model, msgs, state.key).then(function(answer){
+            try { localStorage.setItem(LS_WORK, model); } catch(e){}
+            return answer;
+          }).catch(function(e){
+            lastErr = e;
+            if (e.status === 401 || e.status === 403) throw e;
+            return attempt();
+          });
+        }
+
+        return attempt().catch(function(e){
+          var box = new Error(friendlyError(e, provider, candidates.length));
+          box.friendly = true;
+          throw box;
+        });
       });
     });
   }
@@ -547,7 +706,7 @@
     saveHist();
 
     state.busy = true;
-    setStatus('думаю', true);
+    setStatus('думаю', 'busy');
     el.send.disabled = true;
 
     var local;
@@ -560,14 +719,13 @@
       state.history.push({role:'assistant', content:answer});
       saveHist();
       speak(answer);
+      setStatus('готов', 'ok');
     }).catch(function(err){
-      var msg = 'Ошибка: ' + (err && err.message ? err.message : 'неизвестная') + '. Проверь ключ и модель в настройках.';
-      addMsg('err bot', msg);
-      setStatus('ошибка', false);
+      addMsg('err bot', err && err.friendly ? err.message : ('Ошибка: ' + (err && err.message ? err.message : 'неизвестная')));
+      setStatus('ошибка', 'err');
     }).then(function(){
       state.busy = false;
       el.send.disabled = false;
-      if (el.statTxt.textContent === 'думаю') setStatus('готов', false);
     });
   }
 
@@ -603,7 +761,7 @@
       state.listening = true;
       el.mic.classList.add('rec');
       el.orb.classList.add('listen');
-      setStatus('слушаю', true);
+      setStatus('слушаю', 'busy');
     };
 
     state.recog.onresult = function(e){
@@ -624,7 +782,7 @@
       state.listening = false;
       el.mic.classList.remove('rec');
       el.orb.classList.remove('listen');
-      setStatus('готов', false);
+      setStatus('готов', 'ok');
       if (e.error === 'not-allowed'){
         addMsg('sys','Доступ к микрофону запрещён. Разреши его в настройках браузера для этой страницы.');
       } else if (e.error === 'no-speech'){
@@ -640,7 +798,7 @@
       state.listening = false;
       el.mic.classList.remove('rec');
       el.orb.classList.remove('listen');
-      if (el.statTxt.textContent === 'слушаю') setStatus('готов', false);
+      if (el.statTxt.textContent === 'слушаю') setStatus('готов', 'ok');
     };
 
     el.mic.addEventListener('click', function(){
@@ -674,12 +832,17 @@
 
   document.getElementById('btnSave').addEventListener('click', function(){
     state.key = el.keyInp.value.trim();
-    state.model = el.modelInp.value.trim() || DEFAULT_MODEL;
+    state.model = el.modelInp.value.trim();
     localStorage.setItem(LS_KEY, state.key);
     localStorage.setItem(LS_MODEL, state.model);
     localStorage.setItem(LS_TTS, state.tts ? '1' : '0');
     closeSheet();
-    addMsg('sys', state.key ? 'Настройки сохранены. Ключ на месте.' : 'Настройки сохранены. Ключа нет — работают только локальные команды.');
+    if (!state.key){
+      addMsg('sys','Настройки сохранены. Ключа нет — работают только локальные команды.');
+    } else {
+      var p = providerOf(state.key);
+      addMsg('sys','Настройки сохранены. Провайдер: ' + (p === 'groq' ? 'Groq' : 'OpenRouter') + '. Модель: ' + (state.model || 'автоподбор') + '.');
+    }
   });
 
   document.getElementById('btnClear').addEventListener('click', function(){
@@ -688,6 +851,33 @@
     el.log.innerHTML = '';
     addMsg('sys','История очищена');
     closeSheet();
+  });
+
+  document.getElementById('btnTest').addEventListener('click', function(){
+    var btn = this;
+    var key = el.keyInp.value.trim();
+    var model = el.modelInp.value.trim();
+    if (!key){
+      el.testBox.className = 'testbox bad';
+      el.testBox.textContent = 'Ключ пустой — вставь его в поле выше.';
+      return;
+    }
+    var oldKey = state.key, oldModel = state.model;
+    state.key = key; state.model = model;
+    btn.disabled = true;
+    el.testBox.className = 'testbox';
+    el.testBox.textContent = 'Проверяю…';
+    askModel('Ответь коротко: на связи.').then(function(a){
+      el.testBox.className = 'testbox ok';
+      el.testBox.textContent = 'Работает. Ответ: «' + a.slice(0,90) + '»';
+      state.key = key; state.model = model;
+    }).catch(function(e){
+      el.testBox.className = 'testbox bad';
+      el.testBox.textContent = e && e.message ? e.message : 'Не получилось.';
+      state.key = oldKey; state.model = oldModel;
+    }).then(function(){
+      btn.disabled = false;
+    });
   });
 
   /* ---------- восстановление диалога ---------- */
@@ -706,7 +896,7 @@
     }
   })();
 
-  setStatus('готов', false);
+  setStatus('готов', 'ok');
 })();
 </script>
 </body>
