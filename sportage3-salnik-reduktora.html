@@ -1,806 +1,568 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Замена сальника полуоси заднего редуктора — Kia Sportage 3 (SL)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Замена сальника полуоси заднего редуктора · Kia Sportage 3 (SL)</title>
 <style>
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    background:linear-gradient(180deg,#08172c 0%,#12294a 35%,#0d1f38 70%,#091827 100%);
-    background-attachment:fixed;
-    color:#16202e;
-    font-size:16px;
-    line-height:1.6;
-    padding-bottom:60px;
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(165deg, #081627 0%, #102a4c 42%, #081320 100%);
+    background-attachment: fixed;
+    color: #e9f1fb;
+    font-size: 16px;
+    line-height: 1.6;
   }
-  .wrap{max-width:980px;margin:0 auto;padding:14px 12px 40px}
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10, 24, 44, .78);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(120, 180, 255, .18);
+    padding: 10px 14px 8px;
+  }
+  header h1 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    color: #cfe3ff;
+  }
+  header h1 span { color: #ffb35c; }
+  nav { display: flex; flex-wrap: wrap; gap: 6px; }
+  nav a {
+    font-size: 12px;
+    text-decoration: none;
+    color: #bcd4f2;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(140,190,255,.22);
+    border-radius: 999px;
+    padding: 5px 11px;
+    white-space: nowrap;
+  }
+  nav a:active { background: rgba(255,179,92,.22); color: #ffd9a8; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 16px 12px 70px; }
 
-  /* ШАПКА */
-  header{
-    position:sticky;top:0;z-index:50;
-    background:rgba(9,24,44,.82);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    border-bottom:1px solid rgba(140,190,255,.22);
-    padding:10px 12px 8px;
+  .sheet {
+    background: #fdfefe;
+    color: #16233d;
+    border-radius: 28px;
+    padding: 22px 18px 24px;
+    margin: 16px 0;
+    border: 1px solid #d9e6f7;
+    box-shadow: 0 20px 44px rgba(0,0,0,.4), inset 0 0 0 1px #ffffff;
   }
-  header .hi{max-width:980px;margin:0 auto}
-  header .t1{
-    font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
-    color:#7fb2ee;font-weight:700;margin:0 0 2px
+  .sheet h2 {
+    font-size: 19px;
+    margin: 0 0 12px;
+    color: #0f2a4d;
+    display: flex; align-items: center; gap: 9px;
   }
-  header .t2{
-    font-size:15px;font-weight:800;color:#eaf3ff;margin:0;line-height:1.3
+  .sheet h2 .num {
+    flex: 0 0 auto;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #1d64c7, #0f3d80);
+    color: #fff;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
   }
-  nav{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-  nav a{
-    font-size:12px;font-weight:600;text-decoration:none;
-    color:#cfe4ff;background:rgba(120,175,255,.16);
-    border:1px solid rgba(140,190,255,.3);
-    padding:5px 11px;border-radius:999px;white-space:nowrap;
-    transition:.18s;
+  .sheet h3 {
+    font-size: 15.5px;
+    margin: 20px 0 8px;
+    color: #123f7a;
+    border-left: 4px solid #ffb35c;
+    padding-left: 10px;
   }
-  nav a:active{background:#3f7fd6;color:#fff;border-color:#3f7fd6}
+  .sheet p { margin: 8px 0; }
+  .sheet ul, .sheet ol { margin: 8px 0 8px 4px; padding-left: 20px; }
+  .sheet li { margin: 5px 0; }
+  .lead { font-size: 16.5px; color: #24405f; }
+  .muted { color: #5b7292; font-size: 14px; }
 
-  /* КАРТОЧКИ */
-  .card{
-    background:#ffffff;
-    border-radius:26px;
-    border:1px solid rgba(255,255,255,.85);
-    box-shadow:0 10px 30px rgba(3,12,26,.35), 0 0 0 5px rgba(255,255,255,.06);
-    padding:20px 18px;
-    margin:0 0 16px;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14.2px;
   }
-  .card.num{counter-increment:sec}
-  h2{
-    font-size:19px;line-height:1.3;margin:0 0 14px;color:#0d2340;
-    padding-left:14px;border-left:5px solid #2f7fe0;border-radius:2px;
+  th, td {
+    border: 1px solid #d3e2f4;
+    padding: 9px 10px;
+    text-align: left;
+    vertical-align: top;
+    word-break: normal;
+    overflow-wrap: anywhere;
   }
-  h3{
-    font-size:16px;margin:20px 0 8px;color:#123252;
+  th { background: #eef5ff; color: #0f2a4d; font-weight: 600; }
+  tr:nth-child(even) td { background: #f8fbff; }
+  td code, p code, li code {
+    background: #eaf2fd;
+    color: #0d3d7a;
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: nowrap;
   }
-  h3:first-child{margin-top:0}
-  p{margin:0 0 11px}
-  ul,ol{margin:0 0 12px;padding-left:22px}
-  li{margin-bottom:7px}
-  b,strong{color:#0d2340}
-  .lead{font-size:15.5px;color:#33475f}
 
-  /* ТАБЛИЦЫ */
-  .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 14px}
-  table{
-    width:100%;border-collapse:collapse;font-size:14.5px;
-    background:#fff;
+  .step {
+    background: #f6faff;
+    border: 1px solid #dbe8f9;
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin: 10px 0;
   }
-  th{
-    background:#eef3fa;color:#0d2340;font-weight:700;text-align:left;
-    padding:9px 10px;border-bottom:2px solid #d6e2f2;font-size:13.5px;
+  .step .stephead {
+    font-weight: 700;
+    color: #0f3d80;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
   }
-  td{
-    padding:9px 10px;border-bottom:1px solid #e8eef7;
-    vertical-align:top;word-break:break-word;
-  }
-  tr:last-child td{border-bottom:none}
-  td.c,th.c{text-align:center}
 
-  /* ПЛАШКИ */
-  .pill{
-    display:inline-block;font-size:12px;font-weight:700;
-    padding:2px 9px;border-radius:999px;margin:0 4px 4px 0;
+  .note {
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 14.5px;
+    border: 1px solid;
   }
-  .p-blue{background:#e3efff;color:#1857a4}
-  .p-green{background:#e2f7ea;color:#14713a}
-  .p-orange{background:#fff0dc;color:#96530a}
-  .p-red{background:#ffe4e4;color:#a32020}
+  .note b { display: block; margin-bottom: 4px; font-size: 14px; }
+  .note.info { background: #eef4ff; border-color: #c3d8f6; color: #163a63; }
+  .note.warn { background: #fff5e8; border-color: #f6cf94; color: #6b4108; }
+  .note.stop { background: #fdecec; border-color: #f3b7b7; color: #7d1c1c; }
+  .note.ok   { background: #ecfbf1; border-color: #a9e5bd; color: #12522c; }
 
-  .note{
-    border-radius:18px;padding:14px 16px;margin:0 0 14px;
-    font-size:14.8px;
+  ul.check { list-style: none; padding-left: 0; }
+  ul.check li {
+    position: relative;
+    padding-left: 30px;
+    margin: 7px 0;
   }
-  .note b{display:block;margin-bottom:4px;font-size:15px}
-  .note.info{background:#eaf2ff;border-left:5px solid #2f7fe0;color:#16385f}
-  .note.ok{background:#e7f9ee;border-left:5px solid #17a45a;color:#0f5c31}
-  .note.warn{background:#fff6e2;border-left:5px solid #e9a519;color:#6d4a05}
-  .note.bad{background:#ffeaea;border-left:5px solid #e04545;color:#7c1414}
+  ul.check li::before {
+    content: "";
+    position: absolute; left: 0; top: 3px;
+    width: 18px; height: 18px;
+    border: 2px solid #9dbde4;
+    border-radius: 5px;
+    background: #fff;
+  }
 
-  /* ШАГИ */
-  .steps{counter-reset:st;list-style:none;padding:0;margin:0}
-  .steps>li{
-    counter-increment:st;position:relative;
-    padding:0 0 0 42px;margin:0 0 16px;
+  .kick {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 12px 0 4px;
   }
-  .steps>li::before{
-    content:counter(st);
-    position:absolute;left:0;top:-2px;
-    width:29px;height:29px;border-radius:50%;
-    background:linear-gradient(145deg,#2f7fe0,#1e5aa8);
-    color:#fff;font-weight:800;font-size:14px;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 3px 8px rgba(47,127,224,.35);
+  .kick div {
+    flex: 1 1 140px;
+    background: linear-gradient(150deg, #12294a, #0d1b31);
+    color: #e6f0ff;
+    border-radius: 16px;
+    padding: 11px 13px;
+    border: 1px solid rgba(130,180,255,.25);
   }
-  .steps>li b.st-t{display:block;color:#0d2340;font-size:15.5px;margin-bottom:3px}
+  .kick div b { display: block; font-size: 20px; color: #ffb35c; line-height: 1.2; }
+  .kick div span { font-size: 12.5px; color: #b7cdea; }
 
-  /* ЧЕК-ЛИСТ */
-  .check{list-style:none;padding:0;margin:0}
-  .check li{
-    position:relative;padding:11px 14px 11px 44px;
-    background:#f7fafd;border-radius:14px;margin-bottom:8px;
-    font-size:14.8px;border:1px solid #e6eefa;
+  .flow { counter-reset: fl; margin: 10px 0; }
+  .flow .node {
+    position: relative;
+    padding: 10px 14px 10px 46px;
+    margin: 8px 0;
+    background: #f5f9ff;
+    border: 1px solid #d7e6f8;
+    border-radius: 14px;
+    font-size: 14.6px;
   }
-  .check li::before{
-    content:"✓";position:absolute;left:14px;top:11px;
-    width:20px;height:20px;border-radius:6px;
-    background:#17a45a;color:#fff;font-size:13px;font-weight:800;
-    display:flex;align-items:center;justify-content:center;
+  .flow .node::before {
+    counter-increment: fl;
+    content: counter(fl);
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #1d64c7; color: #fff;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
   }
-  .check li.no::before{content:"✕";background:#e04545}
-  .check li.q::before{content:"?";background:#e9a519}
-
-  /* ЦИФРЫ */
-  .grid{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
-  .kpi{
-    flex:1 1 140px;background:linear-gradient(160deg,#f2f7ff,#e7f0fd);
-    border:1px solid #d8e6fa;border-radius:18px;padding:12px 13px;
+  details {
+    background: #f5f9ff;
+    border: 1px solid #d7e6f8;
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin: 9px 0;
   }
-  .kpi .n{font-size:20px;font-weight:900;color:#1a5599;line-height:1.15}
-  .kpi .l{font-size:12.5px;color:#4a6482;margin-top:3px;line-height:1.35}
-
-  .faq{background:#f7fafd;border-radius:16px;padding:13px 15px;margin-bottom:10px;border:1px solid #e6eefa}
-  .faq .q{font-weight:800;color:#0d2340;margin-bottom:5px;font-size:15px}
-  .faq .a{font-size:14.7px;color:#2c4258}
-
-  footer{
-    text-align:center;color:#8fb2d9;font-size:12.5px;
-    padding:24px 10px 10px;line-height:1.6
+  summary { cursor: pointer; font-weight: 600; color: #0f3d80; font-size: 14.8px; }
+  details p { margin: 8px 0 2px; font-size: 14.5px; color: #29445f; }
+  footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #7f9ac0;
+    padding: 10px 16px 40px;
   }
-  a.up{
-    display:block;text-align:center;text-decoration:none;
-    color:#cfe4ff;font-size:13px;font-weight:600;
-    background:rgba(120,175,255,.14);border:1px solid rgba(140,190,255,.28);
-    border-radius:999px;padding:9px;margin:0 0 16px;
-  }
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;background:#eef3fa;padding:1px 6px;border-radius:6px;color:#123252}
-  @media(max-width:430px){
-    .card{padding:16px 14px;border-radius:22px}
-    h2{font-size:17.5px}
-    body{font-size:15.5px}
-    th,td{padding:8px 8px;font-size:13.5px}
+  @media (max-width: 430px) {
+    body { font-size: 15px; }
+    .sheet { padding: 18px 14px 20px; border-radius: 24px; }
+    .sheet h2 { font-size: 17.5px; }
+    th, td { padding: 8px 8px; font-size: 13.4px; }
+    header h1 { font-size: 14px; }
+    nav a { font-size: 11.5px; padding: 4px 10px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="hi">
-    <p class="t1">Kia Sportage 3 · SL · 2010–2015 · AWD</p>
-    <p class="t2">Замена сальника полуоси заднего редуктора</p>
-    <nav>
-      <a href="#s1">Узел</a>
-      <a href="#s2">Диагностика</a>
-      <a href="#s3">Детали</a>
-      <a href="#s4">Инструмент</a>
-      <a href="#s5">Цифры</a>
-      <a href="#s6">Слив</a>
-      <a href="#s7">Полуось</a>
-      <a href="#s8">Сальник</a>
-      <a href="#s9">Сборка</a>
-      <a href="#s10">Залив</a>
-      <a href="#s11">Ловушки</a>
-      <a href="#s12">Чек-лист</a>
-      <a href="#s13">Если течёт</a>
-      <a href="#s14">FAQ</a>
-    </nav>
-  </div>
+  <h1>🔧 Kia Sportage 3 (SL) · <span>сальник полуоси заднего редуктора</span></h1>
+  <nav>
+    <a href="#uzel">Узел</a>
+    <a href="#diag">Диагностика</a>
+    <a href="#parts">Детали</a>
+    <a href="#tools">Инструмент</a>
+    <a href="#torque">Моменты</a>
+    <a href="#stage1">Слив</a>
+    <a href="#stage2">Снятие</a>
+    <a href="#stage3">Сальник</a>
+    <a href="#stage4">Сборка</a>
+    <a href="#oil">Масло</a>
+    <a href="#traps">Ловушки</a>
+    <a href="#check">Чек-лист</a>
+    <a href="#faq">FAQ</a>
+  </nav>
 </header>
 
 <div class="wrap">
 
-  <div class="card" id="s1">
-    <h2>Что за узел и что мы меняем</h2>
-    <p class="lead">На Sportage 3 (кузов SL, полный привод) сзади стоит независимая многорычажная подвеска и отдельный <b>задний редуктор</b>, к которому от коробки идёт карданный вал, а к колёсам — две полуоси. Каждая полуось входит в редуктор и уплотняется резиновым сальником (манжетой) в чулке редуктора.</p>
-    <p>Сальник держит масло внутри редуктора, а работает он по <b>шлифованной шейке</b> полуоси. Со временем резина дубеет, кромка стирается или на шейке появляется канавка — и масло начинает сочиться наружу. Тяга при этом не пропадает, шума может не быть вообще, поэтому обычно это замечают по пятнам под машиной или по запаху.</p>
-
-    <h3>Почему это делается в гараже</h3>
-    <ul>
-      <li>Редуктор <b>разбирать не нужно</b> — сальник стоит в наружной части чулка.</li>
-      <li>Полуось держится только <b>стопорным кольцом</b> внутри дифференциала и болтами рычагов снаружи.</li>
-      <li>Регулировки (пятно контакта, преднатяг подшипников) <b>не затрагиваются</b> — это главное: не лезем внутрь, значит не собьём настройку редуктора.</li>
-      <li>Работа на домкрате и подставках, без ямы и подъёмника.</li>
-    </ul>
-
-    <div class="note info">
-      <b>Три разных «сальника дифференциала» — не путать</b>
-      Задний редуктор: сальники полуосей (эта инструкция) + сальник хвостовика (там, где кардан/муфта AWD). Передняя часть: сальники приводов в КПП или АКПП. Если течёт сзади у полуоси — это именно то, что здесь описано.
+  <div class="sheet">
+    <p class="lead">Пошаговая инструкция по замене сальника полуоси заднего редуктора на Kia Sportage 3 (SL, 2010–2015), полный привод. Работа делается в гараже на домкрате и подставках, без ямы, без пресса и без снятия редуктора. Редуктор не разбирается: полуось держится стопорным кольцом и выходит монтажкой.</p>
+    <div class="kick">
+      <div><b>2–3 ч</b><span>время в гараже</span></div>
+      <div><b>~0,75 л</b><span>масла в редуктор</span></div>
+      <div><b>1–2 шт</b><span>сальника (по сторонам)</span></div>
+      <div><b>34–54 Н·м</b><span>болты рычагов к кулаку</span></div>
     </div>
-
     <div class="note warn">
-      <b>Сколько времени</b>
-      Спокойный темп, без спешки, один человек: <b>2–3 часа</b> со сливом и заливом масла. Первый раз — до 4 часов. Если делать только одну сторону и не сливать масло — около 1,5 часа.
+      <b>⚠️ Сверь артикулы по VIN</b>
+      Номера ниже — для Sportage 3 (SL) с задним редуктором. Перед покупкой пробей свой VIN у продавца или в каталоге Mobis: на разных рынках и моторах номера могут отличаться.
     </div>
   </div>
 
-  <div class="card" id="s2">
-    <h2>Диагностика: точно ли виноват сальник</h2>
-    <p>Прежде чем покупать детали — убедись, что течёт именно сальник. Половина «замен сальника» в гаражах делается зря, потому что настоящая причина другая.</p>
-
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:34%">Что видно</th>
-          <th style="width:33%">Вероятная причина</th>
-          <th style="width:33%">Что делать</th>
-        </tr>
-        <tr>
-          <td>Масло вокруг чулка редуктора со стороны колеса, след тянется по низу</td>
-          <td>Сальник полуоси</td>
-          <td>Менять сальник, эта инструкция</td>
-        </tr>
-        <tr>
-          <td>Масло по всему редуктору, следы на выхлопе и на днище</td>
-          <td>Забит сапун, избыточное давление</td>
-          <td>Сначала прочистить сапун, потом смотреть</td>
-        </tr>
-        <tr>
-          <td>Масло на кардане и на муфте AWD</td>
-          <td>Сальник хвостовика</td>
-          <td>Другая работа: нужна разборка/снятие фланца</td>
-        </tr>
-        <tr>
-          <td>Потные пробки, масло на резьбе</td>
-          <td>Кольца пробок</td>
-          <td>Заменить кольца, сальник не трогать</td>
-        </tr>
-        <tr>
-          <td>Масло на тормозном диске/колодках</td>
-          <td>Сальник + течь на тормоза</td>
-          <td>Сальник и колодки/диск, тормоза обязательно проверить</td>
-        </tr>
-      </table>
+  <div class="sheet" id="uzel">
+    <h2><span class="num">1</span> Что за узел и где стоит сальник</h2>
+    <p>Сзади у Sportage 3 стоит неразрезной (ведущий) мост с отдельным редуктором в центре. От редуктора в обе стороны уходят <b>полуоси</b> — валы с ШРУСами на концах. Место выхода полуоси из корпуса редуктора уплотнено <b>сальником</b> (манжетой). Сальник запрессован в чулок редуктора и работает кромкой по гладкой шейке вала.</p>
+    <p>Сальники правый и левый <b>одинаковые</b> — это плюс: одна деталь на обе стороны. Сам редуктор при замене сальника <b>не снимается и не разбирается</b>, меняется только манжета.</p>
+    <h3>Из чего состоит работа</h3>
+    <div class="flow">
+      <div class="node">Поднять и зафиксировать заднюю часть, снять колесо</div>
+      <div class="node">Слить масло из редуктора (по желанию — но лучше сразу)</div>
+      <div class="node">Открутить рычаги от поворотного кулака, освободить полуось</div>
+      <div class="node">Вынуть полуось из редуктора, вытащить старый сальник</div>
+      <div class="node">Запрессовать новый сальник без пресса, ровно до бурта</div>
+      <div class="node">Новое стопорное кольцо, вставить полуось до щелчка</div>
+      <div class="node">Собрать подвеску, залить масло до кромки заливной пробки</div>
+      <div class="node">Проехать 20–30 км и проверить на сухость</div>
     </div>
-
-    <h3>Как проверить сапун за 2 минуты</h3>
-    <ol>
-      <li>Найди на редукторе небольшой штуцер с колпачком или изогнутой трубкой — сапун.</li>
-      <li>Сними колпачок, попробуй продуть ртом или проволокой.</li>
-      <li>Не продувается — промой очистителем, продуй компрессором, поставь на место.</li>
-    </ol>
-    <div class="note bad">
-      <b>Почему это критично</b>
-      Если сапун забит, давление газов внутри редуктора выдавит масло через <b>любой</b> сальник, даже абсолютно новый. Поставишь новый и через месяц будешь ругаться на «плохую запчасть».
-    </div>
-
-    <h3>Дополнительная проверка — уровень</h3>
-    <p>Открути заливную пробку (это обязательно и в любом случае, см. этап слива). Если масла там нет или вытекло совсем мало — течь шла давно, проверь количество после ремонта дважды. Если масло с эмульсией (серо-молочное) — туда попадала вода, масло менять обязательно, а не доливать.</p>
   </div>
 
-  <div class="card" id="s3">
-    <h2>Детали и артикулы</h2>
-
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:30%">Деталь</th>
-          <th style="width:28%">Артикул</th>
-          <th style="width:42%">Примечание</th>
-        </tr>
-        <tr>
-          <td>Сальник полуоси</td>
-          <td class="mono">5306839200</td>
-          <td>Правый и левый одинаковые. Бери 1 шт, а если сыро с двух сторон — 2</td>
-        </tr>
-        <tr>
-          <td>Стопорное кольцо полуоси</td>
-          <td class="mono">495572D000</td>
-          <td>Обязательно новое. Не путать с 495572E000</td>
-        </tr>
-        <tr>
-          <td>Кольцо заливной пробки</td>
-          <td class="mono">5308439000</td>
-          <td>Течёт именно оно, а не сальник — частая история</td>
-        </tr>
-        <tr>
-          <td>Кольцо сливной пробки</td>
-          <td class="mono">5307239000</td>
-          <td>Менять при каждом сливе</td>
-        </tr>
-        <tr>
-          <td>Масло</td>
-          <td>75W-90 API GL-5, ~1 л</td>
-          <td>Входит около 0,75 л. Если редуктор с LSD — только с пометкой LSD (на стоке нет)</td>
-        </tr>
-      </table>
+  <div class="sheet" id="diag">
+    <h2><span class="num">2</span> Диагностика: точно ли это сальник</h2>
+    <p>Прежде чем покупать деталь, убедись, что течёт именно манжета. На заднем мосту «масляное пятно» бывает от четырёх разных причин.</p>
+    <table>
+      <tr><th>Что видно</th><th>Вероятная причина</th><th>Как проверить</th></tr>
+      <tr><td>Масло на чулке у редуктора, пятно под колесом</td><td>Сальник полуоси</td><td>Вытереть насухо, проехать 20 км — масло снова у выхода полуоси</td></tr>
+      <tr><td>Масло на задней крышке редуктора</td><td>Прокладка/герметик крышки</td><td>Сухо вокруг полуосей, мокро по периметру крышки</td></tr>
+      <tr><td>Масло у хвостовика (там, где кардан/муфта)</td><td>Сальник хвостовика</td><td>Мокро по центру, а не у колёс</td></tr>
+      <tr><td>Масло на пробках</td><td>Кольца пробок слив/залив</td><td>Капля висит прямо на пробке</td></tr>
+      <tr><td>Жидкость светлая, пахнет тормозухой</td><td>Тормозной цилиндр/шланг</td><td>Уровень в бачке тормозов падает, педаль мягче</td></tr>
+    </table>
+    <div class="note stop">
+      <b>❌ Главная причина повторной течи — забитый сапун</b>
+      Сапун (дыхательный клапан) на редукторе сбрасывает давление. Если он забит грязью, давление внутри растёт и масло выдавливает через любой сальник, даже новый. <b>Проверь и прочисть сапун до замены сальника.</b> Иначе поменяешь манжету — и через месяц всё повторится.
     </div>
+    <p class="muted">Ещё проверь уровень масла: если он сильно выше нормы (кто-то перелил), сальник тоже будет потеть.</p>
+  </div>
 
-    <h3>Про качество деталей</h3>
+  <div class="sheet" id="parts">
+    <h2><span class="num">3</span> Что купить</h2>
+    <table>
+      <tr><th>Деталь</th><th>Артикул</th><th>Сколько</th><th>Примечание</th></tr>
+      <tr><td>Сальник полуоси</td><td><code>53068 39200</code></td><td>1 шт (2, если оба)</td><td>правый и левый одинаковые</td></tr>
+      <tr><td>Стопорное кольцо полуоси</td><td><code>49557 2D000</code></td><td>1–2 шт</td><td>обязательно новое, старое лопается</td></tr>
+      <tr><td>Кольцо заливной пробки</td><td><code>53084 39000</code></td><td>1 шт</td><td>частая причина «течи сальника»</td></tr>
+      <tr><td>Кольцо сливной пробки</td><td><code>53072 39000</code></td><td>1 шт</td><td>менять вместе с маслом</td></tr>
+      <tr><td>Масло 75W-90 GL-5</td><td>—</td><td>1 л</td><td>в редуктор входит ~0,75 л</td></tr>
+    </table>
+    <h3>Как выбирать</h3>
     <ul>
-      <li><b>Оригинал Mobis / Nok</b> — то, что ставим. Цена копеечная, ставится надолго.</li>
-      <li><b>KOS</b> — нормальный аналог, встречается часто, ходит прилично.</li>
-      <li><b>Дешёвый ноунейм / AMD</b> — по отзывам владельцев Sportage и Tucson нередко начинает потеть через полгода-год.</li>
-      <li>В карточках маркетплейсов смотри фото <b>этикетки с артикулом</b>, а не только название: под видом «оригинал» часто продают упаковку с надписью «аналог».</li>
+      <li><b>Сальник:</b> оригинал Mobis или Nok / KOS. Дешёвые безымянные аналоги часто потеют повторно через несколько месяцев — экономия ложная.</li>
+      <li><b>Масло:</b> ZIC, Ravenol, Motul, Liqui Moly — обычное GL-5. Если стоит самоблок (на стоке его нет), нужно масло с пометкой <code>LSD</code>.</li>
+      <li><b>Кольца пробок:</b> стоят копейки, но именно из-за них люди второй раз лезут под машину. Не пропускай.</li>
     </ul>
-
     <div class="note info">
-      <b>Как искать на Ozon / Wildberries / Яндекс Маркете</b>
-      Вбивай артикул <b>слитно</b>: <span class="mono">5306839200</span>, <span class="mono">495572D000</span>, <span class="mono">5308439000</span>, <span class="mono">5307239000</span>. Попробуй и вариант с пробелом через 5 цифр — выдача бывает разной. Если до выходных нужно срочно — ищи в местных магазинах под заказ по VIN.
+      <b>💡 Поиск на маркетплейсах</b>
+      Ищи по артикулу без пробелов — <code>5306839200</code>, <code>495572D000</code>. В карточке смотри фото этикетки с номером, а не только название: под видом оригинала часто продают упаковку «аналога».
     </div>
   </div>
 
-  <div class="card" id="s4">
-    <h2>Инструмент и подручные средства</h2>
-
+  <div class="sheet" id="tools">
+    <h2><span class="num">4</span> Инструмент</h2>
     <h3>Обязательно</h3>
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:45%">Инструмент</th>
-          <th style="width:55%">Зачем</th>
-        </tr>
-        <tr>
-          <td>Домкрат + подставки под машину</td>
-          <td>Работать под машиной на одном домкрате нельзя — только на подставках</td>
-        </tr>
-        <tr>
-          <td>Набор головок и ключей, вороток, трещотка</td>
-          <td>Болты рычагов, пробки</td>
-        </tr>
-        <tr>
-          <td>Монтажка (или мощная отвёртка)</td>
-          <td>Вынуть полуось из редуктора, вытащить сальник</td>
-        </tr>
-        <tr>
-          <td>Молоток</td>
-          <td>Запрессовка сальника, посадка полуоси</td>
-        </tr>
-        <tr>
-          <td>Оправка под диаметр сальника</td>
-          <td>Головка на 32–36 мм с удлинителем, коронка или труба</td>
-        </tr>
-        <tr>
-          <td>Шприц для трансмиссионного масла</td>
-          <td>Заливка, 200–500 мл, 300–600 ₽ в автомагазине</td>
-        </tr>
-      </table>
-    </div>
-
-    <h3>Приятно иметь под рукой</h3>
     <ul>
-      <li><b>Шприц/воронка с гибким шлангом</b> — если не хочешь покупать масляный шприц.</li>
-      <li><b>Саморез 20–30 мм + пассатижи</b> — самое удобное для извлечения старого сальника.</li>
-      <li><b>Чистые тряпки</b> — штук 5–10, и обязательно одна для «затычки» отверстия.</li>
-      <li><b>Очиститель тормозов/карбклинер</b> — вымыть посадку сальника до блеска.</li>
-      <li><b>Наждачка 600–800</b> — если на посадке задир или на шейке налет.</li>
-      <li><b>Перчатки</b> — от масла руки сушатся и трескаются.</li>
-      <li><b>Фонарик/налобник</b> — под аркой темно, а посадку надо видеть.</li>
-      <li><b>Динамометрический ключ</b> — на затяжку рычагов и колёс, если есть.</li>
-      <li><b>Ёмкость 1 л</b> — слить старое масло, оценить его вид.</li>
+      <li>Домкрат + <b>подставки</b> (машина стоит на подставках, не на домкрате)</li>
+      <li>Баллонник / головка на колесо, набор головок и вороток</li>
+      <li>Монтажка (или крепкая длинная отвёртка) — вынимать полуось и старый сальник</li>
+      <li>Молоток и <b>оправка</b>: головка на 32–36 мм с удлинителем, коронка или кусок трубы</li>
+      <li>Динамометрический ключ</li>
+      <li>Шприц для трансмиссионного масла (200–500 мл) или гибкая трубка с воронкой</li>
+      <li>Ёмкость под слив, тряпки, очиститель тормозов/карбклинер</li>
     </ul>
-
-    <div class="note ok">
-      <b>Пресс не нужен</b>
-      Сальник полуоси садится с умеренным натягом и ставится лёгкими ударами по оправке. Прессом как раз чаще перекашивают и загоняют глубже бурта.
-    </div>
+    <h3>Приятные мелочи</h3>
+    <ul>
+      <li>Струбцина или тиски (пригодятся, чтобы аккуратно вынуть сальник)</li>
+      <li>Перчатки, фонарик/налобник, WD-40 для болтов</li>
+      <li>Герметик не нужен — сальник ставится на сухую посадку, без герметика</li>
+    </ul>
   </div>
 
-  <div class="card" id="s5">
-    <h2>Ключевые цифры</h2>
-
-    <div class="grid">
-      <div class="kpi"><div class="n">0,75 л</div><div class="l">масло в задний редуктор, до кромки заливного</div></div>
-      <div class="kpi"><div class="n">2–3 ч</div><div class="l">на работу в гараже, один человек</div></div>
-      <div class="kpi"><div class="n">2 шт</div><div class="l">стопорных кольца, если делаешь обе стороны</div></div>
-      <div class="kpi"><div class="n">1 привод</div><div class="l">снимаем только со стороны течи</div></div>
-    </div>
-
-    <h3>Моменты затяжки</h3>
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:52%">Соединение</th>
-          <th style="width:48%" class="c">Момент</th>
-        </tr>
-        <tr>
-          <td>Болты рычагов к заднему поворотному кулаку</td>
-          <td class="c"><b>34–54 Н·м</b></td>
-        </tr>
-        <tr>
-          <td>Болты шарниров рычагов к кузову</td>
-          <td class="c"><b>98–118 Н·м</b></td>
-        </tr>
-        <tr>
-          <td>Гайки колёс</td>
-          <td class="c"><b>90–110 Н·м</b></td>
-        </tr>
-        <tr>
-          <td>Сливная и заливная пробки</td>
-          <td class="c">Плотно, без фанатизма (алюминий)</td>
-        </tr>
-        <tr>
-          <td>Стойка стабилизатора</td>
-          <td class="c">Плотно, по мануалу</td>
-        </tr>
-      </table>
-    </div>
-
+  <div class="sheet" id="torque">
+    <h2><span class="num">5</span> Моменты затяжки</h2>
+    <table>
+      <tr><th>Соединение</th><th>Момент</th><th>Нюанс</th></tr>
+      <tr><td>Болты рычагов к заднему кулаку</td><td>34–54 Н·м</td><td>затягивать на стоящей на земле машине</td></tr>
+      <tr><td>Болты шарниров рычагов к кузову</td><td>98–118 Н·м</td><td>только если откручивал</td></tr>
+      <tr><td>Сливная / заливная пробка</td><td>плотно, без фанатизма</td><td>корпус алюминиевый — легко сорвать резьбу</td></tr>
+      <tr><td>Колёсные гайки</td><td>90–110 Н·м</td><td>протянуть через 50–100 км</td></tr>
+    </table>
     <div class="note warn">
-      <b>Затягивать на стоящей машине</b>
-      Болты рычагов и колёс тянуть <b>только когда машина опущена на колёса</b>. Затянешь на вывешенной подвеске — сайлентблоки закусит в неправильном положении, и они порвутся.
+      <b>⚠️ Не тяни рычаги «на весу»</b>
+      Если затянуть болты сайлентблоков, когда машина висит на домкрате, подвеска встанет в перекошенное положение и сайлентблоки разорвёт. Сначала опусти машину на колёса, потом окончательная затяжка.
     </div>
   </div>
 
-  <a class="up" href="#s1">↑ Наверх</a>
-
-  <div class="card" id="s6">
-    <h2>Этап 1. Подготовка и слив масла</h2>
-    <ol class="steps">
-      <li>
-        <b class="st-t">Поставить машину и зафиксировать</b>
-        Ровная площадка, ручник, противооткатные упоры под передние колёса. Зад поднять домкратом и поставить <b>на подставки</b> под рычаги или лонжерон. Редуктор и его чулки как опору не использовать. Снять колесо со стороны течи.
-      </li>
-      <li>
-        <b class="st-t">Открутить заливную пробку ПЕРВОЙ</b>
-        Она сбоку редуктора. Правило простое: если заливная не откручивается, сливать масло нельзя — иначе останешься с пустым редуктором и не зальёшь новое. Если пробка прикисла — очиститель, постучать, аккуратно, без срыва граней.
-      </li>
-      <li>
-        <b class="st-t">Слить масло</b>
-        Ёмкость под сливную пробку, выкрутить. Льётся 5–10 минут. Осмотри масло: тёмное — норма для старого; <b>серо-молочное</b> — попадала вода, менять обязательно; <b>стружка хлопьями</b> на магните пробки — редуктор под вопросом, копингом сальником проблему не решить.
-      </li>
-      <li>
-        <b class="st-t">Снять кольца пробок</b>
-        Старые алюминиевые/медные шайбы выбросить, поставить новые. Пробки пока завернуть обратно, чтобы внутрь не летело.
-      </li>
-    </ol>
-
+  <div class="sheet" id="stage1">
+    <h2><span class="num">6</span> Этап 1: подготовка и слив масла</h2>
+    <div class="step">
+      <span class="stephead">1.1 · Поднять и зафиксировать</span>
+      Заднюю часть поднять домкратом, установить <b>подставки под лонжероны или рычаги</b>. Никогда не под редуктор и не под тормозной шланг. Машина должна стоять жёстко, толкни её — не должна качаться. Под передние колёса — упоры.
+    </div>
+    <div class="step">
+      <span class="stephead">1.2 · Снять колесо со стороны течи</span>
+      Гайки срывать на земле, до подъёма. Колесо положи под машину плашмя — дополнительная страховка.
+    </div>
+    <div class="step">
+      <span class="stephead">1.3 · Выкрутить заливную пробку первой</span>
+      Заливная пробка — сбоку корпуса редуктора, примерно на уровне середины. <b>Всегда сначала заливная, потом сливная.</b> Если заливная не открутится, а ты уже слил масло — залить обратно будет нечем. Сорванную пробку высверливать на снятом редукторе.
+    </div>
+    <div class="step">
+      <span class="stephead">1.4 · Слить масло</span>
+      Ёмкость под сливную пробку снизу, выкрутить. Масло густое, особенно осенью — сливается 10–15 минут. Осмотри пробку: лёгкий «пушок» металлической пыли на магните — норма. Крупная стружка, «серебрянка» или куски металла — редуктор под вопросом, сальником проблему не решить.
+    </div>
     <div class="note info">
-      <b>Можно ли не сливать масло?</b>
-      Технически можно: полуось выходит выше уровня, и при ровной машине масло почти не потечёт — максимум несколько капель. Но тогда ты не проверишь его состояние и не заменишь кольца пробок. Если масло менялось недавно и уровень в норме — допустимо просто долить после работы.
+      <b>💡 Если сальник течёт, а масло менять не планировал</b>
+      Сливать всё равно придётся: при вынимании полуоси часть масла выльется через отверстие, а часть останется внутри. Проще слить полностью и залить свежее — заодно увидишь состояние масла и пробки.
     </div>
   </div>
 
-  <div class="card" id="s7">
-    <h2>Этап 2. Снять полуось</h2>
-    <ol class="steps">
-      <li>
-        <b class="st-t">Отвести в сторону всё, что натянется</b>
-        Провод датчика ABS на кулаке — снять с клипс, отвести. Трос ручника не отсоединяем, но следим, чтобы он не натягивался в струну. <b>Тормозной шланг не тянуть</b> — суппорт снимать не обязательно, но если мешает, подвесь его на проволоке к пружине, не на шланге.
-      </li>
-      <li>
-        <b class="st-t">Открутить болты рычагов</b>
-        К заднему поворотному кулаку идут два поперечных рычага — по 2 болта каждый. Иногда мешает стойка стабилизатора — открутить её снизу.
-      </li>
-      <li>
-        <b class="st-t">Отжать кулак наружу</b>
-        Легким нажимом монтажки/рукой отвести кулак от редуктора так, чтобы полуось вышла из зацепления с фланцем. Без резких движений: рядом тормозной шланг и трос.
-      </li>
-      <li>
-        <b class="st-t">Вынуть полуось из редуктора</b>
-        Монтажку в щель между фланцем редуктора и внутренним ШРУСом, короткий уверенный рывок на себя. Сначала идёт туго — это сопротивление стопорного кольца. Потом выходит с щелчком.
-      </li>
-      <li>
-        <b class="st-t">Заткнуть отверстие редуктора</b>
-        Сразу чистой тряпкой. Это не формальность: упавшая внутрь шайба или кусок грязи = снятие и разборка редуктора.
-      </li>
-      <li>
-        <b class="st-t">Осмотреть вал и узел</b>
-        Проверить:
-        <ul style="margin-top:7px">
-          <li>Пыльник внутреннего ШРУСа целый (не порвался при снятии)?</li>
-          <li>Шейка полуоси, по которой работает сальник — гладкая или есть канавка/задиры?</li>
-          <li>Стопорное кольцо на валу целое?</li>
-          <li>Люфт в ШРУСе, хруст при прокрутке?</li>
-        </ul>
-      </li>
-    </ol>
-
-    <div class="note bad">
-      <b>Если на шейке канавка от старого сальника</b>
-      Новый сальник по ней не уплотнит. Варианты: поставить сальник с ремонтным смещением (посадить чуть глубже/выше, если позволяет бурт), полирнуть шейку мелкой наждачкой (если канавка поверхностная), либо заменить полуось. Сильно изношенную шейку исправляет только замена вала.
+  <div class="sheet" id="stage2">
+    <h2><span class="num">7</span> Этап 2: снять полуось</h2>
+    <div class="step">
+      <span class="stephead">2.1 · Отвести всё, что натянется</span>
+      Снять с клипс провод датчика ABS на поворотном кулаке и отвести в сторону. Трос ручника не отсоединяй, но следи, чтобы он не был в натяг. <b>Тормозной шланг не тянуть вообще</b> — суппорт снимать не нужно, он остаётся на месте.
+    </div>
+    <div class="step">
+      <span class="stephead">2.2 · Открутить рычаги от кулака</span>
+      К заднему поворотному кулаку подходят два поперечных рычага — по 2 болта каждый. Залить болты WD-40 за 15 минут, потом откручивать. Если мешает стойка стабилизатора — отсоединить её нижний конец.
+    </div>
+    <div class="step">
+      <span class="stephead">2.3 · Отвести кулак наружу</span>
+      Лёгким нажимом или монтажкой отжать кулак от редуктора, чтобы полуось вышла из зацепления с дифференциалом. Аккуратно: рядом тормозной шланг и трос ручника.
+    </div>
+    <div class="step">
+      <span class="stephead">2.4 · Вынуть полуось</span>
+      Монтажку вставить в щель между фланцем редуктора и корпусом внутреннего ШРУСа, коротким резким движением потянуть на себя. Сначала идёт туго — сопротивляется стопорное кольцо, потом выходит со щелчком. Вал положить сверху на редуктор, а <b>отверстие в редукторе сразу заткнуть чистой тряпкой</b>.
+    </div>
+    <div class="note stop">
+      <b>❌ Тряпка в отверстии — не формальность</b>
+      Упавшая внутрь шайба, гайка или кусок старого кольца = снятие и разборка редуктора. Это уже совсем другой ремонт.
+    </div>
+    <div class="step">
+      <span class="stephead">2.5 · Осмотреть детали</span>
+      <ul>
+        <li><b>Пыльник внутреннего ШРУСа</b> — целый? При вынимании он легко рвётся, а порванный пыльник убьёт ШРУС.</li>
+        <li><b>Шейка вала</b> (гладкая часть, по которой работает сальник) — нет канавки от старой манжеты, задиров, ржавчины? Если есть глубокая канавка — новый сальник не поможет, нужен вал или ремонтная втулка.</li>
+        <li><b>Стопорное кольцо</b> на валу — под замену, не переставляй старое.</li>
+      </ul>
     </div>
   </div>
 
-  <div class="card" id="s8">
-    <h2>Этап 3. Заменить сальник</h2>
-    <ol class="steps">
-      <li>
-        <b class="st-t">Вынуть старый сальник</b>
-        Вкрутить саморез в тело сальника (не в посадку!) и вытянуть пассатижами. Либо поддеть монтажкой через кромку. Действовать по краю, чтобы не поцарапать посадочное место в чулке.
-      </li>
-      <li>
-        <b class="st-t">Вычистить посадку до блеска</b>
-        Тряпка + очиститель. Никакой грязи, старой краски и остатков герметика. Осмотреть: задиры и заусенцы убрать наждачкой 600–800. Вытереть насухо.
-      </li>
-      <li>
-        <b class="st-t">Подготовить новый сальник</b>
-        Кромку смазать моторным/трансмиссионным маслом. Наружную обойму — слегка маслом или мыльной водой, легче пойдёт. Лайфхак: 15–20 минут в морозилке — резина сжимается, заходит заметно проще.
-      </li>
-      <li>
-        <b class="st-t">Завести руками</b>
-        Ровно, без перекоса, руками до появления сопротивления — часто 2–3 мм заходит от руки.
-      </li>
-      <li>
-        <b class="st-t">Дожать оправкой</b>
-        Оправка должна давить <b>по наружному металлическому кольцу</b> сальника. Удары молотком <b>крест-накрест</b>: слева → справа → сверху → снизу, мелкими. Каждые 3–4 удара проверять пальцем зазор по кругу.
-      </li>
-      <li>
-        <b class="st-t">Посадить до бурта</b>
-        Сальник должен встать ровно, на одинаковую глубину по всей окружности, до упора в бурт. Глубже бурта не загонять: кромка должна работать по своей дорожке на шейке вала, а не по канавке от старого сальника.
-      </li>
-    </ol>
-
-    <h3>Чем заменить оправку</h3>
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:40%">Что есть</th>
-          <th style="width:60%">Как использовать</th>
-        </tr>
-        <tr>
-          <td>Головка на 32–36 мм</td>
-          <td>С удлинителем, бить по удлинителю. Самый рабочий вариант</td>
-        </tr>
-        <tr>
-          <td>Коронка / труба / стакан</td>
-          <td>Идеально: давит по всей окружности</td>
-        </tr>
-        <tr>
-          <td>Старый сальник</td>
-          <td>Как проставка: новый сверху, давишь по старому</td>
-        </tr>
-        <tr>
-          <td>Деревянный брусок</td>
-          <td>Если ничего не подобрал. Мягче металла, безопаснее для посадки</td>
-        </tr>
-      </table>
+  <div class="sheet" id="stage3">
+    <h2><span class="num">8</span> Этап 3: заменить сальник (без пресса)</h2>
+    <div class="step">
+      <span class="stephead">3.1 · Вынуть старый сальник</span>
+      Вкрутить саморез в металлическое тело сальника, потянуть пассатижами. Либо поддеть монтажкой за край. Работать аккуратно: <b>посадочное место в чулке нельзя поцарапать</b>, иначе новый сальник не уплотнит.
     </div>
-
-    <div class="note bad">
-      <b>Чего нельзя делать</b>
-      ✕ Бить по внутренней части сальника — погнёшь пыльник, потечёт сразу<br>
-      ✕ Оправка меньше диаметра кромки — прорежет резину<br>
-      ✕ Забивать с перекосом «потом выровняется» — не выровняется, только вынимать и новый<br>
-      ✕ Использовать острые отвёртки и зубило как наставку<br>
-      ✕ Загонять глубже бурта
+    <div class="step">
+      <span class="stephead">3.2 · Подготовить посадку</span>
+      Вычистить посадочное место до металла: тряпка + очиститель. Никакой грязи, старой резины и масляного налёта. Осмотреть на задиры — мелкие пройти наждачкой 600–800.
     </div>
-
+    <div class="step">
+      <span class="stephead">3.3 · Подготовить сальник</span>
+      Кромку смазать моторным или трансмиссионным маслом. Наружную обойму тоже слегка смазать (или мыльной водой) — заходит легче. Лайфхак: положить сальник на 15–20 минут в морозилку — резина сожмётся и сядет заметно проще.
+    </div>
+    <div class="step">
+      <span class="stephead">3.4 · Забить ровно</span>
+      Сальник завести руками, пока идёт. Дальше — оправкой (головка 32–36 мм с удлинителем, коронка, труба, старый сальник как проставка). Давить <b>по наружному металлическому кольцу</b>, не по кромке. Бить крест-накрест мелкими ударами: слева → справа → сверху → снизу, постоянно проверяя зазор по кругу пальцем. Забить до упора в бурт, без «ступеньки» с одной стороны.
+    </div>
     <div class="note warn">
-      <b>Если сальник пошёл криво</b>
-      Не дожимай. Вынь (саморез + пассатижи), проверь посадку, при задире пройди наждачкой 600–800 и ставь новый. Сальник стоит копейки, испорченная посадка в чулке редуктора — уже проблема.
+      <b>⚠️ Чего нельзя делать</b>
+      Бить по внутренней части сальника (погнёшь пыльник — потечёт сразу). Ставить оправку меньше диаметра кромки (прорежешь резину). Оставлять перекос «потом выровняется» — не выровняется. Загонять глубже бурта: кромка должна бежать по своей дорожке на валу, а не по канавке от старого сальника.
     </div>
-  </div>
-
-  <div class="card" id="s9">
-    <h2>Этап 4. Установить полуось</h2>
-    <ol class="steps">
-      <li>
-        <b class="st-t">Новое стопорное кольцо</b>
-        Надеть на вал новое кольцо <span class="mono">495572D000</span>. Старое не оставлять: оно уже подрастянуто, полуось начнёт гулять и разобьёт сальник.
-      </li>
-      <li>
-        <b class="st-t">Смазать шейку и кромку</b>
-        Шейку вала слегка смазать маслом — чтобы не прожечь кромку на сухую при первом обороте.
-      </li>
-      <li>
-        <b class="st-t">Вставить полуось до щелчка</b>
-        Ровно по оси, <b>резким уверенным движением</b>. Кольцо должно защёлкнуться в дифференциале — обычно слышен щелчок и чувствуется, что вал «провалился».
-      </li>
-      <li>
-        <b class="st-t">Проверить на выдёргивание</b>
-        Дёрнуть рукой за вал: не вынимается — села правильно. Вынимается легко — кольцо не защёлкнулось, повторить.
-      </li>
-      <li>
-        <b class="st-t">Собрать подвеску</b>
-        Рычаги на место, болты вставить и <b>наживить</b>. Стойку стабилизатора прикрутить. Провод ABS вернуть в клипсы.
-      </li>
-      <li>
-        <b class="st-t">Опустить машину и затянуть</b>
-        Поставить колесо, опустить на землю, и только теперь окончательно затянуть болты рычагов (34–54 Н·м) и гайки колеса (90–110 Н·м).
-      </li>
-    </ol>
-  </div>
-
-  <div class="card" id="s10">
-    <h2>Этап 5. Залить масло</h2>
-    <p class="lead">Заливать масло можно только после того, как полуось установлена, а машина стоит <b>ровно</b> — не с перекосом на подъёме с одной стороны, иначе уровень выставишь неправильно.</p>
-
-    <ol class="steps">
-      <li>
-        <b class="st-t">Проверить пробки</b>
-        Сливная на месте и затянута с новым кольцом. Заливная выкручена.
-      </li>
-      <li>
-        <b class="st-t">Залить масло</b>
-        Через заливное отверстие шприцем. Нужно около <b>0,75 л</b> 75W-90 GL-5.
-      </li>
-      <li>
-        <b class="st-t">Поймать уровень</b>
-        Лить, пока масло не начнёт вытекать обратно из отверстия. Момент, когда потекло — уровень есть, дальше не лить.
-      </li>
-      <li>
-        <b class="st-t">Затянуть заливную</b>
-        С новым кольцом, плотно, но без фанатизма — резьба в алюминии.
-      </li>
-      <li>
-        <b class="st-t">Протереть всё насухо</b>
-        Особенно вокруг сальника и пробок. Иначе через день не поймёшь, откуда снова потеет.
-      </li>
-    </ol>
-
-    <h3>Чем заливать без ямы и без насоса</h3>
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:38%">Способ</th>
-          <th style="width:62%">Оценка</th>
-        </tr>
-        <tr>
-          <td>Шприц для трансмиссионного масла 200–500 мл</td>
-          <td><b>Лучший вариант.</b> 300–600 ₽, лезешь под машину и качаешь</td>
-        </tr>
-        <tr>
-          <td>Гибкий шланг + воронка сверху из-под арки</td>
-          <td>Работает. Медленно, но без затрат</td>
-        </tr>
-        <tr>
-          <td>Бутылка с обрезанным «носиком»</td>
-          <td>Бесплатно, вполне нормально</td>
-        </tr>
-        <tr>
-          <td>Просто лить «на глаз» в отверстие</td>
-          <td>Не надо: перельёшь — выдавит через сапун</td>
-        </tr>
-      </table>
-    </div>
-
     <div class="note ok">
-      <b>Контроль после</b>
-      Через 2–3 дня и после первых поездок проверить: сухо ли вокруг сальника и пробок, и ещё раз проверить уровень (открутить заливную, палец/масло должно быть у кромки). Если уровень упал — смотреть внимательнее.
+      <b>✅ Пресс не нужен</b>
+      Сальник полуоси садится с небольшим натягом и ставится вручную с молотком. Прессом как раз чаще перекашивают. В мастерскую из-за этого ехать незачем.
     </div>
   </div>
 
-  <div class="card" id="s11">
-    <h2>Все ловушки в одном месте</h2>
+  <div class="sheet" id="stage4">
+    <h2><span class="num">9</span> Этап 4: собрать обратно</h2>
+    <div class="step">
+      <span class="stephead">4.1 · Стопорное кольцо</span>
+      Надеть <b>новое</b> кольцо на вал полуоси в свою канавку.
+    </div>
+    <div class="step">
+      <span class="stephead">4.2 · Вставить полуось</span>
+      Завести вал в редуктор, совместить шлицы и коротким резким движением дослать до щелчка — кольцо должно защёлкнуться в дифференциале. Проверка: <b>дёрнуть вал рукой на себя — не должен выниматься.</b> Если выходит — кольцо не село или повреждено.
+    </div>
+    <div class="step">
+      <span class="stephead">4.3 · Рычаги и датчик</span>
+      Прикрутить рычаги к кулаку, вернуть провод ABS на клипсы, проверить, что тормозной шланг и трос ручника лежат свободно, без натяга и перегибов.
+    </div>
+    <div class="step">
+      <span class="stephead">4.4 · Затяжка</span>
+      Сначала накинуть болты от руки, опустить машину на колёса, и только потом окончательно затянуть болты рычагов (34–54 Н·м). Поставить колесо, гайки 90–110 Н·м.
+    </div>
+  </div>
+
+  <div class="sheet" id="oil">
+    <h2><span class="num">10</span> Этап 5: залить масло</h2>
+    <p>Только после того, как полуось вставлена и колесо стоит. Машина должна стоять <b>ровно</b>, не с перекосом на подъёме — иначе уровень выставишь неправильно.</p>
+    <div class="step">
+      <span class="stephead">5.1 · Залить ~0,75 л 75W-90 GL-5</span>
+      Через заливное отверстие до нижней кромки. Как только масло потекло обратно из отверстия — уровень есть, больше не надо.
+    </div>
+    <div class="step">
+      <span class="stephead">5.2 · Закрутить пробки</span>
+      С новыми уплотнительными кольцами, плотно, но без фанатизма (алюминий). Всё вокруг протереть насухо — чтобы потом было видно, откуда потечёт, если потечёт.
+    </div>
+    <h3>Чем заливать без ямы и насоса</h3>
+    <ul>
+      <li><b>Шприц для трансмиссионного масла</b> 200–500 мл — самый удобный вариант, 300–600 ₽ в автомагазине.</li>
+      <li><b>Гибкая трубка + воронка</b> сверху из-под арки: трубку в отверстие, воронку повыше, лить медленно порциями.</li>
+      <li><b>Бутылка с носиком</b> из обрезанной пластиковой бутылки и шланга — бесплатно и работает.</li>
+    </ul>
+    <div class="note info">
+      <b>📌 Проверка после ремонта</b>
+      Проехать 20–30 км, заглянуть под машину: вокруг сальника и пробок должно быть сухо. Через 2–3 дня проверить уровень ещё раз и при необходимости долить.
+    </div>
+  </div>
+
+  <div class="sheet" id="traps">
+    <h2><span class="num">11</span> Ловушки, из-за которых течёт снова</h2>
     <ul class="check">
-      <li class="no">Сапун редуктора забит и не проверен — новый сальник потечёт снова</li>
-      <li class="no">Старое стопорное кольцо оставлено — полуось гуляет, сальник разбивается</li>
-      <li class="no">Посадка сальника не очищена — сальник сядет с перекосом</li>
-      <li class="no">Кромка сухая при установке — сальник рвётся при первом обороте</li>
-      <li class="no">Сальник забит глубже бурта — кромка идёт по канавке, течь</li>
-      <li class="no">Забит с перекосом и дожат «на авось» — микротечь через месяц</li>
-      <li class="no">Забыта тряпка в отверстии — мусор внутри редуктора</li>
-      <li class="no">Порван пыльник внутреннего ШРУСа при снятии — пыль и убитый ШРУС</li>
-      <li class="no">Кольца пробок старые — потеет по резьбе, а думаешь на сальник</li>
-      <li class="no">Уровень выставлен на машине с перекосом — недолив или перелив</li>
-      <li class="no">Болты рычагов затянуты на вывешенной подвеске — сайлентблоки закусило</li>
-      <li class="no">Тормозной шланг/трос ручника натянуты — повреждение на ходу</li>
-      <li class="no">Забыт провод датчика ABS — ошибка и неработающая система</li>
-      <li class="no">Шейка полуоси с канавкой — новый сальник не поможет</li>
-      <li class="q">Масло залито «на глаз» — перелив выдавит через сапун и снова пятна</li>
+      <li><b>Забитый сапун редуктора.</b> Проверить и прочистить до замены сальника.</li>
+      <li><b>Старое стопорное кольцо.</b> Полуось начнёт гулять и разобьёт новый сальник.</li>
+      <li><b>Грязь в посадочном месте.</b> Сальник сядет с перекосом и не уплотнит.</li>
+      <li><b>Перекос при запрессовке.</b> Миллиметр перекоса = течь через месяц.</li>
+      <li><b>Сальник глубже бурта.</b> Кромка работает по канавке старого сальника — течёт сразу.</li>
+      <li><b>Сухая кромка.</b> Поставил без смазки — кромка подгорает на первых километрах.</li>
+      <li><b>Царапины на шейке вала.</b> Проверить до установки, иначе менять вал.</li>
+      <li><b>Порванный пыльник ШРУСа.</b> Проверить при снятии полуоси.</li>
+      <li><b>Мусор в редукторе.</b> Тряпка в отверстии, пока полуось снята.</li>
+      <li><b>Старые кольца пробок.</b> Потом ищешь «течь сальника» там, где течёт пробка.</li>
+      <li><b>Затяжка рычагов на весу.</b> Сайлентблоки разорвёт, появится стук.</li>
+      <li><b>Перелив масла.</b> Лишнее выдавит через сапун и сальники.</li>
     </ul>
   </div>
 
-  <a class="up" href="#s1">↑ Наверх</a>
-
-  <div class="card" id="s12">
-    <h2>Чек-лист перед выездом</h2>
+  <div class="sheet" id="check">
+    <h2><span class="num">12</span> Чек-лист перед выездом</h2>
     <ul class="check">
-      <li>Сапун проверен и продувается</li>
-      <li>Детали куплены по VIN: сальник, стопорное кольцо, кольца пробок, масло</li>
+      <li>Проверил и прочистил сапун редуктора</li>
+      <li>Купил сальник по VIN (+ 2 шт, если обе стороны)</li>
+      <li>Купил новое стопорное кольцо и кольца пробок</li>
       <li>Машина на подставках, под колёсами упоры</li>
       <li>Заливная пробка открутилась до слива масла</li>
-      <li>Посадка сальника очищена и осмотрена, задиры убраны</li>
+      <li>Посадочное место вычищено, кромка сальника смазана</li>
       <li>Сальник сел ровно, до бурта, без перекоса</li>
-      <li>Новое стопорное кольцо установлено, полуось защёлкнулась</li>
-      <li>Полуось не вынимается рукой</li>
-      <li>Пыльники ШРУСов целые, провод ABS на месте</li>
-      <li>Масло залито до кромки заливного, машина стояла ровно</li>
+      <li>Полуось села до щелчка, рукой не вынимается</li>
+      <li>Болты рычагов затянуты на стоящей машине</li>
+      <li>Масло залито до кромки заливного отверстия</li>
       <li>Пробки с новыми кольцами, всё протёрто насухо</li>
-      <li>Болты рычагов и колёс затянуты на стоящей машине</li>
-      <li>После 20–30 км вокруг сальника сухо</li>
+      <li>Проехал 20–30 км, проверил: сухо</li>
     </ul>
   </div>
 
-  <div class="card" id="s13">
-    <h2>Если после замены снова потеет</h2>
-    <div class="tscroll">
-      <table>
-        <tr>
-          <th style="width:38%">Симптом</th>
-          <th style="width:62%">Причина и что делать</th>
-        </tr>
-        <tr>
-          <td>Потеет сразу, в первые километры</td>
-          <td>Перекос сальника, повреждённая кромка или шейка. Переделать, проверить шейку</td>
-        </tr>
-        <tr>
-          <td>Сухо месяц, потом потеет</td>
-          <td>Забит сапун или дешёвый сальник. Проверить сапун, оценить качество детали</td>
-        </tr>
-        <tr>
-          <td>Потеет по резьбе пробки</td>
-          <td>Старое кольцо или недотянутая/перетянутая пробка. Заменить кольцо</td>
-        </tr>
-        <tr>
-          <td>Течёт сильнее, чем до ремонта</td>
-          <td>Сальник посажен слишком глубоко (кромка на канавке) или порван при монтаже</td>
-        </tr>
-        <tr>
-          <td>Течь + гул сзади</td>
-          <td>Износ подшипников редуктора. Это уже не про сальник — нужен ремонт редуктора</td>
-        </tr>
-      </table>
-    </div>
+  <div class="sheet" id="faq">
+    <h2><span class="num">13</span> Частые вопросы</h2>
+
+    <details>
+      <summary>Полуось не выходит из редуктора — что делать?</summary>
+      <p>Она держится стопорным кольцом, поэтому идёт туго. Не тяни за сам вал «на излом» — работать монтажкой в щели между фланцем редуктора и корпусом внутреннего ШРУСа, коротким резким рывком. Помогает слегка провернуть вал и покачать кулак. Если совсем не идёт — не ломай ШРУС, попробуй рычаг подлиннее и налей WD-40 в стык.</p>
+    </details>
+
+    <details>
+      <summary>Нужен ли пресс или ехать в мастерскую?</summary>
+      <p>Нет. Сальник полуоси ставится вручную: головка с удлинителем или труба + молоток, удары крест-накрест по наружному кольцу до бурта. Прессом чаще перекашивают, чем помогают.</p>
+    </details>
+
+    <details>
+      <summary>Сколько масла в заднем редукторе Sportage 3?</summary>
+      <p>Около 0,75 л. Правильный уровень — по нижнюю кромку заливного отверстия, при ровно стоящей машине. Покупать удобнее литровую канистру: остаток на доливку.</p>
+    </details>
+
+    <details>
+      <summary>Какое масло лить?</summary>
+      <p>Трансмиссионное 75W-90 GL-5. Без самоблока — обычное. Если стоит LSD-дифференциал, нужно масло с присадками LSD.</p>
+    </details>
+
+    <details>
+      <summary>Потёк новый сальник — почему?</summary>
+      <p>Порядок проверки: сапун забит → сальник с перекосом или глубже бурта → повреждена кромка при установке → канавка/задир на шейке вала → старое стопорное кольцо, вал гуляет → перелив масла. В 8 случаях из 10 виноват сапун или перекос.</p>
+    </details>
+
+    <details>
+      <summary>Надо ли снимать суппорт и тормозной диск?</summary>
+      <p>Нет. Суппорт остаётся на месте, главное — не натягивать тормозной шланг и трос ручника при отводе кулака.</p>
+    </details>
+
+    <details>
+      <summary>Можно ездить, если сальник потеет, но уровень держится?</summary>
+      <p>Несколько дней — можно, но следи за уровнем, иначе масляное голодание убьёт редуктор (он дороже сальника в десятки раз). И масло на тормозном диске/колодках — это уже опасно, тогда ремонт не откладывать.</p>
+    </details>
+
+    <details>
+      <summary>Течёт не у колеса, а у кардана — это то же самое?</summary>
+      <p>Нет. У кардана стоит сальник хвостовика, это другая деталь и другая работа (нужна разметка гайки хвостовика). Здесь описана замена сальника полуоси.</p>
+    </details>
   </div>
 
-  <div class="card" id="s14">
-    <h2>Частые вопросы</h2>
-
-    <div class="faq">
-      <div class="q">Обязательно ли ехать в сервис, если нет пресса?</div>
-      <div class="a">Нет. Сальник полуоси ставится вручную с оправкой из головки или трубы. Пресс тут скорее вредит — им легче перекосить.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Можно ли менять только сальник, не снимая полуось?</div>
-      <div class="a">Нет. Сальник стоит в чулке редуктора за фланцем полуоси, доступ к нему открывается только после извлечения вала.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Нужно ли снимать суппорт?</div>
-      <div class="a">Обычно нет — достаточно отвести кулак наружу после откручивания рычагов. Если мешает, суппорт подвесить на проволоке, ни в коем случае не на тормозном шланге.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Обязательно ли менять стопорное кольцо?</div>
-      <div class="a">Да. Оно одноразовое по смыслу: при снятии подрастягивается и теряет упругость. Стоит копейки, а последствия экономии — гуляющая полуось и убитый сальник.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Какое масло лить?</div>
-      <div class="a">Трансмиссионное 75W-90 API GL-5, около 0,75 л. Если редуктор с самоблокирующимся дифференциалом — только с пометкой LSD, но на стоковом Sportage 3 его нет.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Нужен ли герметик?</div>
-      <div class="a">Нет. Сальник уплотняется за счёт натяга и резиновой кромки. Герметик на посадке только мешает правильной посадке.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Что делать, если полуось не выходит из редуктора?</div>
-      <div class="a">Не дёргать за вал с перекосом. Убедиться, что кулак отведён достаточно, полуось стоит ровно по оси, и использовать монтажку как рычаг в щели у фланца. Резкий ровный рывок по оси — кольцо выходит.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Можно ли ездить с текущим сальником?</div>
-      <div class="a">Кратковременно — да, но уровень масла в редукторе падает. Сухой редуктор убивает подшипники и шестерни, а это уже ремонт в разы дороже. И масло может попасть на тормозной диск — это опасно.</div>
-    </div>
-
-    <div class="faq">
-      <div class="q">Сколько стоит работа в сервисе, для сравнения?</div>
-      <div class="a">Обычно считают как замену сальника полуоси: 1–2 нормо-часа за сторону. Точную цену скажут только по месту — но по деньгам это заметно дороже стоимости самих деталей, которые стоят копейки.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Коротко, самое главное</h2>
+  <div class="sheet">
+    <h2><span class="num">14</span> Итог в три строки</h2>
+    <p><b>1.</b> Сапун прочистить, масло слить, заливную пробку открутить первой.</p>
+    <p><b>2.</b> Рычаги от кулака → монтажкой полуось → старый сальник саморезом → новый забить ровно до бурта по наружному кольцу.</p>
+    <p><b>3.</b> Новое стопорное кольцо, полуось до щелчка, затяжка на колёсах, ~0,75 л 75W-90 до кромки заливной, через 20–30 км проверить на сухость.</p>
     <div class="note ok">
-      <b>Пять пунктов, которые решают результат</b>
-      1. Прочистить сапун до замены.<br>
-      2. Новое стопорное кольцо обязательно.<br>
-      3. Сальник забить ровно, до бурта, по наружному кольцу, крест-накрест.<br>
-      4. Полуось — до щелчка, проверить на выдёргивание.<br>
-      5. Масло — до кромки заливного, на ровной машине, с новыми кольцами пробок.
+      <b>💡 Главное</b>
+      Дело не в сальнике, а в чистоте посадки и ровной запрессовке. Плюс сапун — без него любая новая манжета потечёт.
     </div>
-    <p style="font-size:14px;color:#5a7189;margin:0">
-      Инструкция составлена для Kia Sportage 3 (SL, 2010–2015), задний редуктор, полный привод. Артикулы и моменты затяжки перед покупкой и работой сверяй по VIN и по руководству для своей комплектации — на разных рынках и годах бывают отличия.
-    </p>
   </div>
 
-  <footer>
-    Kia Sportage 3 · SL · AWD · замена сальника полуоси заднего редуктора<br>
-    Гаражная инструкция · Honer AI
-  </footer>
 </div>
+
+<footer>
+  Kia Sportage 3 (SL) · замена сальника полуоси заднего редуктора · артикулы сверять по VIN<br>
+  Работы выполняются на свой риск: машина только на подставках, не на домкрате.
+</footer>
+
 </body>
 </html>
