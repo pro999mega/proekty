@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="no-referrer">
+<title>Нейро-пак: все ИИ в одном окне · Nagibatorz</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0c;
+    --card:rgba(255,255,255,.045);
+    --card2:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.1);
+    --orange:#ff7a18;
+    --orange2:#ffb347;
+    --text:#edeff2;
+    --muted:#9aa0aa;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(255,122,24,.20), transparent 60%),
+      radial-gradient(700px 420px at 96% 6%, rgba(255,69,0,.12), transparent 60%),
+      radial-gradient(800px 500px at 50% 105%, rgba(255,140,0,.08), transparent 60%);
+    pointer-events:none;z-index:0;
+  }
+  .wrap{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:0 18px 90px}
+
+  .hero{
+    padding:48px 0 34px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    margin-bottom:34px;
+  }
+  .hero .tag{
+    display:inline-block;
+    font-size:12px;letter-spacing:2.4px;text-transform:uppercase;
+    color:var(--orange2);
+    border:1px solid rgba(255,122,24,.35);
+    background:rgba(255,122,24,.08);
+    border-radius:100px;
+    padding:6px 16px;margin-bottom:20px;
+  }
+  .hero h1{
+    font-size:clamp(28px,7.5vw,48px);
+    line-height:1.12;
+    font-weight:900;
+    letter-spacing:-.5px;
+    background:linear-gradient(180deg,#fff 0%,#e6e9ee 45%,var(--orange) 130%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 6px 26px rgba(255,122,24,.35));
+  }
+  .hero p{color:var(--muted);margin-top:14px;font-size:15.5px}
+
+  .note{
+    background:linear-gradient(135deg,rgba(255,122,24,.13),rgba(255,122,24,.03));
+    border:1px solid rgba(255,122,24,.28);
+    border-radius:16px;
+    padding:16px 18px;
+    font-size:14.5px;
+    margin-bottom:26px;
+    color:#f3e3d6;
+  }
+  .note b{color:var(--orange2)}
+
+  .searchbox{margin-bottom:26px}
+  .searchbox input{
+    width:100%;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 18px;
+    color:var(--text);
+    font-size:15.5px;
+    outline:none;
+    transition:.2s;
+    backdrop-filter:blur(10px);
+  }
+  .searchbox input:focus{border-color:rgba(255,122,24,.55);background:var(--card2)}
+  .searchbox input::placeholder{color:#6d737d}
+
+  .toc{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:8px;
+    margin-bottom:38px;
+    backdrop-filter:blur(12px);
+  }
+  .toc-title{
+    font-size:12px;letter-spacing:1.8px;text-transform:uppercase;
+    color:var(--muted);padding:12px 16px 8px;font-weight:700;
+  }
+  .toc a{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;
+    border-radius:12px;
+    color:var(--text);
+    text-decoration:none;
+    font-size:15px;
+    font-weight:600;
+    transition:.15s;
+  }
+  .toc a:hover{background:rgba(255,122,24,.1);color:#fff}
+  .toc a .ico{
+    width:26px;height:26px;flex:0 0 26px;
+    display:grid;place-items:center;
+    border-radius:8px;
+    background:rgba(255,122,24,.15);
+    font-size:13px;
+  }
+
+  .part{
+    margin:52px 0 24px;
+    font-size:clamp(22px,5.5vw,30px);
+    font-weight:900;
+    letter-spacing:-.3px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+    scroll-margin-top:18px;
+  }
+  .part span{
+    background:linear-gradient(90deg,var(--orange2),var(--orange));
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+
+  .step{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px 20px 22px;
+    margin-bottom:14px;
+    backdrop-filter:blur(10px);
+    scroll-margin-top:18px;
+  }
+  .step h3{
+    font-size:17.5px;
+    font-weight:800;
+    margin-bottom:12px;
+    display:flex;gap:11px;align-items:flex-start;
+    letter-spacing:-.2px;
+  }
+  .num{
+    flex:0 0 28px;height:28px;
+    display:grid;place-items:center;
+    border-radius:9px;
+    background:linear-gradient(150deg,var(--orange),#d95a00);
+    color:#fff;font-size:13.5px;font-weight:900;
+    box-shadow:0 4px 14px rgba(255,122,24,.35);
+  }
+  .step p{font-size:15px;color:#cfd4db;margin-bottom:10px}
+  .step p:last-child{margin-bottom:0}
+  .step ul,.step ol{margin:10px 0 0 4px;padding-left:18px}
+  .step li{font-size:15px;color:#cfd4db;margin-bottom:7px}
+  .step li::marker{color:var(--orange)}
+
+  kbd{
+    display:inline-block;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.18);
+    border-bottom-width:2px;
+    border-radius:6px;
+    padding:1px 7px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px;
+    color:#fff;
+    white-space:nowrap;
+  }
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px;
+    background:rgba(255,122,24,.12);
+    color:var(--orange2);
+    padding:2px 7px;border-radius:6px;
+    word-break:break-all;
+  }
+  .path{
+    display:block;
+    background:rgba(0,0,0,.4);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:11px 14px;
+    margin:10px 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12.5px;
+    color:#ffcf9a;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .warn{
+    background:rgba(255,60,60,.09);
+    border:1px solid rgba(255,80,80,.32);
+    border-left:3px solid #ff4d4d;
+    border-radius:12px;
+    padding:13px 16px;
+    margin:14px 0 0;
+    font-size:14px;
+    color:#ffc9c9;
+  }
+  .warn b{color:#ff8f8f}
+
+  .tip{
+    background:rgba(70,200,120,.08);
+    border:1px solid rgba(70,200,120,.25);
+    border-left:3px solid #37c97a;
+    border-radius:12px;
+    padding:13px 16px;
+    margin:14px 0 0;
+    font-size:14px;
+    color:#c3f0d8;
+  }
+
+  .tbl{width:100%;border-collapse:collapse;margin-top:12px;font-size:14.5px}
+  .tbl th{
+    text-align:left;padding:10px 12px;
+    color:var(--muted);font-size:12px;
+    text-transform:uppercase;letter-spacing:1.2px;
+    border-bottom:1px solid var(--line);
+  }
+  .tbl td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl td:first-child{font-weight:600;color:#fff}
+
+  .bonus{
+    margin-top:56px;
+    background:linear-gradient(140deg,rgba(255,122,24,.18),rgba(255,122,24,.04));
+    border:1px solid rgba(255,122,24,.35);
+    border-radius:22px;
+    padding:28px 24px;
+    text-align:center;
+    scroll-margin-top:18px;
+  }
+  .bonus h2{
+    font-size:24px;font-weight:900;margin-bottom:10px;
+    background:linear-gradient(90deg,#fff,var(--orange2));
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .bonus p{color:#f0ddd0;font-size:14.5px;margin-bottom:18px}
+  .btn{
+    display:inline-block;
+    background:linear-gradient(150deg,var(--orange),#d95a00);
+    color:#fff;text-decoration:none;
+    font-weight:800;font-size:15.5px;
+    padding:15px 34px;border-radius:14px;
+    box-shadow:0 10px 30px rgba(255,122,24,.35);
+    transition:.18s;
+  }
+  .btn:active{transform:scale(.97)}
+
+  footer{
+    margin-top:54px;
+    padding-top:26px;
+    border-top:1px solid var(--line);
+    text-align:center;
+    color:var(--muted);
+    font-size:13.5px;
+  }
+  footer b{color:var(--text)}
+
+  .top{
+    position:fixed;
+    right:16px;bottom:18px;
+    width:46px;height:46px;
+    border-radius:50%;
+    background:rgba(255,122,24,.9);
+    color:#fff;border:none;
+    font-size:19px;
+    display:grid;place-items:center;
+    box-shadow:0 8px 24px rgba(255,122,24,.4);
+    cursor:pointer;
+    opacity:0;pointer-events:none;
+    transition:.25s;
+    z-index:50;
+  }
+  .top.show{opacity:1;pointer-events:auto}
+
+  .hide{display:none!important}
+
+  @media(max-width:430px){
+    .wrap{padding:0 14px 84px}
+    .hero{padding:34px 0 26px}
+    .step{padding:17px 15px 19px;border-radius:16px}
+    .step h3{font-size:16.5px}
+    .step p,.step li{font-size:14.5px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="tag">Nagibatorz · гайд</div>
+    <h1>Нейро-пак: все&nbsp;ИИ в&nbsp;одном окне</h1>
+    <p>GPT, Gemini, Grok, Claude и десятки других — без подписок и оплат</p>
+  </div>
+
+  <div class="note">
+    <b>Что это:</b> одна площадка, где собраны десятки нейросетей. Ты пишешь запрос один раз — и сравниваешь ответы разных моделей. Платить за подписки не нужно. Ниже — как зайти и как выжимать из этого максимум.
+  </div>
+
+  <div class="searchbox">
+    <input type="text" id="q" placeholder="Поиск по гайду — например «код» или «запрос»" autocomplete="off">
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Содержание</div>
+    <a href="#n1"><span class="ico">🔗</span> Открываем площадку</a>
+    <a href="#n2"><span class="ico">💬</span> Режим Direct Chat</a>
+    <a href="#n3"><span class="ico">⚙️</span> Кнопка Max</a>
+    <a href="#n4"><span class="ico">🤖</span> Выбор модели</a>
+    <a href="#n5"><span class="ico">🎯</span> Как писать запросы</a>
+    <a href="#n6"><span class="ico">📋</span> Что можно делать</a>
+    <a href="#n7"><span class="ico">🔁</span> Сравнение моделей</a>
+    <a href="#n8"><span class="ico">🛡️</span> Ограничения и честность</a>
+    <a href="#n9"><span class="ico">🧯</span> Если что-то не работает</a>
+    <a href="#n10"><span class="ico">✅</span> Чек-лист</a>
+  </div>
+
+  <h2 class="part"><span>Подключение</span></h2>
+
+  <div class="step" id="n1">
+    <h3><span class="num">1</span> Открываем площадку</h3>
+    <p>Перейди по ссылке с любого устройства — телефон, планшет, компьютер. Работает в браузере, ничего устанавливать не нужно.</p>
+    <div class="path">https://arena.ai/text/direct</div>
+    <p>Если площадка попросит войти — авторизуйся удобным способом. Это бесплатно.</p>
+    <div class="tip">Сразу добавь страницу в закладки браузера, чтобы не искать ссылку каждый раз.</div>
+  </div>
+
+  <div class="step" id="n2">
+    <h3><span class="num">2</span> Находим Direct Chat</h3>
+    <p>В <b>левом верхнем углу</b> есть переключатель режимов. Нажми на него и выбери <b>Direct Chat</b>.</p>
+    <p>Именно в этом режиме ты общаешься с одной выбранной моделью — как в обычном чате. В других режимах запрос уходит сразу в несколько моделей и сравнивает ответы.</p>
+  </div>
+
+  <div class="step" id="n3">
+    <h3><span class="num">3</span> Нажимаем Max</h3>
+    <p>Рядом с переключателем есть кнопка <b>Max</b> — нажми её. Она открывает полный список доступных моделей, а не только те, что показаны по умолчанию.</p>
+    <div class="warn">⚠️ Если кнопки Max не видно — обнови страницу. На маленьких экранах часть интерфейса иногда прячется за краем.</div>
+  </div>
+
+  <div class="step" id="n4">
+    <h3><span class="num">4</span> Выбираем нужную нейросеть</h3>
+    <p>Из списка выбери модель под свою задачу. Ориентируйся так:</p>
+    <table class="tbl">
+      <tr><th>Задача</th><th>На что смотреть</th></tr>
+      <tr><td>Текст, статьи, письма</td><td>Любая топовая модель</td></tr>
+      <tr><td>Код и сайты</td><td>Модели с уклоном в программирование</td></tr>
+      <tr><td>Логика и математика</td><td>Модели с «reasoning» в названии</td></tr>
+      <tr><td>Быстрый короткий ответ</td><td>Лёгкие и быстрые модели</td></tr>
+      <tr><td>Творчество и идеи</td><td>Любая, но лучше две разные</td></tr>
+    </table>
+    <p style="margin-top:12px">Названия моделей на площадке обновляются постоянно — это нормально. Если модель пропала из списка, выбери другую того же уровня.</p>
+  </div>
+
+  <h2 class="part"><span>Как выжимать результат</span></h2>
+
+  <div class="step" id="n5">
+    <h3><span class="num">5</span> Как писать запросы, чтобы получать нормальный ответ</h3>
+    <p>90% плохих ответов — это плохо сформулированный запрос. Правило простое: <b>чем больше контекста, тем лучше результат</b>.</p>
+    <p><b>Формула хорошего запроса:</b></p>
+    <ul>
+      <li><b>Роль</b> — «Ты опытный редактор»</li>
+      <li><b>Задача</b> — «Напиши описание товара»</li>
+      <li><b>Вводные</b> — что за товар, для кого, где будет размещён</li>
+      <li><b>Формат</b> — «Списком, до 100 слов, без воды»</li>
+      <li><b>Ограничения</b> — «Не используй слово «уникальный»»</li>
+    </ul>
+    <p style="margin-top:12px"><b>Плохо:</b> «напиши текст про телефон»<br><b>Хорошо:</b> «Ты копирайтер. Напиши описание смартфона Infinix для объявления на маркетплейсе: 4 абзаца, без эмодзи, упор на батарею и экран»</p>
+    <div class="tip">Не нравится ответ — не начинай заново, а уточняй: «Короче», «Проще, для школьника», «Перепиши в другом тоне». Модель доработает то, что уже есть.</div>
+  </div>
+
+  <div class="step" id="n6">
+    <h3><span class="num">6</span> Что реально можно делать</h3>
+    <table class="tbl">
+      <tr><th>Задача</th><th>Пример запроса</th></tr>
+      <tr><td>Тексты</td><td>Описания товаров, посты, письма</td></tr>
+      <tr><td>Учёба</td><td>Объясни тему простыми словами</td></tr>
+      <tr><td>Код</td><td>Напиши функцию на Python</td></tr>
+      <tr><td>Переводы</td><td>Переведи и сохрани стиль</td></tr>
+      <tr><td>Работа с текстом</td><td>Сократи, перепиши, проверь ошибки</td></tr>
+      <tr><td>Идеи</td><td>10 вариантов названия для товара</td></tr>
+      <tr><td>Разбор</td><td>Что не так с этим объявлением</td></tr>
+    </table>
+  </div>
+
+  <div class="step" id="n7">
+    <h3><span class="num">7</span> Сравнение моделей — главная фишка</h3>
+    <p>Один и тот же запрос можно отправить двум разным моделям и сравнить ответы. Это бесплатно и экономит время: не нужно гадать, какая модель лучше — видно сразу.</p>
+    <ol>
+      <li>Задай вопрос первой модели</li>
+      <li>Скопируй запрос</li>
+      <li>Переключи модель через Max</li>
+      <li>Задай тот же вопрос</li>
+      <li>Возьми лучшие куски из двух ответов</li>
+    </ol>
+    <div class="tip">Для важных задач всегда так и делай — две модели ошибаются реже, чем одна.</div>
+  </div>
+
+  <h2 class="part"><span>Важно знать</span></h2>
+
+  <div class="step" id="n8">
+    <h3><span class="num">8</span> Ограничения — честно</h3>
+    <p>Чтобы не было сюрпризов:</p>
+    <ul>
+      <li><b>Это не подписка ChatGPT Plus или Claude Pro.</b> Ты получаешь доступ к моделям на площадке-агрегаторе, а не аккаунт с оплаченным тарифом.</li>
+      <li><b>Набор моделей и лимиты меняются.</b> Площадка добавляет и убирает модели, иногда ограничивает число запросов в день.</li>
+      <li><b>История чатов живёт на площадке.</b> Важные ответы копируй себе в заметки.</li>
+      <li><b>Не отправляй туда пароли, документы и личные данные.</b> Никогда и ни в какую нейросеть.</li>
+    </ul>
+    <div class="warn">⚠️ <b>Нейросеть может ошибаться.</b> Проверяй факты, даты, цены и цифры — особенно если ответ пойдёт клиенту или в документ.</div>
+  </div>
+
+  <div class="step" id="n9">
+    <h3><span class="num">9</span> Если что-то не работает</h3>
+    <p><b>Страница не грузится:</b></p>
+    <ul>
+      <li>Проверь интернет и обнови страницу</li>
+      <li>Попробуй другой браузер</li>
+      <li>Отключи VPN, если он включён</li>
+    </ul>
+    <p style="margin-top:12px"><b>Модель не отвечает или пишет про лимит:</b></p>
+    <ul>
+      <li>Подожди пару минут и повтори</li>
+      <li>Переключись на другую модель через Max</li>
+      <li>Начни новый чат — старый мог переполниться</li>
+    </ul>
+    <p style="margin-top:12px"><b>Ответ обрывается:</b> напиши «продолжи» — модель допишет с того места.</p>
+  </div>
+
+  <div class="step" id="n10">
+    <h3><span class="num">10</span> Чек-лист</h3>
+    <ul>
+      <li>☐ Открыл ссылку и авторизовался</li>
+      <li>☐ Включил режим Direct Chat</li>
+      <li>☐ Нажал Max и увидел список моделей</li>
+      <li>☐ Выбрал модель под свою задачу</li>
+      <li>☐ Написал запрос по формуле: роль, задача, формат</li>
+      <li>☐ Сравнил ответ двух моделей на важном вопросе</li>
+      <li>☐ Сохранил нужные ответы себе</li>
+      <li>☐ Не отправил в чат личные данные</li>
+    </ul>
+  </div>
+
+  <div class="bonus" id="bonus">
+    <h2>🎁 Твой подарок</h2>
+    <p>Пакет из 100 гайдов по играм и цифровым фишкам: раскладки, фарм, настройки, промокоды.</p>
+    <a class="btn" href="https://docs.google.com/document/d/1vDAskewGByROOXIj_5hnlRs30KuFhJDB92eHwzkWA_k/edit?usp=sharing">Забрать бонус</a>
+  </div>
+
+  <footer>
+    <b>Nagibatorz</b> · Playerok<br>
+    Не заработало или появилась ошибка — напиши в чат, помогу разобраться.
+  </footer>
+
+</div>
+
+<button class="top" id="toTop" aria-label="Наверх">↑</button>
+
+<script>
+  var btn = document.getElementById('toTop');
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 500) btn.classList.add('show');
+    else btn.classList.remove('show');
+  });
+  btn.addEventListener('click', function(){
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  var q = document.getElementById('q');
+  q.addEventListener('input', function(){
+    var v = this.value.trim().toLowerCase();
+    var items = document.querySelectorAll('.step');
+    if (!v) {
+      items.forEach(function(el){ el.classList.remove('hide'); });
+      document.querySelector('.toc').style.display = '';
+      document.querySelectorAll('.part').forEach(function(el){ el.style.display = ''; });
+      return;
+    }
+    document.querySelector('.toc').style.display = 'none';
+    items.forEach(function(el){
+      if (el.textContent.toLowerCase().indexOf(v) !== -1) el.classList.remove('hide');
+      else el.classList.add('hide');
+    });
+    document.querySelectorAll('.part').forEach(function(part){
+      var next = part.nextElementSibling, has = false;
+      while (next && !next.classList.contains('part')) {
+        if (next.classList.contains('step') && !next.classList.contains('hide')) has = true;
+        if (next.classList.contains('bonus')) break;
+        next = next.nextElementSibling;
+      }
+      part.style.display = has ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
