@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b11">
+<title>AI Арена — чат, дуэли, рейтинг</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.085);
+  --line:rgba(255,255,255,.11);--txt:#e9eef7;--dim:#8c99ae;
+  --cy:#22d3ee;--vi:#a78bfa;--ok:#34d399;--bad:#fb7185;--gold:#fbbf24;
+}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--txt);
+  background:
+    radial-gradient(1100px 520px at 12% -12%,rgba(34,211,238,.20),transparent 62%),
+    radial-gradient(900px 480px at 90% 2%,rgba(167,139,250,.18),transparent 62%),
+    linear-gradient(180deg,#0a0f17 0%,#070a10 55%,#05070c 100%);
+  background-attachment:fixed;
+  min-height:100dvh;display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased;font-size:15px;
+}
+header.top{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:9px;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;
+  background:rgba(9,13,20,.74);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.brand{font-weight:800;font-size:14px;letter-spacing:.12em;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.brand i{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--cy),var(--vi));box-shadow:0 0 12px rgba(34,211,238,.9);display:block}
+.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--dim);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.18s;font-family:inherit}
+.tab.active{color:#04121a;background:linear-gradient(135deg,var(--cy),#7dd3fc);border-color:transparent;box-shadow:0 6px 18px -6px rgba(34,211,238,.8)}
+.icon{border:1px solid var(--line);background:var(--panel);color:var(--txt);width:38px;height:38px;border-radius:12px;font-size:17px;cursor:pointer;flex:0 0 auto;line-height:1}
+main{flex:1;padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 20px);max-width:1080px;width:100%;margin:0 auto}
+.tabpane{display:none}
+.tabpane.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.warn{margin:10px 12px 0;padding:11px 13px;border-radius:14px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);color:#fde68a;font-size:13.5px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.warn button{font-family:inherit}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.small{margin-top:8px}
+.sel{
+  flex:1;min-width:150px;background:rgba(10,15,23,.9);color:var(--txt);border:1px solid var(--line);
+  border-radius:12px;padding:11px 10px;font-size:13.5px;font-family:inherit;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 18px,calc(100% - 11px) 18px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+.btn{
+  border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+  padding:12px 18px;border-radius:13px;color:#04121a;
+  background:linear-gradient(135deg,var(--cy),#7dd3fc);
+  box-shadow:0 8px 22px -10px rgba(34,211,238,.9);transition:.15s;
+}
+.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:active{background:rgba(255,255,255,.14)}
+.btn.sm{padding:9px 13px;font-size:13px;border-radius:11px}
+textarea,input[type=text],input[type=password]{
+  width:100%;background:rgba(8,12,19,.85);color:var(--txt);border:1px solid var(--line);
+  border-radius:14px;padding:12px 13px;font-size:15px;font-family:inherit;resize:vertical;outline:none;
+}
+textarea:focus,input:focus{border-color:rgba(34,211,238,.55);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+label.opt{display:flex;gap:9px;align-items:center;font-size:14px;color:var(--dim);cursor:pointer}
+/* чат */
+.log{display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:120px;max-height:58vh;overflow-y:auto;padding-right:2px}
+.log::-webkit-scrollbar{width:5px}
+.log::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:9px}
+.msg{border-radius:16px;padding:11px 13px;font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--panel);max-width:100%;overflow-wrap:break-word}
+.msg .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-weight:700}
+.msg.me{background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(167,139,250,.12));border-color:rgba(34,211,238,.32);align-self:flex-end;max-width:92%}
+.msg.err{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:#fecdd3}
+.empty{color:var(--dim);font-size:13.5px;text-align:center;padding:22px 10px;line-height:1.6}
+.composer{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{min-height:52px}
+/* дуэль */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--dim);padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.chip.active{color:#04121a;background:linear-gradient(135deg,var(--cy),#7dd3fc);border-color:transparent}
+.duel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:700px){.duel-grid{grid-template-columns:1fr}}
+.side{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:11px;min-height:90px}
+.side .tag{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:7px}
+.side.win{border-color:rgba(52,211,153,.55);box-shadow:0 0 0 1px rgba(52,211,153,.25) inset}
+.side .body{font-size:14px;line-height:1.55;overflow-wrap:break-word;max-height:46vh;overflow-y:auto}
+.vote{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+@media(min-width:640px){.vote{grid-template-columns:repeat(4,1fr)}}
+.vote button{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:13px;padding:12px 8px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.vote button:active{transform:scale(.97)}
+.vote button[data-vote=a]:hover{border-color:rgba(52,211,153,.6)}
+.result{margin-top:12px;border-radius:16px;padding:12px 13px;font-size:13.5px;line-height:1.6;border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08)}
+.result b{color:#a5f3fc}
+/* мульти */
+.multi-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;margin:10px 0;padding-right:3px}
+.multi-list label{display:flex;gap:9px;align-items:center;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03);cursor:pointer}
+.multi-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+@media(min-width:760px){.multi-grid{grid-template-columns:1fr 1fr}}
+/* лидеры */
+.tw{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.07)}
+th{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:800}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.top1 td:first-child{color:var(--gold)}
+.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);color:var(--dim)}
+.up{color:var(--ok)}.down{color:var(--bad)}
+/* код и разметка ответов */
+.msg p,.side .body p,.result p{margin:0 0 8px}
+.msg p:last-child,.side .body p:last-child{margin-bottom:0}
+.msg ul,.side .body ul{margin:6px 0 8px;padding-left:20px}
+.msg li,.side .body li{margin:3px 0}
+.msg h3,.msg h4,.msg h5,.msg h6,.side .body h3,.side .body h4{margin:12px 0 6px;font-size:15px;color:#bae6fd}
+pre.code{position:relative;background:#050810;border:1px solid var(--line);border-radius:12px;padding:26px 11px 11px;overflow-x:auto;margin:9px 0;font-size:12.5px;line-height:1.5}
+pre.code .lang{position:absolute;top:7px;left:11px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+pre.code code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#c9e6ff;white-space:pre}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:6px;font-size:.92em}
+a{color:#7dd3fc}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+table.tbl th,table.tbl td{border:1px solid rgba(255,255,255,.12);padding:6px 8px;text-align:left}
+/* модалка настроек */
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(3,6,11,.7);backdrop-filter:blur(6px);padding:0}
+@media(min-width:640px){.modal{align-items:center;padding:20px}}
+.modal-in{background:linear-gradient(180deg,#101722,#0a0f18);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:88dvh;overflow-y:auto}
+@media(min-width:640px){.modal-in{border-radius:22px}}
+.modal-in h2{margin:0 0 4px;font-size:17px}
+.modal-in .hint{color:var(--dim);font-size:12.5px;line-height:1.55;margin:0 0 14px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+.stats{font-size:12.5px;color:var(--dim);margin:4px 0 0}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--cy);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.thinking{color:var(--dim);font-size:13px;display:flex;gap:8px;align-items:center;padding:6px 2px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><i></i>AI АРЕНА</div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="chat">Чат</button>
+    <button class="tab" data-tab="duel">Дуэль</button>
+    <button class="tab" data-tab="multi">Мульти</button>
+    <button class="tab" data-tab="lead">Лидеры</button>
+  </nav>
+  <button class="icon" id="btnCfg" title="Настройки">⚙</button>
+</header>
+
+<div class="warn" id="keyWarn" hidden>
+  <span>Ключа OpenRouter нет — модели не ответят.</span>
+  <button class="btn sm" id="warnCfg">Вставить ключ</button>
+</div>
+
+<main>
+  <!-- ЧАТ -->
+  <section class="tabpane active" id="pane-chat">
+    <div class="card">
+      <div class="row">
+        <select class="sel" id="chatModel"></select>
+        <button class="btn ghost sm" id="chatClear">Новый диалог</button>
+      </div>
+    </div>
+    <div class="log" id="chatLog"></div>
+    <div class="composer">
+      <textarea id="chatInput" rows="2" placeholder="Спроси что угодно…"></textarea>
+      <button class="btn" id="chatSend">→</button>
+    </div>
+    <div class="row small">
+      <select class="sel" id="chatRival"></select>
+      <button class="btn ghost sm" id="chatRivalGo">Спросить соперника</button>
+    </div>
+  </section>
+
+  <!-- ДУЭЛЬ -->
+  <section class="tabpane" id="pane-duel">
+    <div class="chips" id="duelPresets"></div>
+    <div class="card">
+      <textarea id="duelPrompt" rows="3" placeholder="Задача для дуэли. Обе модели получат один и тот же текст вслепую."></textarea>
+      <div class="row" style="margin-top:10px">
+        <select class="sel" id="duelA"></select>
+        <span class="pill">VS</span>
+        <select class="sel" id="duelB"></select>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="duelGo">В бой</button>
+        <button class="btn ghost sm" id="duelSwap">Поменять местами</button>
+      </div>
+    </div>
+    <div class="duel-grid">
+      <div class="side" id="sideA"><div class="tag"><span>МОДЕЛЬ A</span></div><div class="body" id="bodyA"><span style="color:var(--dim);font-size:13px">Ответ появится здесь</span></div></div>
+      <div class="side" id="sideB"><div class="tag"><span>МОДЕЛЬ B</span></div><div class="body" id="bodyB"><span style="color:var(--dim);font-size:13px">Ответ появится здесь</span></div></div>
+    </div>
+    <div class="vote" id="duelVote" hidden>
+      <button data-vote="a">A лучше</button>
+      <button data-vote="b">B лучше</button>
+      <button data-vote="tie">Ничья</button>
+      <button data-vote="bad">Обе плохие</button>
+    </div>
+    <div class="result" id="duelResult" hidden></div>
+  </section>
+
+  <!-- МУЛЬТИ -->
+  <section class="tabpane" id="pane-multi">
+    <div class="card">
+      <div style="font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px">Модели (2–4)</div>
+      <div class="multi-list" id="multiList"><div class="empty">Список моделей загружается…</div></div>
+      <textarea id="multiPrompt" rows="3" placeholder="Один запрос — сразу несколько моделей, ответы колонками."></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="multiGo">Спросить всех</button>
+        <span class="stats" id="multiCount">выбрано: 0</span>
+      </div>
+    </div>
+    <div class="multi-grid" id="multiGrid"></div>
+  </section>
+
+  <!-- ЛИДЕРЫ -->
+  <section class="tabpane" id="pane-lead">
+    <div class="chips" id="leadPresets"></div>
+    <div class="card">
+      <div id="leadBox"><div class="empty">Пока нет боёв. Проведи дуэль — и здесь появится рейтинг.</div></div>
+    </div>
+  </section>
+</main>
+
+<!-- НАСТРОЙКИ -->
+<div class="modal" id="cfgModal" hidden>
+  <div class="modal-in">
+    <h2>Настройки</h2>
+    <p class="hint">Ключ OpenRouter хранится только в этом браузере (localStorage) и уходит напрямую в OpenRouter. Никуда больше не отправляется. На публичной странице свой ключ вставлять не нужно — страница сама ключей не содержит.</p>
+
+    <div class="field">
+      <label>Ключ OpenRouter</label>
+      <input type="password" id="cfgKey" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false">
+      <div class="row" style="margin-top:8px">
+        <button class="btn sm" id="cfgSaveKey">Сохранить ключ</button>
+        <button class="btn ghost sm" id="cfgCheckKey">Проверить</button>
+        <span class="stats" id="cfgKeyState"></span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Модели</label>
+      <label class="opt"><input type="checkbox" id="cfgPaid"> показывать платные (не только :free)</label>
+      <div class="row" style="margin-top:8px">
+        <button class="btn ghost sm" id="cfgReloadModels">Обновить список</button>
+        <span class="stats" id="cfgModelsState"></span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Данные</label>
+      <div class="row">
+        <button class="btn ghost sm" id="cfgResetElo">Сбросить рейтинг</button>
+        <button class="btn ghost sm" id="cfgResetHist">Очистить историю боёв</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn" id="cfgClose">Готово</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+var $ = function(s, r){ return (r||document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+
+/* ---------- хранилище ---------- */
+var store = {
+  get: function(k, d){
+    try{ var v = localStorage.getItem('arena_'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; }
+  },
+  set: function(k, v){ try{ localStorage.setItem('arena_'+k, JSON.stringify(v)); }catch(e){} },
+  del: function(k){ try{ localStorage.removeItem('arena_'+k); }catch(e){} }
+};
+
+var PRESETS = [
+  { id:'general', name:'Общее' },
+  { id:'code',    name:'Код' },
+  { id:'text',    name:'Текст' },
+  { id:'logic',   name:'Логика' }
+];
+
+var state = {
+  key: store.get('key',''),
+  models: store.get('models',[]),
+  modelsAt: store.get('modelsAt',0),
+  showPaid: store.get('showPaid',false),
+  ratings: store.get('ratings',{}),
+  hist: store.get('hist',[]),
+  cfg: store.get('cfg',{ chatModel:'', rival:'', a:'', b:'', multi:[] }),
+  preset: 'general',
+  chat: [],
+  duel: null,
+  voting: false
+};
+
+/* ---------- markdown ---------- */
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function mdInline(t){
+  t = esc(t);
+  t = t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t = t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  t = t.replace(/(^|[\s(«"])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  t = t.replace(/(^|[\s(])(https?:\/\/[^\s<)"]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return t;
+}
+function renderTable(rows){
+  var clean = function(r){ return r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(function(c){ return c.trim(); }); };
+  var head = clean(rows[0]);
+  var body = rows.slice(1);
+  if(body.length){
+    var probe = body[0].join('');
+    if(/^[\s:|\-]+$/.test(probe)) body = body.slice(1);
+  }
+  var h = '<table class="tbl"><thead><tr>' + head.map(function(c){ return '<th>'+mdInline(c)+'</th>'; }).join('') + '</tr></thead><tbody>';
+  body.forEach(function(r){
+    var cells = clean(r);
+    h += '<tr>' + cells.map(function(c){ return '<td>'+mdInline(c)+'</td>'; }).join('') + '</tr>';
+  });
+  return h + '</tbody></table>';
+}
+function md(src){
+  var s = String(src||'').replace(/\r\n?/g,'\n');
+  var codes = [];
+  s = s.replace(/```([a-zA-Z0-9+#._-]*)\n?([\s\S]*?)(?:```|$)/g, function(m, lang, body){
+    codes.push('<pre class="code"><span class="lang">'+esc(lang||'code')+'</span><code>'+esc(body.replace(/\n+$/,''))+'</code></pre>');
+    return '\n\u0001'+(codes.length-1)+'\u0001\n';
+  });
+  var out = [], inList = false, table = [];
+  function flushTable(){
+    if(table.length === 1){ out.push('<p>'+mdInline(table[0])+'</p>'); }
+    else if(table.length > 1){ out.push(renderTable(table)); }
+    table = [];
+  }
+  function closeList(){ if(inList){ out.push('</ul>'); inList = false; } }
+  var lines = s.split('\n');
+  for(var i=0;i<lines.length;i++){
+    var line = lines[i].replace(/\s+$/,'');
+    var c = line.trim().match(/^\u0001(\d+)\u0001$/);
+    if(c){ flushTable(); closeList(); out.push(codes[+c[1]]); continue; }
+    if(!line.trim()){ flushTable(); closeList(); continue; }
+    if(/^\s*\|.*\|\s*$/.test(line)){ closeList(); table.push(line.trim()); continue; }
+    flushTable();
+    var h = line.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ closeList(); var lv = Math.min(h[1].length+2, 6); out.push('<h'+lv+'>'+mdInline(h[2])+'</h'+lv+'>'); continue; }
+    var ul = line.match(/^\s*[-*•]\s+(.*)$/);
+    if(ul){ if(!inList){ out.push('<ul>'); inList = true; } out.push('<li>'+mdInline(ul[1])+'</li>'); continue; }
+    var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if(ol){ if(!inList){ out.push('<ul>'); inList = true; } out.push('<li>'+mdInline(ol[1])+'</li>'); continue; }
+    closeList();
+    out.push('<p>'+mdInline(line)+'</p>');
+  }
+  flushTable(); closeList();
+  return out.join('');
+}
+
+/* ---------- модели ---------- */
+function modelLabel(m){
+  return m.name + (m.free ? ' · free' : '') + (m.ctx ? ' · ' + Math.round(m.ctx/1000) + 'k' : '');
+}
+function visibleModels(){
+  var list = state.models || [];
+  if(!state.showPaid) list = list.filter(function(m){ return m.free; });
+  return list;
+}
+function loadModels(force){
+  var fresh = state.modelsAt && (Date.now() - state.modelsAt < 86400000);
+  if(!force && state.models && state.models.length && fresh){
+    return Promise.resolve(state.models);
+  }
+  return fetch('https://openrouter.ai/api/v1/models').then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d){
+    var list = (d.data || []).map(function(m){
+      var price = m.pricing || {};
+      var free = /:free$/.test(m.id) || (Number(price.prompt) === 0 && Number(price.completion) === 0);
+      return {
+        id: m.id,
+        name: String(m.name || m.id).replace(/\s*\((free|beta)\)\s*/gi,'').trim(),
+        free: !!free,
+        ctx: Number(m.context_length || 0)
+      };
+    });
+    list.sort(function(a,b){
+      if(a.free !== b.free) return a.free ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    state.models = list;
+    state.modelsAt = Date.now();
+    store.set('models', list);
+    store.set('modelsAt', state.modelsAt);
+    return list;
+  });
+}
+
+/* ---------- запрос к модели ---------- */
+function callModel(model, messages){
+  if(!state.key) return Promise.reject(new Error('Нет ключа OpenRouter — открой настройки и вставь ключ'));
+  var ctrl = ('AbortController' in window) ? new AbortController() : null;
+  var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 120000);
+  var opts = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + state.key,
+      'X-Title': 'AI Arena'
+    },
+    body: JSON.stringify({ model: model, messages: messages })
+  };
+  if(ctrl) opts.signal = ctrl.signal;
+  return fetch('https://openrouter.ai/api/v1/chat/completions', opts).then(function(r){
+    return r.text().then(function(raw){
+      var data = null;
+      try{ data = JSON.parse(raw); }catch(e){}
+      if(!r.ok){
+        var msg = (data && data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
+        throw new Error(String(msg).slice(0,220));
+      }
+      var ch = data && data.choices && data.choices[0];
+      var text = ch && ch.message && ch.message.content;
+      if(Array.isArray(text)){
+        text = text.map(function(p){ return p && p.text ? p.text : ''; }).join('');
+      }
+      text = String(text == null ? '' : text).trim();
+      if(!text) throw new Error('Модель вернула пустой ответ');
+      return text;
+    });
+  }).catch(function(e){
+    if(e && e.name === 'AbortError') throw new Error('Таймаут: модель не ответила за 2 минуты');
+    throw e;
+  }).then(function(v){
+    clearTimeout(timer);
+    return v;
+  }, function(e){
+    clearTimeout(timer);
+    throw e;
+  });
+}
+
+/* ---------- рейтинг ---------- */
+function ensureRatings(preset){
+  if(!state.ratings[preset]) state.ratings[preset] = {};
+  return state.ratings[preset];
+}
+function entry(preset, id){
+  var t = ensureRatings(preset);
+  if(!t[id]) t[id] = { r:1200, w:0, l:0, d:0 };
+  return t[id];
+}
+function applyVote(preset, aId, bId, vote){
+  var A = entry(preset, aId), B = entry(preset, bId);
+  var rA = A.r, rB = B.r;
+  var ea = 1 / (1 + Math.pow(10, (rB - rA) / 400));
+  var sa = 0.5;
+  if(vote === 'a') sa = 1;
+  if(vote === 'b') sa = 0;
+  var nA = Math.round(rA + 32 * (sa - ea));
+  var nB = Math.round(rB + 32 * ((1 - sa) - (1 - ea)));
+  A.r = nA; B.r = nB;
+  if(sa === 1){ A.w++; B.l++; }
+  else if(sa === 0){ B.w++; A.l++; }
+  else { A.d++; B.d++; }
+  store.set('ratings', state.ratings);
+  return { a:{ before:rA, after:nA, delta:nA-rA }, b:{ before:rB, after:nB, delta:nB-rB } };
+}
+
+/* ---------- общий рендер селектов ---------- */
+function fillSelect(sel, current, placeholder){
+  if(!sel) return;
+  var list = visibleModels();
+  if(!list.length){
+    sel.innerHTML = '<option value="">— список моделей пуст, открой настройки —</option>';
+    return;
+  }
+  var ids = list.map(function(m){ return m.id; });
+  var val = (current && ids.indexOf(current) >= 0) ? current : list[0].id;
+  sel.innerHTML = list.map(function(m){
+    return '<option value="'+esc(m.id)+'"'+(m.id===val?' selected':'')+'>'+esc(modelLabel(m))+'</option>';
+  }).join('');
+  return val;
+}
+function syncSelects(){
+  var cfg = state.cfg;
+  var vChat = fillSelect($('#chatModel'), cfg.chatModel, 'Модель');
+  if(vChat) cfg.chatModel = vChat;
+  var rival = cfg.rival;
+  if(!rival || rival === cfg.chatModel){
+    var list = visibleModels();
+    rival = '';
+    for(var i=0;i<list.length;i++){ if(list[i].id !== cfg.chatModel){ rival = list[i].id; break; } }
+  }
+  var vRival = fillSelect($('#chatRival'), rival, 'Соперник');
+  if(vRival) cfg.rival = vRival;
+  var vA = fillSelect($('#duelA'), cfg.a, 'A');
+  if(vA) cfg.a = vA;
+  var bGuess = cfg.b;
+  if(!bGuess || bGuess === cfg.a){
+    var l2 = visibleModels(); bGuess = '';
+    for(var j=0;j<l2.length;j++){ if(l2[j].id !== cfg.a){ bGuess = l2[j].id; break; } }
+  }
+  var vB = fillSelect($('#duelB'), bGuess, 'B');
+  if(vB) cfg.b = vB;
+  store.set('cfg', cfg);
+  renderMultiList();
+}
+function renderMultiList(){
+  var box = $('#multiList');
+  var list = visibleModels();
+  if(!list.length){ box.innerHTML = '<div class="empty">Список моделей пуст — открой настройки и обнови список.</div>'; return; }
+  var chosen = state.cfg.multi || [];
+  box.innerHTML = list.map(function(m){
+    var on = chosen.indexOf(m.id) >= 0;
+    return '<label><input type="checkbox" value="'+esc(m.id)+'"'+(on?' checked':'')+'> <span>'+esc(modelLabel(m))+'</span></label>';
+  }).join('');
+  $$('#multiList input').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var cur = (state.cfg.multi || []).slice();
+      if(cb.checked){
+        if(cur.length >= 4){ cb.checked = false; return; }
+        if(cur.indexOf(cb.value) < 0) cur.push(cb.value);
+      } else {
+        cur = cur.filter(function(x){ return x !== cb.value; });
+      }
+      state.cfg.multi = cur;
+      store.set('cfg', state.cfg);
+      updateMultiCount();
+    });
+  });
+  updateMultiCount();
+}
+function updateMultiCount(){
+  var n = (state.cfg.multi || []).length;
+  var el = $('#multiCount');
+  if(el) el.textContent = 'выбрано: ' + n;
+}
+
+/* ---------- чат ---------- */
+function renderChat(){
+  var log = $('#chatLog');
+  if(!state.chat.length){
+    log.innerHTML = '<div class="empty">Пустой диалог. Выбери модель сверху и напиши сообщение.<br>Ниже можно спросить ту же реплику у второй модели и сравнить.</div>';
+    return;
+  }
+  log.innerHTML = state.chat.map(function(m){
+    if(m.role === 'user'){
+      return '<div class="msg me"><div class="who">Ты</div>'+md(m.content)+'</div>';
+    }
+    if(m.role === 'error'){
+      return '<div class="msg err"><div class="who">Ошибка</div>'+esc(m.content)+'</div>';
+    }
+    return '<div class="msg"><div class="who">'+esc(m.who || 'Модель')+'</div>'+md(m.content)+'</div>';
+  }).join('');
+  log.scrollTop = log.scrollHeight;
+}
+function pushThinking(who){
+  var log = $('#chatLog');
+  var d = document.createElement('div');
+  d.className = 'thinking';
+  d.id = 'thinkRow';
+  d.innerHTML = '<span class="spinner"></span> ' + esc(who) + ' думает…';
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
+function popThinking(){
+  var d = $('#thinkRow');
+  if(d) d.remove();
+}
+function sendChat(text, model, who){
+  if(!text.trim()) return;
+  if(!model){ alert('Выбери модель (или обнови список в настройках)'); return; }
+  if(!state.key){ openCfg(); return; }
+  state.chat.push({ role:'user', content:text });
+  renderChat();
+  pushThinking(who || model);
+  var history = state.chat.filter(function(m){ return m.role === 'user' || m.role === 'assistant'; })
+    .slice(-14)
+    .map(function(m){ return { role: m.role, content: m.content }; });
+  callModel(model, history).then(function(answer){
+    popThinking();
+    state.chat.push({ role:'assistant', content:answer, who: who || model });
+    renderChat();
+  }).catch(function(e){
+    popThinking();
+    state.chat.push({ role:'error', content: (e && e.message) || 'Неизвестная ошибка' });
+    renderChat();
+  });
+}
+
+/* ---------- дуэль ---------- */
+function renderPresets(){
+  var html = PRESETS.map(function(p){
+    return '<button class="chip'+(state.preset===p.id?' active':'')+'" data-preset="'+p.id+'">'+p.name+'</button>';
+  }).join('');
+  $('#duelPresets').innerHTML = html;
+  $('#leadPresets').innerHTML = html.replace(/data-preset/g,'data-preset-lead');
+  $$('#duelPresets .chip').forEach(function(b){
+    b.addEventListener('click', function(){ state.preset = b.dataset.preset; renderPresets(); });
+  });
+  $$('#leadPresets .chip').forEach(function(b){
+    b.addEventListener('click', function(){ state.preset = b.dataset.presetLead; renderPresets(); renderLeaders(); });
+  });
+}
+function setSide(which, text, isHtml){
+  var body = $(which === 'a' ? '#bodyA' : '#bodyB');
+  var side = $(which === 'a' ? '#sideA' : '#sideB');
+  side.classList.remove('win');
+  body.innerHTML = isHtml ? text : esc(text);
+}
+function runDuel(){
+  var prompt = $('#duelPrompt').value.trim();
+  if(!prompt){ alert('Напиши задачу для дуэли'); return; }
+  if(!state.key){ openCfg(); return; }
+  var a = $('#duelA').value, b = $('#duelB').value;
+  if(!a || !b){ alert('Нужны две модели'); return; }
+  if(a === b){ alert('Выбери две разные модели'); return; }
+  state.cfg.a = a; state.cfg.b = b; store.set('cfg', state.cfg);
+
+  $('#duelVote').hidden = true;
+  $('#duelResult').hidden = true;
+  $('#duelResult').innerHTML = '';
+  setSide('a', '<span class="thinking"><span class="spinner"></span> думает…</span>', true);
+  setSide('b', '<span class="thinking"><span class="spinner"></span> думает…</span>', true);
+
+  var msgs = [{ role:'user', content: prompt }];
+  var pA = callModel(a, msgs), pB = callModel(b, msgs);
+
+  Promise.allSettled([pA, pB]).then(function(res){
+    var ra = res[0], rb = res[1];
+    var okA = ra.status === 'fulfilled', okB = rb.status === 'fulfilled';
+    if(okA) setSide('a', md(ra.value), true); else setSide('a', 'Ошибка: ' + ((ra.reason && ra.reason.message) || 'нет ответа'));
+    if(okB) setSide('b', md(rb.value), true); else setSide('b', 'Ошибка: ' + ((rb.reason && rb.reason.message) || 'нет ответа'));
+
+    state.duel = {
+      preset: state.preset,
+      prompt: prompt,
+      aId: a, bId: b,
+      aText: okA ? ra.value : '',
+      bText: okB ? rb.value : '',
+      okA: okA, okB: okB
+    };
+    if(okA && okB){
+      $('#duelVote').hidden = false;
+    } else {
+      $('#duelResult').hidden = false;
+      $('#duelResult').innerHTML = 'Одна из моделей не ответила — голосовать нельзя. Проверь ключ, лимиты или выбери другую модель и попробуй ещё раз.';
+    }
+  });
+}
+function vote(kind){
+  var d = state.duel;
+  if(!d || !d.okA || !d.okB || state.voting) return;
+  state.voting = true;
+  $('#duelVote').hidden = true;
+  var delta = applyVote(d.preset, d.aId, d.bId, kind);
+  var nameA = d.aId, nameB = d.bId;
+  if(kind === 'a') $('#sideA').classList.add('win');
+  if(kind === 'b') $('#sideB').classList.add('win');
+
+  var txtA = (d.aText || '').slice(0, 400);
+  var txtB = (d.bText || '').slice(0, 400);
+  state.hist.unshift({ t: Date.now(), preset: d.preset, prompt: d.prompt.slice(0,300), a: d.aId, b: d.bId, vote: kind, aText: txtA, bText: txtB });
+  state.hist = state.hist.slice(0, 60);
+  store.set('hist', state.hist);
+
+  var presetName = (PRESETS.filter(function(p){ return p.id === d.preset; })[0] || {}).name || '';
+  var sign = function(n){ return (n > 0 ? '+' : '') + n; };
+  $('#duelResult').hidden = false;
+  $('#duelResult').innerHTML =
+    '<div style="font-weight:800;margin-bottom:6px">Имена раскрыты · рейтинг «' + esc(presetName) + '»</div>' +
+    '<div>A — <b>' + esc(nameA) + '</b>: ' + delta.a.before + ' → <b>' + delta.a.after + '</b> (' +
+      '<span class="'+(delta.a.delta>=0?'up':'down')+'">' + sign(delta.a.delta) + '</span>)</div>' +
+    '<div>B — <b>' + esc(nameB) + '</b>: ' + delta.b.before + ' → <b>' + delta.b.after + '</b> (' +
+      '<span class="'+(delta.b.delta>=0?'up':'down')+'">' + sign(delta.b.delta) + '</span>)</div>' +
+    '<div style="margin-top:6px;color:var(--dim)">Голос: ' +
+      (kind === 'a' ? 'победила A' : kind === 'b' ? 'победила B' : kind === 'tie' ? 'ничья' : 'обе плохие (засчитано как ничья)') +
+    '</div>';
+  state.voting = false;
+  renderLeaders();
+}
+
+/* ---------- мульти ---------- */
+function runMulti(){
+  var prompt = $('#multiPrompt').value.trim();
+  var chosen = state.cfg.multi || [];
+  if(!prompt){ alert('Напиши запрос'); return; }
+  if(chosen.length < 2){ alert('Отметь минимум две модели'); return; }
+  if(!state.key){ openCfg(); return; }
+  var grid = $('#multiGrid');
+  grid.innerHTML = chosen.map(function(id, i){
+    return '<div class="side" id="m'+i+'"><div class="tag"><span>'+esc(id)+'</span></div><div class="body"><span class="thinking"><span class="spinner"></span> думает…</span></div></div>';
+  }).join('');
+  chosen.forEach(function(id, i){
+    callModel(id, [{ role:'user', content: prompt }]).then(function(text){
+      var el = $('#m'+i+' .body');
+      if(el) el.innerHTML = md(text);
+    }).catch(function(e){
+      var el = $('#m'+i+' .body');
+      if(el) el.innerHTML = '<span style="color:var(--bad)">Ошибка: ' + esc((e && e.message) || 'нет ответа') + '</span>';
+    });
+  });
+}
+
+/* ---------- лидеры ---------- */
+function renderLeaders(){
+  var box = $('#leadBox');
+  var t = state.ratings[state.preset] || {};
+  var rows = Object.keys(t).map(function(id){
+    var v = t[id];
+    return { id:id, r:v.r, w:v.w||0, l:v.l||0, d:v.d||0, n:(v.w||0)+(v.l||0)+(v.d||0) };
+  }).sort(function(x,y){ return y.r - x.r; });
+  if(!rows.length){
+    box.innerHTML = '<div class="empty">Пока нет боёв в пресете «' +
+      esc((PRESETS.filter(function(p){ return p.id === state.preset; })[0] || {}).name || '') +
+      '». Проведи дуэль — рейтинг появится здесь.</div>';
+    return;
+  }
+  var html = '<div class="tw"><table><thead><tr><th>#</th><th>Модель</th><th>Elo</th><th>В</th><th>П</th><th>Н</th><th>Боёв</th></tr></thead><tbody>';
+  rows.forEach(function(r, i){
+    html += '<tr class="'+(i===0?'top1':'')+'"><td class="n">'+(i+1)+'</td><td>'+esc(r.id)+'</td>' +
+      '<td class="n"><b>'+r.r+'</b></td><td class="n">'+r.w+'</td><td class="n">'+r.l+'</td><td class="n">'+r.d+'</td><td class="n">'+r.n+'</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  html += '<div class="stats" style="margin-top:8px">Пресет: ' +
+    esc((PRESETS.filter(function(p){ return p.id === state.preset; })[0] || {}).name || '') +
+    ' · старт 1200 · K=32 · ничья и «обе плохие» = 0,5</div>';
+  if(state.hist.length){
+    html += '<div style="margin-top:14px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800">Последние бои</div>';
+    html += state.hist.slice(0, 8).map(function(h){
+      var v = h.vote === 'a' ? 'A' : h.vote === 'b' ? 'B' : h.vote === 'tie' ? 'ничья' : 'обе плохие';
+      return '<div style="font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
+        '<span class="pill">'+esc(v)+'</span> ' + esc(h.a) + ' vs ' + esc(h.b) +
+        '<div style="color:var(--dim);font-size:12.5px;margin-top:3px">'+esc(h.prompt.slice(0,90))+'</div></div>';
+    }).join('');
+  }
+  box.innerHTML = html;
+}
+
+/* ---------- настройки ---------- */
+function openCfg(){
+  $('#cfgModal').hidden = false;
+  $('#cfgKey').value = state.key || '';
+  $('#cfgPaid').checked = !!state.showPaid;
+  $('#cfgModelsState').textContent = state.models.length ? ('в списке: ' + state.models.length) : 'список не загружен';
+}
+function closeCfg(){ $('#cfgModal').hidden = true; }
+
+function saveKey(){
+  var v = ($('#cfgKey').value || '').trim();
+  state.key = v;
+  store.set('key', v);
+  $('#cfgKeyState').textContent = v ? 'ключ сохранён' : 'ключ очищен';
+  checkKeyWarn();
+}
+function checkKeyWarn(){
+  $('#keyWarn').hidden = !!state.key;
+}
+function checkKey(){
+  if(!state.key){ $('#cfgKeyState').textContent = 'сначала сохрани ключ'; return; }
+  $('#cfgKeyState').innerHTML = '<span class="spinner"></span> проверяю…';
+  fetch('https://openrouter.ai/api/v1/key', { headers: { 'Authorization': 'Bearer ' + state.key } })
+    .then(function(r){ return r.text().then(function(t){ return { ok:r.ok, t:t }; }); })
+    .then(function(res){
+      if(!res.ok){ $('#cfgKeyState').textContent = 'ключ не принят (HTTP ' + (res.ok?200:'ошибка') + ')'; return; }
+      var d = null; try{ d = JSON.parse(res.t); }catch(e){}
+      var info = d && d.data ? d.data : {};
+      var parts = ['ключ рабочий'];
+      if(info.label) parts.push(info.label);
+      if(info.usage != null) parts.push('израсходовано: ' + info.usage);
+      if(info.limit != null) parts.push('лимит: ' + info.limit);
+      $('#cfgKeyState').textContent = parts.join(' · ');
+    })
+    .catch(function(){ $('#cfgKeyState').textContent = 'нет связи с OpenRouter'; });
+}
+function reloadModels(){
+  $('#cfgModelsState').innerHTML = '<span class="spinner"></span> загружаю…';
+  loadModels(true).then(function(list){
+    $('#cfgModelsState').textContent = 'загружено моделей: ' + list.length +
+      ' (free: ' + list.filter(function(m){ return m.free; }).length + ')';
+    syncSelects();
+  }).catch(function(e){
+    $('#cfgModelsState').textContent = 'не удалось: ' + ((e && e.message) || 'ошибка сети');
+  });
+}
+
+/* ---------- вкладки и события ---------- */
+$$('.tab').forEach(function(b){
+  b.addEventListener('click', function(){
+    $$('.tab').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    $$('.tabpane').forEach(function(p){ p.classList.remove('active'); });
+    var pane = $('#pane-' + b.dataset.tab);
+    if(pane) pane.classList.add('active');
+    if(b.dataset.tab === 'lead') renderLeaders();
+  });
+});
+
+$('#btnCfg').addEventListener('click', openCfg);
+$('#warnCfg').addEventListener('click', openCfg);
+$('#cfgClose').addEventListener('click', closeCfg);
+$('#cfgModal').addEventListener('click', function(e){ if(e.target === $('#cfgModal')) closeCfg(); });
+$('#cfgSaveKey').addEventListener('click', saveKey);
+$('#cfgCheckKey').addEventListener('click', checkKey);
+$('#cfgReloadModels').addEventListener('click', reloadModels);
+$('#cfgPaid').addEventListener('change', function(){
+  state.showPaid = $('#cfgPaid').checked;
+  store.set('showPaid', state.showPaid);
+  syncSelects();
+});
+$('#cfgResetElo').addEventListener('click', function(){
+  if(!confirm('Сбросить весь рейтинг по всем пресетам?')) return;
+  state.ratings = {};
+  store.set('ratings', {});
+  renderLeaders();
+  $('#cfgResetElo').textContent = 'рейтинг сброшен';
+  setTimeout(function(){ $('#cfgResetElo').textContent = 'Сбросить рейтинг'; }, 1600);
+});
+$('#cfgResetHist').addEventListener('click', function(){
+  if(!confirm('Очистить историю боёв?')) return;
+  state.hist = [];
+  store.set('hist', []);
+  renderLeaders();
+});
+
+$('#chatSend').addEventListener('click', function(){
+  var t = $('#chatInput').value;
+  $('#chatInput').value = '';
+  sendChat(t, $('#chatModel').value, $('#chatModel').value);
+});
+$('#chatInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    $('#chatSend').click();
+  }
+});
+$('#chatClear').addEventListener('click', function(){
+  state.chat = [];
+  renderChat();
+});
+$('#chatRivalGo').addEventListener('click', function(){
+  var lastUser = null;
+  for(var i=state.chat.length-1;i>=0;i--){ if(state.chat[i].role === 'user'){ lastUser = state.chat[i].content; break; } }
+  if(!lastUser){ alert('Сначала задай вопрос — соперник ответит на него же'); return; }
+  var rival = $('#chatRival').value;
+  if(!rival){ alert('Нет второй модели'); return; }
+  pushThinking(rival);
+  callModel(rival, [{ role:'user', content: lastUser }]).then(function(text){
+    popThinking();
+    state.chat.push({ role:'assistant', content:text, who: rival + ' (соперник)' });
+    renderChat();
+  }).catch(function(e){
+    popThinking();
+    state.chat.push({ role:'error', content:'Соперник: ' + ((e && e.message) || 'нет ответа') });
+    renderChat();
+  });
+});
+$('#chatModel').addEventListener('change', function(){
+  state.cfg.chatModel = $('#chatModel').value;
+  store.set('cfg', state.cfg);
+});
+$('#chatRival').addEventListener('change', function(){
+  state.cfg.rival = $('#chatRival').value;
+  store.set('cfg', state.cfg);
+});
+$('#duelA').addEventListener('change', function(){ state.cfg.a = $('#duelA').value; store.set('cfg', state.cfg); });
+$('#duelB').addEventListener('change', function(){ state.cfg.b = $('#duelB').value; store.set('cfg', state.cfg); });
+$('#duelGo').addEventListener('click', runDuel);
+$('#duelSwap').addEventListener('click', function(){
+  var a = $('#duelA').value;
+  $('#duelA').value = $('#duelB').value;
+  $('#duelB').value = a;
+  state.cfg.a = $('#duelA').value;
+  state.cfg.b = $('#duelB').value;
+  store.set('cfg', state.cfg);
+});
+$$('.vote button').forEach(function(b){
+  b.addEventListener('click', function(){ vote(b.dataset.vote); });
+});
+$('#multiGo').addEventListener('click', runMulti);
+
+/* ---------- старт ---------- */
+renderPresets();
+renderChat();
+renderLeaders();
+checkKeyWarn();
+
+var startCfg = state.cfg || {};
+state.cfg = {
+  chatModel: startCfg.chatModel || '',
+  rival: startCfg.rival || '',
+  a: startCfg.a || '',
+  b: startCfg.b || '',
+  multi: Array.isArray(startCfg.multi) ? startCfg.multi : []
+};
+
+if(state.models && state.models.length){
+  syncSelects();
+}
+loadModels(false).then(function(){
+  syncSelects();
+}).catch(function(e){
+  var st = $('#cfgModelsState');
+  if(st) st.textContent = 'список не загрузился: ' + ((e && e.message) || 'нет сети');
+  if(!state.models || !state.models.length){
+    $('#chatModel').innerHTML = '<option value="">— нет списка моделей —</option>';
+    $('#chatRival').innerHTML = '<option value="">— нет списка моделей —</option>';
+    $('#duelA').innerHTML = '<option value="">—</option>';
+    $('#duelB').innerHTML = '<option value="">—</option>';
+    $('#multiList').innerHTML = '<div class="empty">Список моделей не загрузился. Открой настройки → «Обновить список».</div>';
+  }
+});
+</script>
+</body>
+</html>
