@@ -2,925 +2,684 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080b11">
-<title>AI Арена — чат, дуэли, рейтинг</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a1020">
+<title>AI Арена</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.085);
-  --line:rgba(255,255,255,.11);--txt:#e9eef7;--dim:#8c99ae;
-  --cy:#22d3ee;--vi:#a78bfa;--ok:#34d399;--bad:#fb7185;--gold:#fbbf24;
-}
-[hidden]{display:none!important}
-html,body{margin:0;padding:0;min-height:100%}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  color:var(--txt);
-  background:
-    radial-gradient(1100px 520px at 12% -12%,rgba(34,211,238,.20),transparent 62%),
-    radial-gradient(900px 480px at 90% 2%,rgba(167,139,250,.18),transparent 62%),
-    linear-gradient(180deg,#0a0f17 0%,#070a10 55%,#05070c 100%);
-  background-attachment:fixed;
-  min-height:100dvh;display:flex;flex-direction:column;
-  -webkit-font-smoothing:antialiased;font-size:15px;
-}
-header.top{
-  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:9px;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;
-  background:rgba(9,13,20,.74);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--line);
-}
-.brand{font-weight:800;font-size:14px;letter-spacing:.12em;display:flex;align-items:center;gap:7px;white-space:nowrap}
-.brand i{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--cy),var(--vi));box-shadow:0 0 12px rgba(34,211,238,.9);display:block}
-.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
-.tabs::-webkit-scrollbar{display:none}
-.tab{border:1px solid var(--line);background:var(--panel);color:var(--dim);padding:7px 13px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.18s;font-family:inherit}
-.tab.active{color:#04121a;background:linear-gradient(135deg,var(--cy),#7dd3fc);border-color:transparent;box-shadow:0 6px 18px -6px rgba(34,211,238,.8)}
-.icon{border:1px solid var(--line);background:var(--panel);color:var(--txt);width:38px;height:38px;border-radius:12px;font-size:17px;cursor:pointer;flex:0 0 auto;line-height:1}
-main{flex:1;padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 20px);max-width:1080px;width:100%;margin:0 auto}
-.tabpane{display:none}
-.tabpane.active{display:block;animation:fade .18s ease}
-@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.warn{margin:10px 12px 0;padding:11px 13px;border-radius:14px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);color:#fde68a;font-size:13.5px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.warn button{font-family:inherit}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.row.small{margin-top:8px}
-.sel{
-  flex:1;min-width:150px;background:rgba(10,15,23,.9);color:var(--txt);border:1px solid var(--line);
-  border-radius:12px;padding:11px 10px;font-size:13.5px;font-family:inherit;appearance:none;
-  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
-  background-position:calc(100% - 16px) 18px,calc(100% - 11px) 18px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;
-}
-.btn{
-  border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
-  padding:12px 18px;border-radius:13px;color:#04121a;
-  background:linear-gradient(135deg,var(--cy),#7dd3fc);
-  box-shadow:0 8px 22px -10px rgba(34,211,238,.9);transition:.15s;
-}
-.btn:active{transform:scale(.97)}
-.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
-.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);box-shadow:none}
-.btn.ghost:active{background:rgba(255,255,255,.14)}
-.btn.sm{padding:9px 13px;font-size:13px;border-radius:11px}
-textarea,input[type=text],input[type=password]{
-  width:100%;background:rgba(8,12,19,.85);color:var(--txt);border:1px solid var(--line);
-  border-radius:14px;padding:12px 13px;font-size:15px;font-family:inherit;resize:vertical;outline:none;
-}
-textarea:focus,input:focus{border-color:rgba(34,211,238,.55);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
-label.opt{display:flex;gap:9px;align-items:center;font-size:14px;color:var(--dim);cursor:pointer}
-/* чат */
-.log{display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:120px;max-height:58vh;overflow-y:auto;padding-right:2px}
-.log::-webkit-scrollbar{width:5px}
-.log::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:9px}
-.msg{border-radius:16px;padding:11px 13px;font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--panel);max-width:100%;overflow-wrap:break-word}
-.msg .who{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:5px;font-weight:700}
-.msg.me{background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(167,139,250,.12));border-color:rgba(34,211,238,.32);align-self:flex-end;max-width:92%}
-.msg.err{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:#fecdd3}
-.empty{color:var(--dim);font-size:13.5px;text-align:center;padding:22px 10px;line-height:1.6}
-.composer{display:flex;gap:8px;align-items:flex-end}
-.composer textarea{min-height:52px}
-/* дуэль */
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
-.chip{border:1px solid var(--line);background:var(--panel);color:var(--dim);padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
-.chip.active{color:#04121a;background:linear-gradient(135deg,var(--cy),#7dd3fc);border-color:transparent}
-.duel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-@media(max-width:700px){.duel-grid{grid-template-columns:1fr}}
-.side{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:11px;min-height:90px}
-.side .tag{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--dim);margin-bottom:7px}
-.side.win{border-color:rgba(52,211,153,.55);box-shadow:0 0 0 1px rgba(52,211,153,.25) inset}
-.side .body{font-size:14px;line-height:1.55;overflow-wrap:break-word;max-height:46vh;overflow-y:auto}
-.vote{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-@media(min-width:640px){.vote{grid-template-columns:repeat(4,1fr)}}
-.vote button{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:13px;padding:12px 8px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
-.vote button:active{transform:scale(.97)}
-.vote button[data-vote=a]:hover{border-color:rgba(52,211,153,.6)}
-.result{margin-top:12px;border-radius:16px;padding:12px 13px;font-size:13.5px;line-height:1.6;border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08)}
-.result b{color:#a5f3fc}
-/* мульти */
-.multi-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;margin:10px 0;padding-right:3px}
-.multi-list label{display:flex;gap:9px;align-items:center;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03);cursor:pointer}
-.multi-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-@media(min-width:760px){.multi-grid{grid-template-columns:1fr 1fr}}
-/* лидеры */
-.tw{overflow-x:auto;margin-top:10px}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{padding:9px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.07)}
-th{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:800}
-td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
-tr.top1 td:first-child{color:var(--gold)}
-.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);color:var(--dim)}
-.up{color:var(--ok)}.down{color:var(--bad)}
-/* код и разметка ответов */
-.msg p,.side .body p,.result p{margin:0 0 8px}
-.msg p:last-child,.side .body p:last-child{margin-bottom:0}
-.msg ul,.side .body ul{margin:6px 0 8px;padding-left:20px}
-.msg li,.side .body li{margin:3px 0}
-.msg h3,.msg h4,.msg h5,.msg h6,.side .body h3,.side .body h4{margin:12px 0 6px;font-size:15px;color:#bae6fd}
-pre.code{position:relative;background:#050810;border:1px solid var(--line);border-radius:12px;padding:26px 11px 11px;overflow-x:auto;margin:9px 0;font-size:12.5px;line-height:1.5}
-pre.code .lang{position:absolute;top:7px;left:11px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-pre.code code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#c9e6ff;white-space:pre}
-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:6px;font-size:.92em}
-a{color:#7dd3fc}
-table.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
-table.tbl th,table.tbl td{border:1px solid rgba(255,255,255,.12);padding:6px 8px;text-align:left}
-/* модалка настроек */
-.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(3,6,11,.7);backdrop-filter:blur(6px);padding:0}
-@media(min-width:640px){.modal{align-items:center;padding:20px}}
-.modal-in{background:linear-gradient(180deg,#101722,#0a0f18);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:88dvh;overflow-y:auto}
-@media(min-width:640px){.modal-in{border-radius:22px}}
-.modal-in h2{margin:0 0 4px;font-size:17px}
-.modal-in .hint{color:var(--dim);font-size:12.5px;line-height:1.55;margin:0 0 14px}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
-.stats{font-size:12.5px;color:var(--dim);margin:4px 0 0}
-.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--cy);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.thinking{color:var(--dim);font-size:13px;display:flex;gap:8px;align-items:center;padding:6px 2px}
+:root{--bg1:#0a1020;--bg2:#0e1a30;--glass:rgba(255,255,255,.055);--line:rgba(255,255,255,.12);--txt:#e9eefb;--mut:#8ea3c6;--aqua:#38e8c8;--violet:#a78bfa;--orange:#ffa657;--red:#ff6b6b}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;color:var(--txt);
+background:radial-gradient(900px 520px at 12% -12%,rgba(56,232,200,.20),transparent 62%),radial-gradient(820px 520px at 98% -6%,rgba(167,139,250,.22),transparent 62%),linear-gradient(180deg,var(--bg1),var(--bg2) 55%,#091120);
+min-height:100vh;overflow-x:hidden;padding-bottom:36px}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+header.top{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin:0 -14px;background:rgba(10,16,32,.74);backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand h1{margin:0;font-size:18px;letter-spacing:.4px;font-weight:800;background:linear-gradient(100deg,#eaf6ff,#8ff3e2 45%,#c4b4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .sub{font-size:10px;color:var(--mut);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+.cubes{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.cube-wrap{animation:float 5.5s ease-in-out infinite}
+.cube-wrap:nth-child(2){animation-delay:-1.8s}
+.cube-wrap:nth-child(3){animation-delay:-3.4s}
+.cube{position:relative;transform-style:preserve-3d;animation:spin 20s linear infinite}
+.cube i{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:20%;border:1px solid rgba(255,255,255,.4);box-shadow:0 0 22px -6px var(--c);
+background:linear-gradient(150deg,rgba(255,255,255,.62),rgba(255,255,255,.12) 42%,rgba(0,0,0,.28)),var(--c)}
+.cube i.front{display:flex;align-items:center;justify-content:center;gap:12%}
+.eye{width:17%;height:23%;border-radius:50%;background:#fff;position:relative;animation:blink 4.6s infinite}
+.eye::after{content:"";position:absolute;left:24%;top:14%;width:52%;height:62%;border-radius:50%;background:#0a1020}
+.eye:nth-child(2){animation-delay:-.4s}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.12)}}
+@keyframes spin{from{transform:rotateX(-16deg) rotateY(0deg)}to{transform:rotateX(-16deg) rotateY(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.icon{width:40px;height:40px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--txt);font-size:18px;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.icon:active{transform:scale(.94)}
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0 4px}
+.tab{flex:1 1 auto;min-width:70px;padding:10px 12px;border-radius:999px;border:1px solid var(--line);background:var(--glass);color:var(--mut);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.18s}
+.tab.on{background:linear-gradient(135deg,var(--aqua),#5ad6ff 60%,var(--violet));color:#06121f;border-color:transparent;box-shadow:0 10px 24px -14px var(--aqua)}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:22px;padding:14px;backdrop-filter:blur(14px);margin-top:12px}
+.card h3{margin:0 0 10px;font-size:14px;letter-spacing:.3px}
+label.lbl{display:block;font-size:11px;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin:10px 0 6px}
+select,input,textarea{width:100%;font-family:inherit;font-size:14px;color:var(--txt);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px;padding:11px 12px;outline:none}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+textarea{resize:vertical;min-height:76px;line-height:1.45}
+select:focus,textarea:focus,input:focus{border-color:rgba(56,232,200,.55);box-shadow:0 0 0 3px rgba(56,232,200,.12)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.btn{flex:1 1 auto;min-width:110px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--txt);font-size:14px;font-weight:700;cursor:pointer;transition:.16s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--aqua),#5ad6ff 55%,#8fb6ff);color:#04121f;border-color:transparent;box-shadow:0 12px 26px -16px var(--aqua)}
+.btn.danger{color:#ffb3b3;border-color:rgba(255,107,107,.35)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.chip{padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--mut);font-size:12.5px;font-weight:700;cursor:pointer}
+.chip.on{background:linear-gradient(135deg,rgba(56,232,200,.9),rgba(167,139,250,.9));color:#06121f;border-color:transparent}
+.msg{margin-top:10px;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:14px;line-height:1.55;word-break:break-word}
+.msg.me{background:rgba(56,232,200,.10);border-color:rgba(56,232,200,.28)}
+.msg .who{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+.msg.me .who{color:#7ff0dd}
+.msg p{margin:7px 0}
+.msg h3,.msg h4{margin:12px 0 6px;font-size:14.5px;color:#bfe9ff}
+.msg ul,.msg ol{margin:7px 0;padding-left:20px}
+.msg li{margin:3px 0}
+.msg code{background:rgba(0,0,0,.42);padding:2px 5px;border-radius:6px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;color:#9ff3e2}
+.msg pre{background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:12px;padding:11px;overflow-x:auto;margin:9px 0}
+.msg pre code{background:none;padding:0;color:#d7f5ef;font-size:12px;line-height:1.5;white-space:pre}
+.msg a{color:#7fe3ff}
+.tw{overflow-x:auto;margin:9px 0}
+.msg table{border-collapse:collapse;width:100%;font-size:12.5px}
+.msg th,.msg td{border:1px solid var(--line);padding:6px 8px;text-align:left;word-break:break-word}
+.msg th{background:rgba(255,255,255,.07);color:#bfe9ff}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:620px){.duo{grid-template-columns:1fr}}
+.fighter{border:1px solid var(--line);border-radius:18px;padding:12px;background:rgba(255,255,255,.04);min-height:70px}
+.fighter .tag{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:1.2px;font-weight:800;color:var(--aqua);margin-bottom:9px}
+.fighter .tag .elo{color:var(--mut);font-weight:600;letter-spacing:.4px}
+.fighter.win{border-color:rgba(56,232,200,.6);box-shadow:0 0 0 1px rgba(56,232,200,.25),0 16px 40px -28px var(--aqua)}
+.body{font-size:13.5px;line-height:1.55;word-break:break-word}
+.muted{color:var(--mut);font-size:12.5px}
+.err{color:#ffb3b3;font-size:13px;margin-top:8px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--aqua);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+table.board{width:100%;border-collapse:collapse;font-size:13px}
+table.board th,table.board td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;word-break:break-word}
+table.board th{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+table.board td.n{font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;background:rgba(56,232,200,.16);color:#7ff0dd}
+.badge.b2{background:rgba(167,139,250,.18);color:#cbb8ff}
+.banner{border:1px dashed rgba(56,232,200,.5);background:rgba(56,232,200,.08);border-radius:18px;padding:13px;font-size:13.5px;line-height:1.5;margin-top:12px}
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(4,8,18,.66);backdrop-filter:blur(6px);padding:0}
+.modal.on{display:flex}
+.sheet{width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:linear-gradient(180deg,#101c33,#0b1424);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px 16px 26px}
+.sheet h2{margin:0 0 4px;font-size:16px}
+.hero{display:flex;align-items:center;gap:16px;padding:16px 4px 4px}
+.hero .txt h2{margin:0 0 4px;font-size:17px}
+.hero .txt p{margin:0;font-size:12.5px;color:var(--mut);line-height:1.45}
+.mlist{max-height:210px;overflow-y:auto;border:1px solid var(--line);border-radius:14px;padding:6px;margin-top:8px;background:rgba(0,0,0,.2)}
+.mitem{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:10px;font-size:12.5px;cursor:pointer}
+.mitem:active{background:rgba(255,255,255,.06)}
+.mitem input{width:16px;height:16px;flex:0 0 auto;accent-color:#38e8c8}
+.mitem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pane{display:none}
+.pane.on{display:block}
 </style>
 </head>
 <body>
+<div class="wrap">
 
 <header class="top">
-  <div class="brand"><i></i>AI АРЕНА</div>
-  <nav class="tabs">
-    <button class="tab active" data-tab="chat">Чат</button>
-    <button class="tab" data-tab="duel">Дуэль</button>
-    <button class="tab" data-tab="multi">Мульти</button>
-    <button class="tab" data-tab="lead">Лидеры</button>
-  </nav>
-  <button class="icon" id="btnCfg" title="Настройки">⚙</button>
+  <div class="brand">
+    <div class="cubes" id="cubes"></div>
+    <div>
+      <h1>AI Арена</h1>
+      <div class="sub">чат · дуэли · рейтинг</div>
+    </div>
+  </div>
+  <button class="icon" id="btnSet" title="Настройки">⚙</button>
 </header>
 
-<div class="warn" id="keyWarn" hidden>
-  <span>Ключа OpenRouter нет — модели не ответят.</span>
-  <button class="btn sm" id="warnCfg">Вставить ключ</button>
+<nav class="tabs">
+  <button class="tab on" data-tab="chat">💬 Чат</button>
+  <button class="tab" data-tab="duel">⚔️ Дуэль</button>
+  <button class="tab" data-tab="multi">🧩 Мульти</button>
+  <button class="tab" data-tab="board">🏆 Лидеры</button>
+</nav>
+
+<div id="banner" class="banner" style="display:none">
+  Ключ OpenRouter не введён. Открой <b>⚙ → Настройки</b>, вставь ключ <code>sk-or-v1-…</code> и нажми «Обновить список».
 </div>
 
-<main>
-  <!-- ЧАТ -->
-  <section class="tabpane active" id="pane-chat">
-    <div class="card">
-      <div class="row">
-        <select class="sel" id="chatModel"></select>
-        <button class="btn ghost sm" id="chatClear">Новый диалог</button>
-      </div>
+<!-- ЧАТ -->
+<section class="pane on" id="pane-chat">
+  <div class="card">
+    <h3>Диалог с моделью</h3>
+    <label class="lbl">Модель</label>
+    <select id="chatModel"></select>
+    <label class="lbl">Соперник для сравнения (необязательно)</label>
+    <select id="chatRival"><option value="">— нет —</option></select>
+    <div class="row">
+      <button class="btn danger" id="btnClearChat">Очистить</button>
+      <button class="btn" id="btnRival">Спросить соперника</button>
     </div>
-    <div class="log" id="chatLog"></div>
-    <div class="composer">
-      <textarea id="chatInput" rows="2" placeholder="Спроси что угодно…"></textarea>
-      <button class="btn" id="chatSend">→</button>
-    </div>
-    <div class="row small">
-      <select class="sel" id="chatRival"></select>
-      <button class="btn ghost sm" id="chatRivalGo">Спросить соперника</button>
-    </div>
-  </section>
+  </div>
+  <div class="card">
+    <div id="chatLog"><div class="muted">Напиши первое сообщение — ответ придёт целиком, без обрыва на середине.</div></div>
+  </div>
+  <div class="card">
+    <textarea id="chatInput" placeholder="Спроси что угодно…"></textarea>
+    <div class="row"><button class="btn primary" id="btnSend">Отправить</button></div>
+  </div>
+</section>
 
-  <!-- ДУЭЛЬ -->
-  <section class="tabpane" id="pane-duel">
-    <div class="chips" id="duelPresets"></div>
-    <div class="card">
-      <textarea id="duelPrompt" rows="3" placeholder="Задача для дуэли. Обе модели получат один и тот же текст вслепую."></textarea>
-      <div class="row" style="margin-top:10px">
-        <select class="sel" id="duelA"></select>
-        <span class="pill">VS</span>
-        <select class="sel" id="duelB"></select>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="duelGo">В бой</button>
-        <button class="btn ghost sm" id="duelSwap">Поменять местами</button>
-      </div>
+<!-- ДУЭЛЬ -->
+<section class="pane" id="pane-duel">
+  <div class="card">
+    <h3>Слепой бой</h3>
+    <label class="lbl">Категория (у каждой свой рейтинг)</label>
+    <div class="row" id="presetRow">
+      <button class="chip on" data-p="overall">Общее</button>
+      <button class="chip" data-p="code">Код</button>
+      <button class="chip" data-p="text">Текст</button>
+      <button class="chip" data-p="logic">Логика</button>
     </div>
-    <div class="duel-grid">
-      <div class="side" id="sideA"><div class="tag"><span>МОДЕЛЬ A</span></div><div class="body" id="bodyA"><span style="color:var(--dim);font-size:13px">Ответ появится здесь</span></div></div>
-      <div class="side" id="sideB"><div class="tag"><span>МОДЕЛЬ B</span></div><div class="body" id="bodyB"><span style="color:var(--dim);font-size:13px">Ответ появится здесь</span></div></div>
+    <label class="lbl">Задача</label>
+    <textarea id="duelTask" placeholder="Например: объясни, почему небо голубое, за 5 предложений"></textarea>
+    <div class="row">
+      <button class="btn primary" id="btnDuel">В бой</button>
+      <button class="btn" id="btnOther">Другие соперники</button>
     </div>
-    <div class="vote" id="duelVote" hidden>
-      <button data-vote="a">A лучше</button>
-      <button data-vote="b">B лучше</button>
-      <button data-vote="tie">Ничья</button>
-      <button data-vote="bad">Обе плохие</button>
-    </div>
-    <div class="result" id="duelResult" hidden></div>
-  </section>
+    <div class="err" id="duelErr"></div>
+  </div>
+  <div id="duelZone"></div>
+</section>
 
-  <!-- МУЛЬТИ -->
-  <section class="tabpane" id="pane-multi">
-    <div class="card">
-      <div style="font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px">Модели (2–4)</div>
-      <div class="multi-list" id="multiList"><div class="empty">Список моделей загружается…</div></div>
-      <textarea id="multiPrompt" rows="3" placeholder="Один запрос — сразу несколько моделей, ответы колонками."></textarea>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="multiGo">Спросить всех</button>
-        <span class="stats" id="multiCount">выбрано: 0</span>
-      </div>
-    </div>
-    <div class="multi-grid" id="multiGrid"></div>
-  </section>
+<!-- МУЛЬТИ -->
+<section class="pane" id="pane-multi">
+  <div class="card">
+    <h3>Один запрос — несколько моделей</h3>
+    <label class="lbl">Модели (2–4)</label>
+    <div class="mlist" id="multiList"></div>
+    <label class="lbl">Запрос</label>
+    <textarea id="multiTask" placeholder="Что спросить у всех сразу?"></textarea>
+    <div class="row"><button class="btn primary" id="btnMulti">Спросить всех</button></div>
+    <div class="err" id="multiErr"></div>
+  </div>
+  <div id="multiZone"></div>
+</section>
 
-  <!-- ЛИДЕРЫ -->
-  <section class="tabpane" id="pane-lead">
-    <div class="chips" id="leadPresets"></div>
-    <div class="card">
-      <div id="leadBox"><div class="empty">Пока нет боёв. Проведи дуэль — и здесь появится рейтинг.</div></div>
+<!-- ЛИДЕРЫ -->
+<section class="pane" id="pane-board">
+  <div class="card">
+    <h3>Рейтинг Elo</h3>
+    <label class="lbl">Категория</label>
+    <select id="boardPreset">
+      <option value="overall">Общее</option>
+      <option value="code">Код</option>
+      <option value="text">Текст</option>
+      <option value="logic">Логика</option>
+    </select>
+    <div style="overflow-x:auto;margin-top:10px">
+      <table class="board" id="boardTable">
+        <thead><tr><th>#</th><th>Модель</th><th>Elo</th><th>В</th><th>П</th><th>Н</th></tr></thead>
+        <tbody id="boardBody"><tr><td colspan="6" class="muted">Пока пусто — проведи первый бой.</td></tr></tbody>
+      </table>
     </div>
-  </section>
-</main>
+  </div>
+  <div class="card">
+    <h3>Последние бои</h3>
+    <div id="histBox"><div class="muted">История пуста.</div></div>
+  </div>
+</section>
+
+</div>
 
 <!-- НАСТРОЙКИ -->
-<div class="modal" id="cfgModal" hidden>
-  <div class="modal-in">
+<div class="modal" id="modal">
+  <div class="sheet">
     <h2>Настройки</h2>
-    <p class="hint">Ключ OpenRouter хранится только в этом браузере (localStorage) и уходит напрямую в OpenRouter. Никуда больше не отправляется. На публичной странице свой ключ вставлять не нужно — страница сама ключей не содержит.</p>
-
-    <div class="field">
-      <label>Ключ OpenRouter</label>
-      <input type="password" id="cfgKey" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false">
-      <div class="row" style="margin-top:8px">
-        <button class="btn sm" id="cfgSaveKey">Сохранить ключ</button>
-        <button class="btn ghost sm" id="cfgCheckKey">Проверить</button>
-        <span class="stats" id="cfgKeyState"></span>
-      </div>
+    <div class="muted">Ключ хранится только в этом браузере и уходит напрямую в OpenRouter.</div>
+    <label class="lbl">Ключ OpenRouter</label>
+    <input id="keyInput" type="password" placeholder="sk-or-v1-…" autocomplete="off">
+    <div class="row">
+      <button class="btn primary" id="btnSaveKey">Сохранить ключ</button>
+      <button class="btn" id="btnLoadModels">Обновить список</button>
     </div>
-
-    <div class="field">
-      <label>Модели</label>
-      <label class="opt"><input type="checkbox" id="cfgPaid"> показывать платные (не только :free)</label>
-      <div class="row" style="margin-top:8px">
-        <button class="btn ghost sm" id="cfgReloadModels">Обновить список</button>
-        <span class="stats" id="cfgModelsState"></span>
-      </div>
+    <div class="row" style="margin-top:14px">
+      <label class="mitem" style="padding:0"><input type="checkbox" id="chkPaid"><span>Показывать платные модели</span></label>
     </div>
-
-    <div class="field">
-      <label>Данные</label>
-      <div class="row">
-        <button class="btn ghost sm" id="cfgResetElo">Сбросить рейтинг</button>
-        <button class="btn ghost sm" id="cfgResetHist">Очистить историю боёв</button>
-      </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn danger" id="btnReset">Сбросить рейтинг</button>
+      <button class="btn danger" id="btnClearHist">Очистить историю</button>
     </div>
-
-    <div class="row" style="margin-top:16px;justify-content:flex-end">
-      <button class="btn" id="cfgClose">Готово</button>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnClose">Закрыть</button>
     </div>
+    <div class="err" id="setErr"></div>
+    <div class="muted" id="setInfo" style="margin-top:10px"></div>
   </div>
 </div>
 
 <script>
+(function(){
 "use strict";
-var $ = function(s, r){ return (r||document).querySelector(s); };
-var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
 
-/* ---------- хранилище ---------- */
-var store = {
-  get: function(k, d){
-    try{ var v = localStorage.getItem('arena_'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; }
-  },
-  set: function(k, v){ try{ localStorage.setItem('arena_'+k, JSON.stringify(v)); }catch(e){} },
-  del: function(k){ try{ localStorage.removeItem('arena_'+k); }catch(e){} }
+function LSget(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function LSset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+var state={
+  key:LSget('ar_key',''),
+  models:LSget('ar_models',[]),
+  showPaid:LSget('ar_paid',false),
+  ratings:LSget('ar_rating',{overall:{},code:{},text:{},logic:{}}),
+  hist:LSget('ar_hist',[]),
+  chat:[],
+  preset:'overall',
+  duel:null
 };
 
-var PRESETS = [
-  { id:'general', name:'Общее' },
-  { id:'code',    name:'Код' },
-  { id:'text',    name:'Текст' },
-  { id:'logic',   name:'Логика' }
-];
-
-var state = {
-  key: store.get('key',''),
-  models: store.get('models',[]),
-  modelsAt: store.get('modelsAt',0),
-  showPaid: store.get('showPaid',false),
-  ratings: store.get('ratings',{}),
-  hist: store.get('hist',[]),
-  cfg: store.get('cfg',{ chatModel:'', rival:'', a:'', b:'', multi:[] }),
-  preset: 'general',
-  chat: [],
-  duel: null,
-  voting: false
-};
+/* ---------- кубики ---------- */
+function makeCube(color,size){
+  var wrap=document.createElement('div');
+  wrap.className='cube-wrap';
+  var c=document.createElement('div');
+  c.className='cube';
+  c.style.width=size+'px';c.style.height=size+'px';
+  c.style.setProperty('--c',color);
+  var h=size/2;
+  var faces=[
+    ['front','translateZ('+h+'px)'],
+    ['back','rotateY(180deg) translateZ('+h+'px)'],
+    ['right','rotateY(90deg) translateZ('+h+'px)'],
+    ['left','rotateY(-90deg) translateZ('+h+'px)'],
+    ['top','rotateX(90deg) translateZ('+h+'px)'],
+    ['bottom','rotateX(-90deg) translateZ('+h+'px)']
+  ];
+  faces.forEach(function(f){
+    var el=document.createElement('i');
+    el.className=f[0];
+    el.style.transform=f[1];
+    if(f[0]==='front'){el.innerHTML='<span class="eye"></span><span class="eye"></span>';}
+    c.appendChild(el);
+  });
+  c.style.animationDelay=(-Math.random()*10)+'s';
+  wrap.appendChild(c);
+  return wrap;
+}
+(function(){
+  var box=$('#cubes');
+  box.appendChild(makeCube('#38e8c8',30));
+  box.appendChild(makeCube('#a78bfa',26));
+  box.appendChild(makeCube('#ffa657',22));
+})();
 
 /* ---------- markdown ---------- */
-function esc(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function mdInline(t){
-  t = esc(t);
-  t = t.replace(/`([^`]+)`/g,'<code>$1</code>');
-  t = t.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
-  t = t.replace(/(^|[\s(«"])\*([^*\n]+)\*/g,'$1<em>$2</em>');
-  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-  t = t.replace(/(^|[\s(])(https?:\/\/[^\s<)"]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
-  return t;
-}
-function renderTable(rows){
-  var clean = function(r){ return r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(function(c){ return c.trim(); }); };
-  var head = clean(rows[0]);
-  var body = rows.slice(1);
-  if(body.length){
-    var probe = body[0].join('');
-    if(/^[\s:|\-]+$/.test(probe)) body = body.slice(1);
-  }
-  var h = '<table class="tbl"><thead><tr>' + head.map(function(c){ return '<th>'+mdInline(c)+'</th>'; }).join('') + '</tr></thead><tbody>';
-  body.forEach(function(r){
-    var cells = clean(r);
-    h += '<tr>' + cells.map(function(c){ return '<td>'+mdInline(c)+'</td>'; }).join('') + '</tr>';
-  });
-  return h + '</tbody></table>';
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function inline(s){
+  return s.replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g,'$1<i>$2</i>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 function md(src){
-  var s = String(src||'').replace(/\r\n?/g,'\n');
-  var codes = [];
-  s = s.replace(/```([a-zA-Z0-9+#._-]*)\n?([\s\S]*?)(?:```|$)/g, function(m, lang, body){
-    codes.push('<pre class="code"><span class="lang">'+esc(lang||'code')+'</span><code>'+esc(body.replace(/\n+$/,''))+'</code></pre>');
-    return '\n\u0001'+(codes.length-1)+'\u0001\n';
+  var codes=[];
+  var s=esc(src).replace(/```([a-zA-Z0-9+#-]*)\n?([\s\S]*?)```/g,function(m,l,c){
+    codes.push('<pre><code>'+c.replace(/\n$/,'')+'</code></pre>');
+    return '@@C'+(codes.length-1)+'@@';
   });
-  var out = [], inList = false, table = [];
-  function flushTable(){
-    if(table.length === 1){ out.push('<p>'+mdInline(table[0])+'</p>'); }
-    else if(table.length > 1){ out.push(renderTable(table)); }
-    table = [];
+  var lines=s.split('\n'),out=[],i=0,L;
+  while(i<lines.length){
+    L=lines[i];
+    if(/^\s*\|.*\|\s*$/.test(L)&&lines[i+1]&&/^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+      var head=L.split('|').slice(1,-1).map(function(x){return x.trim()});
+      i+=2;var rows=[];
+      while(i<lines.length&&/^\s*\|.*\|\s*$/.test(lines[i])){
+        rows.push(lines[i].split('|').slice(1,-1).map(function(x){return x.trim()}));i++;
+      }
+      out.push('<div class="tw"><table><thead><tr>'+head.map(function(h){return '<th>'+inline(h)+'</th>'}).join('')+'</tr></thead><tbody>'+
+        rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+inline(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div>');
+      continue;
+    }
+    if(/^@@C\d+@@\s*$/.test(L)){out.push(L.trim());i++;continue;}
+    if(/^####\s/.test(L)){out.push('<h4>'+inline(L.slice(5))+'</h4>');i++;continue;}
+    if(/^###\s/.test(L)){out.push('<h4>'+inline(L.slice(4))+'</h4>');i++;continue;}
+    if(/^##\s/.test(L)){out.push('<h3>'+inline(L.slice(3))+'</h3>');i++;continue;}
+    if(/^#\s/.test(L)){out.push('<h3>'+inline(L.slice(2))+'</h3>');i++;continue;}
+    if(/^\s*[-*+]\s+/.test(L)){
+      var ul=[];
+      while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){ul.push('<li>'+inline(lines[i].replace(/^\s*[-*+]\s+/,''))+'</li>');i++;}
+      out.push('<ul>'+ul.join('')+'</ul>');continue;
+    }
+    if(/^\s*\d+[.)]\s+/.test(L)){
+      var ol=[];
+      while(i<lines.length&&/^\s*\d+[.)]\s+/.test(lines[i])){ol.push('<li>'+inline(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>');i++;}
+      out.push('<ol>'+ol.join('')+'</ol>');continue;
+    }
+    if(!L.trim()){i++;continue;}
+    out.push('<p>'+inline(L)+'</p>');i++;
   }
-  function closeList(){ if(inList){ out.push('</ul>'); inList = false; } }
-  var lines = s.split('\n');
-  for(var i=0;i<lines.length;i++){
-    var line = lines[i].replace(/\s+$/,'');
-    var c = line.trim().match(/^\u0001(\d+)\u0001$/);
-    if(c){ flushTable(); closeList(); out.push(codes[+c[1]]); continue; }
-    if(!line.trim()){ flushTable(); closeList(); continue; }
-    if(/^\s*\|.*\|\s*$/.test(line)){ closeList(); table.push(line.trim()); continue; }
-    flushTable();
-    var h = line.match(/^(#{1,4})\s+(.*)$/);
-    if(h){ closeList(); var lv = Math.min(h[1].length+2, 6); out.push('<h'+lv+'>'+mdInline(h[2])+'</h'+lv+'>'); continue; }
-    var ul = line.match(/^\s*[-*•]\s+(.*)$/);
-    if(ul){ if(!inList){ out.push('<ul>'); inList = true; } out.push('<li>'+mdInline(ul[1])+'</li>'); continue; }
-    var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
-    if(ol){ if(!inList){ out.push('<ul>'); inList = true; } out.push('<li>'+mdInline(ol[1])+'</li>'); continue; }
-    closeList();
-    out.push('<p>'+mdInline(line)+'</p>');
-  }
-  flushTable(); closeList();
-  return out.join('');
+  return out.join('').replace(/@@C(\d+)@@/g,function(m,n){return codes[n]});
 }
 
-/* ---------- модели ---------- */
-function modelLabel(m){
-  return m.name + (m.free ? ' · free' : '') + (m.ctx ? ' · ' + Math.round(m.ctx/1000) + 'k' : '');
-}
-function visibleModels(){
-  var list = state.models || [];
-  if(!state.showPaid) list = list.filter(function(m){ return m.free; });
-  return list;
-}
-function loadModels(force){
-  var fresh = state.modelsAt && (Date.now() - state.modelsAt < 86400000);
-  if(!force && state.models && state.models.length && fresh){
-    return Promise.resolve(state.models);
-  }
-  return fetch('https://openrouter.ai/api/v1/models').then(function(r){
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(d){
-    var list = (d.data || []).map(function(m){
-      var price = m.pricing || {};
-      var free = /:free$/.test(m.id) || (Number(price.prompt) === 0 && Number(price.completion) === 0);
-      return {
-        id: m.id,
-        name: String(m.name || m.id).replace(/\s*\((free|beta)\)\s*/gi,'').trim(),
-        free: !!free,
-        ctx: Number(m.context_length || 0)
-      };
-    });
-    list.sort(function(a,b){
-      if(a.free !== b.free) return a.free ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
-    state.models = list;
-    state.modelsAt = Date.now();
-    store.set('models', list);
-    store.set('modelsAt', state.modelsAt);
-    return list;
-  });
-}
-
-/* ---------- запрос к модели ---------- */
-function callModel(model, messages){
-  if(!state.key) return Promise.reject(new Error('Нет ключа OpenRouter — открой настройки и вставь ключ'));
-  var ctrl = ('AbortController' in window) ? new AbortController() : null;
-  var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 120000);
-  var opts = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + state.key,
-      'X-Title': 'AI Arena'
-    },
-    body: JSON.stringify({ model: model, messages: messages })
-  };
-  if(ctrl) opts.signal = ctrl.signal;
-  return fetch('https://openrouter.ai/api/v1/chat/completions', opts).then(function(r){
-    return r.text().then(function(raw){
-      var data = null;
-      try{ data = JSON.parse(raw); }catch(e){}
-      if(!r.ok){
-        var msg = (data && data.error && (data.error.message || data.error.code)) || ('HTTP ' + r.status);
-        throw new Error(String(msg).slice(0,220));
-      }
-      var ch = data && data.choices && data.choices[0];
-      var text = ch && ch.message && ch.message.content;
-      if(Array.isArray(text)){
-        text = text.map(function(p){ return p && p.text ? p.text : ''; }).join('');
-      }
-      text = String(text == null ? '' : text).trim();
-      if(!text) throw new Error('Модель вернула пустой ответ');
-      return text;
+/* ---------- API ---------- */
+function ask(model,messages,timeoutMs){
+  timeoutMs=timeoutMs||120000;
+  var ctrl=new AbortController();
+  var timer=setTimeout(function(){ctrl.abort()},timeoutMs);
+  return fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+state.key},
+    body:JSON.stringify({model:model,messages:messages}),
+    signal:ctrl.signal
+  }).then(function(r){
+    clearTimeout(timer);
+    if(!r.ok){
+      return r.json().catch(function(){return {}}).then(function(d){
+        var msg='HTTP '+r.status;
+        if(d&&d.error&&d.error.message) msg+=' · '+d.error.message;
+        return {ok:false,err:msg};
+      });
+    }
+    return r.json().then(function(d){
+      var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+      if(!t) return {ok:false,err:'Пустой ответ'};
+      return {ok:true,text:t};
     });
   }).catch(function(e){
-    if(e && e.name === 'AbortError') throw new Error('Таймаут: модель не ответила за 2 минуты');
-    throw e;
-  }).then(function(v){
     clearTimeout(timer);
-    return v;
-  }, function(e){
-    clearTimeout(timer);
-    throw e;
+    return {ok:false,err:(e&&e.name==='AbortError')?'Таймаут (2 мин)':'Ошибка сети'};
   });
 }
 
-/* ---------- рейтинг ---------- */
-function ensureRatings(preset){
-  if(!state.ratings[preset]) state.ratings[preset] = {};
-  return state.ratings[preset];
-}
-function entry(preset, id){
-  var t = ensureRatings(preset);
-  if(!t[id]) t[id] = { r:1200, w:0, l:0, d:0 };
-  return t[id];
-}
-function applyVote(preset, aId, bId, vote){
-  var A = entry(preset, aId), B = entry(preset, bId);
-  var rA = A.r, rB = B.r;
-  var ea = 1 / (1 + Math.pow(10, (rB - rA) / 400));
-  var sa = 0.5;
-  if(vote === 'a') sa = 1;
-  if(vote === 'b') sa = 0;
-  var nA = Math.round(rA + 32 * (sa - ea));
-  var nB = Math.round(rB + 32 * ((1 - sa) - (1 - ea)));
-  A.r = nA; B.r = nB;
-  if(sa === 1){ A.w++; B.l++; }
-  else if(sa === 0){ B.w++; A.l++; }
-  else { A.d++; B.d++; }
-  store.set('ratings', state.ratings);
-  return { a:{ before:rA, after:nA, delta:nA-rA }, b:{ before:rB, after:nB, delta:nB-rB } };
+function loadModels(){
+  return fetch('https://openrouter.ai/api/v1/models').then(function(r){return r.json()}).then(function(d){
+    var list=(d&&d.data)||[];
+    state.models=list.map(function(m){
+      var free=/:free$/.test(m.id)||(m.pricing&&parseFloat(m.pricing.prompt)===0&&parseFloat(m.pricing.completion)===0);
+      return {id:m.id,name:(m.name||m.id),free:!!free,ctx:m.context_length||0};
+    }).sort(function(a,b){return (b.free?1:0)-(a.free?1:0)||a.id.localeCompare(b.id)});
+    LSset('ar_models',state.models);
+    fillAll();
+    return state.models.length;
+  });
 }
 
-/* ---------- общий рендер селектов ---------- */
-function fillSelect(sel, current, placeholder){
-  if(!sel) return;
-  var list = visibleModels();
-  if(!list.length){
-    sel.innerHTML = '<option value="">— список моделей пуст, открой настройки —</option>';
-    return;
-  }
-  var ids = list.map(function(m){ return m.id; });
-  var val = (current && ids.indexOf(current) >= 0) ? current : list[0].id;
-  sel.innerHTML = list.map(function(m){
-    return '<option value="'+esc(m.id)+'"'+(m.id===val?' selected':'')+'>'+esc(modelLabel(m))+'</option>';
-  }).join('');
-  return val;
+function pool(){
+  var arr=state.showPaid?state.models:state.models.filter(function(m){return m.free});
+  if(!arr.length) arr=state.models;
+  return arr;
 }
-function syncSelects(){
-  var cfg = state.cfg;
-  var vChat = fillSelect($('#chatModel'), cfg.chatModel, 'Модель');
-  if(vChat) cfg.chatModel = vChat;
-  var rival = cfg.rival;
-  if(!rival || rival === cfg.chatModel){
-    var list = visibleModels();
-    rival = '';
-    for(var i=0;i<list.length;i++){ if(list[i].id !== cfg.chatModel){ rival = list[i].id; break; } }
-  }
-  var vRival = fillSelect($('#chatRival'), rival, 'Соперник');
-  if(vRival) cfg.rival = vRival;
-  var vA = fillSelect($('#duelA'), cfg.a, 'A');
-  if(vA) cfg.a = vA;
-  var bGuess = cfg.b;
-  if(!bGuess || bGuess === cfg.a){
-    var l2 = visibleModels(); bGuess = '';
-    for(var j=0;j<l2.length;j++){ if(l2[j].id !== cfg.a){ bGuess = l2[j].id; break; } }
-  }
-  var vB = fillSelect($('#duelB'), bGuess, 'B');
-  if(vB) cfg.b = vB;
-  store.set('cfg', cfg);
-  renderMultiList();
-}
-function renderMultiList(){
-  var box = $('#multiList');
-  var list = visibleModels();
-  if(!list.length){ box.innerHTML = '<div class="empty">Список моделей пуст — открой настройки и обнови список.</div>'; return; }
-  var chosen = state.cfg.multi || [];
-  box.innerHTML = list.map(function(m){
-    var on = chosen.indexOf(m.id) >= 0;
-    return '<label><input type="checkbox" value="'+esc(m.id)+'"'+(on?' checked':'')+'> <span>'+esc(modelLabel(m))+'</span></label>';
-  }).join('');
-  $$('#multiList input').forEach(function(cb){
-    cb.addEventListener('change', function(){
-      var cur = (state.cfg.multi || []).slice();
-      if(cb.checked){
-        if(cur.length >= 4){ cb.checked = false; return; }
-        if(cur.indexOf(cb.value) < 0) cur.push(cb.value);
-      } else {
-        cur = cur.filter(function(x){ return x !== cb.value; });
-      }
-      state.cfg.multi = cur;
-      store.set('cfg', state.cfg);
-      updateMultiCount();
-    });
-  });
-  updateMultiCount();
-}
-function updateMultiCount(){
-  var n = (state.cfg.multi || []).length;
-  var el = $('#multiCount');
-  if(el) el.textContent = 'выбрано: ' + n;
+
+/* ---------- UI заполнение ---------- */
+function opt(m){return '<option value="'+esc(m.id)+'">'+esc(m.name)+(m.free?' · free':'')+'</option>'}
+
+function fillAll(){
+  var p=pool();
+  var opts=p.map(opt).join('');
+  var cs=$('#chatModel'), rs=$('#chatRival');
+  var keepC=cs.value, keepR=rs.value;
+  cs.innerHTML=opts||'<option value="">— обнови список в настройках —</option>';
+  rs.innerHTML='<option value="">— нет —</option>'+opts;
+  if(keepC)cs.value=keepC;
+  if(keepR)rs.value=keepR;
+  var ml=$('#multiList');
+  ml.innerHTML=p.slice(0,60).map(function(m){
+    return '<label class="mitem"><input type="checkbox" value="'+esc(m.id)+'"><span>'+esc(m.name)+(m.free?' · free':'')+'</span></label>';
+  }).join('')||'<div class="muted" style="padding:8px">Список пуст — обнови модели в настройках.</div>';
+  $('#setInfo').textContent='Моделей в списке: '+state.models.length+' (бесплатных: '+state.models.filter(function(m){return m.free}).length+')';
+  $('#banner').style.display=state.key?'none':'block';
 }
 
 /* ---------- чат ---------- */
 function renderChat(){
-  var log = $('#chatLog');
-  if(!state.chat.length){
-    log.innerHTML = '<div class="empty">Пустой диалог. Выбери модель сверху и напиши сообщение.<br>Ниже можно спросить ту же реплику у второй модели и сравнить.</div>';
-    return;
-  }
-  log.innerHTML = state.chat.map(function(m){
-    if(m.role === 'user'){
-      return '<div class="msg me"><div class="who">Ты</div>'+md(m.content)+'</div>';
-    }
-    if(m.role === 'error'){
-      return '<div class="msg err"><div class="who">Ошибка</div>'+esc(m.content)+'</div>';
-    }
-    return '<div class="msg"><div class="who">'+esc(m.who || 'Модель')+'</div>'+md(m.content)+'</div>';
+  var log=$('#chatLog');
+  if(!state.chat.length){log.innerHTML='<div class="muted">Напиши первое сообщение — ответ придёт целиком, без обрыва на середине.</div>';return;}
+  log.innerHTML=state.chat.map(function(m){
+    return '<div class="msg '+(m.role==='user'?'me':'')+'"><div class="who"><span>'+esc(m.label||(m.role==='user'?'Ты':'Модель'))+'</span></div>'+
+      (m.role==='user'?'<div class="body">'+esc(m.content).replace(/\n/g,'<br>')+'</div>':'<div class="body">'+md(m.content)+'</div>')+'</div>';
   }).join('');
-  log.scrollTop = log.scrollHeight;
+  var last=log.lastElementChild;
+  if(last)window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
-function pushThinking(who){
-  var log = $('#chatLog');
-  var d = document.createElement('div');
-  d.className = 'thinking';
-  d.id = 'thinkRow';
-  d.innerHTML = '<span class="spinner"></span> ' + esc(who) + ' думает…';
-  log.appendChild(d);
-  log.scrollTop = log.scrollHeight;
-}
-function popThinking(){
-  var d = $('#thinkRow');
-  if(d) d.remove();
-}
-function sendChat(text, model, who){
-  if(!text.trim()) return;
-  if(!model){ alert('Выбери модель (или обнови список в настройках)'); return; }
-  if(!state.key){ openCfg(); return; }
-  state.chat.push({ role:'user', content:text });
+function chatSend(){
+  var txt=$('#chatInput').value.trim();
+  if(!txt)return;
+  var model=$('#chatModel').value;
+  if(!model){alert('Выбери модель (обнови список в настройках)');return;}
+  if(!state.key){alert('Сначала введи ключ OpenRouter в настройках');openSet();return;}
+  state.chat.push({role:'user',content:txt,label:'Ты'});
+  $('#chatInput').value='';
   renderChat();
-  pushThinking(who || model);
-  var history = state.chat.filter(function(m){ return m.role === 'user' || m.role === 'assistant'; })
-    .slice(-14)
-    .map(function(m){ return { role: m.role, content: m.content }; });
-  callModel(model, history).then(function(answer){
-    popThinking();
-    state.chat.push({ role:'assistant', content:answer, who: who || model });
-    renderChat();
-  }).catch(function(e){
-    popThinking();
-    state.chat.push({ role:'error', content: (e && e.message) || 'Неизвестная ошибка' });
-    renderChat();
+  var btn=$('#btnSend');btn.disabled=true;
+  var holder=document.createElement('div');
+  holder.className='msg';holder.innerHTML='<div class="who"><span>'+esc(model)+'</span></div><span class="spin"></span>думает…';
+  $('#chatLog').appendChild(holder);
+  var msgs=state.chat.map(function(m){return {role:m.role,content:m.content}});
+  ask(model,msgs).then(function(res){
+    holder.remove();
+    if(res.ok){state.chat.push({role:'assistant',content:res.text,label:model});}
+    else{state.chat.push({role:'assistant',content:'**Ошибка:** '+res.err,label:model});}
+    renderChat();btn.disabled=false;
   });
+}
+function chatRival(){
+  if(!state.chat.length){alert('Сначала задай вопрос');return;}
+  var rival=$('#chatRival').value;
+  if(!rival){rival=pool().map(function(m){return m.id}).filter(function(id){return id!==$('#chatModel').value})[0];}
+  if(!rival){alert('Нет второй модели — обнови список');return;}
+  if(!state.key){alert('Сначала введи ключ');openSet();return;}
+  var btn=$('#btnRival');btn.disabled=true;
+  var holder=document.createElement('div');
+  holder.className='msg';holder.innerHTML='<div class="who"><span>'+esc(rival)+'</span></div><span class="spin"></span>думает…';
+  $('#chatLog').appendChild(holder);
+  var msgs=state.chat.filter(function(m){return m.role==='user'||m.role==='assistant'}).map(function(m){return {role:m.role,content:m.content}});
+  ask(rival,msgs).then(function(res){
+    holder.remove();
+    state.chat.push({role:'assistant',content:res.ok?res.text:'**Ошибка:** '+res.err,label:rival});
+    renderChat();btn.disabled=false;
+  });
+}
+
+/* ---------- Elo ---------- */
+function eloGet(preset,id){
+  var t=state.ratings[preset]||(state.ratings[preset]={});
+  if(!t[id])t[id]={elo:1200,w:0,l:0,d:0,n:0};
+  return t[id];
+}
+function eloUpdate(preset,idA,idB,sa){
+  var a=eloGet(preset,idA),b=eloGet(preset,idB);
+  var ea=1/(1+Math.pow(10,(b.elo-a.elo)/400));
+  var K=32;
+  var na=Math.round(a.elo+K*(sa-ea));
+  var nb=Math.round(b.elo+K*((1-sa)-(1-ea)));
+  a.elo=na;b.elo=nb;a.n++;b.n++;
+  if(sa===1){a.w++;b.l++;}else if(sa===0){b.w++;a.l++;}else{a.d++;b.d++;}
+  LSset('ar_rating',state.ratings);
+  return {aBefore:Math.round(ea?0:0),ea:ea,na:na,nb:nb};
 }
 
 /* ---------- дуэль ---------- */
-function renderPresets(){
-  var html = PRESETS.map(function(p){
-    return '<button class="chip'+(state.preset===p.id?' active':'')+'" data-preset="'+p.id+'">'+p.name+'</button>';
-  }).join('');
-  $('#duelPresets').innerHTML = html;
-  $('#leadPresets').innerHTML = html.replace(/data-preset/g,'data-preset-lead');
-  $$('#duelPresets .chip').forEach(function(b){
-    b.addEventListener('click', function(){ state.preset = b.dataset.preset; renderPresets(); });
-  });
-  $$('#leadPresets .chip').forEach(function(b){
-    b.addEventListener('click', function(){ state.preset = b.dataset.presetLead; renderPresets(); renderLeaders(); });
-  });
+function renderDuelBase(){
+  $('#duelZone').innerHTML=
+   '<div class="card"><div class="duo">'+
+   '<div class="fighter" id="fA"><div class="tag"><span>МОДЕЛЬ A</span><span class="elo"></span></div><div class="body muted">ждёт старта</div></div>'+
+   '<div class="fighter" id="fB"><div class="tag"><span>МОДЕЛЬ B</span><span class="elo"></span></div><div class="body muted">ждёт старта</div></div>'+
+   '</div><div class="row" id="voteRow" style="display:none"></div><div id="reveal"></div></div>';
 }
-function setSide(which, text, isHtml){
-  var body = $(which === 'a' ? '#bodyA' : '#bodyB');
-  var side = $(which === 'a' ? '#sideA' : '#sideB');
-  side.classList.remove('win');
-  body.innerHTML = isHtml ? text : esc(text);
+renderDuelBase();
+
+function pickPair(){
+  var p=pool().map(function(m){return m.id});
+  if(p.length<2)return null;
+  var shuffled=p.slice().sort(function(){return Math.random()-0.5});
+  return [shuffled[0],shuffled[1]];
 }
-function runDuel(){
-  var prompt = $('#duelPrompt').value.trim();
-  if(!prompt){ alert('Напиши задачу для дуэли'); return; }
-  if(!state.key){ openCfg(); return; }
-  var a = $('#duelA').value, b = $('#duelB').value;
-  if(!a || !b){ alert('Нужны две модели'); return; }
-  if(a === b){ alert('Выбери две разные модели'); return; }
-  state.cfg.a = a; state.cfg.b = b; store.set('cfg', state.cfg);
-
-  $('#duelVote').hidden = true;
-  $('#duelResult').hidden = true;
-  $('#duelResult').innerHTML = '';
-  setSide('a', '<span class="thinking"><span class="spinner"></span> думает…</span>', true);
-  setSide('b', '<span class="thinking"><span class="spinner"></span> думает…</span>', true);
-
-  var msgs = [{ role:'user', content: prompt }];
-  var pA = callModel(a, msgs), pB = callModel(b, msgs);
-
-  Promise.allSettled([pA, pB]).then(function(res){
-    var ra = res[0], rb = res[1];
-    var okA = ra.status === 'fulfilled', okB = rb.status === 'fulfilled';
-    if(okA) setSide('a', md(ra.value), true); else setSide('a', 'Ошибка: ' + ((ra.reason && ra.reason.message) || 'нет ответа'));
-    if(okB) setSide('b', md(rb.value), true); else setSide('b', 'Ошибка: ' + ((rb.reason && rb.reason.message) || 'нет ответа'));
-
-    state.duel = {
-      preset: state.preset,
-      prompt: prompt,
-      aId: a, bId: b,
-      aText: okA ? ra.value : '',
-      bText: okB ? rb.value : '',
-      okA: okA, okB: okB
-    };
-    if(okA && okB){
-      $('#duelVote').hidden = false;
-    } else {
-      $('#duelResult').hidden = false;
-      $('#duelResult').innerHTML = 'Одна из моделей не ответила — голосовать нельзя. Проверь ключ, лимиты или выбери другую модель и попробуй ещё раз.';
-    }
+function beginDuel(){
+  var task=$('#duelTask').value.trim();
+  $('#duelErr').textContent='';
+  if(!task){$('#duelErr').textContent='Напиши задачу.';return;}
+  if(!state.key){$('#duelErr').textContent='Нужен ключ OpenRouter (⚙).';openSet();return;}
+  var pair=pickPair();
+  if(!pair){$('#duelErr').textContent='Мало моделей — обнови список в настройках.';return;}
+  renderDuelBase();
+  state.duel={a:pair[0],b:pair[1],task:task,preset:state.preset,done:0,res:{}};
+  $('#btnDuel').disabled=true;
+  ['fA','fB'].forEach(function(id,idx){
+    var model=idx===0?pair[0]:pair[1];
+    var box=$('#'+id+' .body');
+    box.className='body';
+    box.innerHTML='<span class="spin"></span>думает…';
+    ask(model,[{role:'user',content:task}]).then(function(res){
+      if(res.ok){box.innerHTML=md(res.text);}
+      else{box.className='body';box.innerHTML='<span class="err">Не ответила: '+esc(res.err)+'</span>';}
+      state.duel.res[idx===0?'a':'b']=res;
+      state.duel.done++;
+      if(state.duel.done===2)finishDuel();
+    });
   });
 }
-function vote(kind){
-  var d = state.duel;
-  if(!d || !d.okA || !d.okB || state.voting) return;
-  state.voting = true;
-  $('#duelVote').hidden = true;
-  var delta = applyVote(d.preset, d.aId, d.bId, kind);
-  var nameA = d.aId, nameB = d.bId;
-  if(kind === 'a') $('#sideA').classList.add('win');
-  if(kind === 'b') $('#sideB').classList.add('win');
-
-  var txtA = (d.aText || '').slice(0, 400);
-  var txtB = (d.bText || '').slice(0, 400);
-  state.hist.unshift({ t: Date.now(), preset: d.preset, prompt: d.prompt.slice(0,300), a: d.aId, b: d.bId, vote: kind, aText: txtA, bText: txtB });
-  state.hist = state.hist.slice(0, 60);
-  store.set('hist', state.hist);
-
-  var presetName = (PRESETS.filter(function(p){ return p.id === d.preset; })[0] || {}).name || '';
-  var sign = function(n){ return (n > 0 ? '+' : '') + n; };
-  $('#duelResult').hidden = false;
-  $('#duelResult').innerHTML =
-    '<div style="font-weight:800;margin-bottom:6px">Имена раскрыты · рейтинг «' + esc(presetName) + '»</div>' +
-    '<div>A — <b>' + esc(nameA) + '</b>: ' + delta.a.before + ' → <b>' + delta.a.after + '</b> (' +
-      '<span class="'+(delta.a.delta>=0?'up':'down')+'">' + sign(delta.a.delta) + '</span>)</div>' +
-    '<div>B — <b>' + esc(nameB) + '</b>: ' + delta.b.before + ' → <b>' + delta.b.after + '</b> (' +
-      '<span class="'+(delta.b.delta>=0?'up':'down')+'">' + sign(delta.b.delta) + '</span>)</div>' +
-    '<div style="margin-top:6px;color:var(--dim)">Голос: ' +
-      (kind === 'a' ? 'победила A' : kind === 'b' ? 'победила B' : kind === 'tie' ? 'ничья' : 'обе плохие (засчитано как ничья)') +
-    '</div>';
-  state.voting = false;
-  renderLeaders();
+function finishDuel(){
+  $('#btnDuel').disabled=false;
+  var d=state.duel;
+  var bothOkay=d.res.a&&d.res.a.ok&&d.res.b&&d.res.b.ok;
+  var row=$('#voteRow');
+  row.style.display='flex';
+  if(!bothOkay){
+    row.innerHTML='<div class="muted">Голосовать нельзя: одна из моделей не ответила. Попробуй «Другие соперники».</div>';
+    reveal(true);
+    return;
+  }
+  row.innerHTML=
+   '<button class="btn primary" data-v="a">Победила A</button>'+
+   '<button class="btn primary" data-v="b">Победила B</button>'+
+   '<button class="btn" data-v="tie">Ничья</button>'+
+   '<button class="btn danger" data-v="bad">Обе плохие</button>';
+  $$('#voteRow .btn').forEach(function(b){
+    b.onclick=function(){vote(b.getAttribute('data-v'))};
+  });
+}
+function vote(v){
+  var d=state.duel;
+  var sa=(v==='a')?1:(v==='b')?0:0.5;
+  var ra=eloGet(d.preset,d.a).elo, rb=eloGet(d.preset,d.b).elo;
+  eloUpdate(d.preset,d.a,d.b,sa);
+  var na=eloGet(d.preset,d.a).elo, nb=eloGet(d.preset,d.b).elo;
+  state.hist.unshift({t:Date.now(),preset:d.preset,a:d.a,b:d.b,v:v,q:d.task.slice(0,90)});
+  state.hist=state.hist.slice(0,40);
+  LSset('ar_hist',state.hist);
+  $('#voteRow').innerHTML='<div class="muted">Голос принят.</div>';
+  $('#fA').classList.toggle('win',v==='a');
+  $('#fB').classList.toggle('win',v==='b');
+  var va=na-ra, vb=nb-rb;
+  $('#fA .elo').textContent=ra+' → '+na+' ('+(va>=0?'+':'')+va+')';
+  $('#fB .elo').textContent=rb+' → '+nb+' ('+(vb>=0?'+':'')+vb+')';
+  reveal(false);
+  renderBoard();renderHist();
+}
+function reveal(noVote){
+  var d=state.duel;
+  $('#fA .tag span:first-child').textContent=d.a.slice(0,42);
+  $('#fB .tag span:first-child').textContent=d.b.slice(0,42);
+  var note=noVote?'':'Рейтинг обновлён · '+(d.preset==='code'?'Код':d.preset==='text'?'Текст':d.preset==='logic'?'Логика':'Общее');
+  $('#reveal').innerHTML='<div class="muted" style="margin-top:10px">'+(note||'Бой без голосования: рейтинг не изменён.')+'</div>';
 }
 
 /* ---------- мульти ---------- */
-function runMulti(){
-  var prompt = $('#multiPrompt').value.trim();
-  var chosen = state.cfg.multi || [];
-  if(!prompt){ alert('Напиши запрос'); return; }
-  if(chosen.length < 2){ alert('Отметь минимум две модели'); return; }
-  if(!state.key){ openCfg(); return; }
-  var grid = $('#multiGrid');
-  grid.innerHTML = chosen.map(function(id, i){
-    return '<div class="side" id="m'+i+'"><div class="tag"><span>'+esc(id)+'</span></div><div class="body"><span class="thinking"><span class="spinner"></span> думает…</span></div></div>';
-  }).join('');
-  chosen.forEach(function(id, i){
-    callModel(id, [{ role:'user', content: prompt }]).then(function(text){
-      var el = $('#m'+i+' .body');
-      if(el) el.innerHTML = md(text);
-    }).catch(function(e){
-      var el = $('#m'+i+' .body');
-      if(el) el.innerHTML = '<span style="color:var(--bad)">Ошибка: ' + esc((e && e.message) || 'нет ответа') + '</span>';
+function beginMulti(){
+  var chosen=$$('#multiList input:checked').map(function(c){return c.value});
+  var task=$('#multiTask').value.trim();
+  $('#multiErr').textContent='';
+  if(chosen.length<2){$('#multiErr').textContent='Отметь хотя бы две модели.';return;}
+  if(chosen.length>4){$('#multiErr').textContent='Максимум четыре модели.';return;}
+  if(!task){$('#multiErr').textContent='Напиши запрос.';return;}
+  if(!state.key){$('#multiErr').textContent='Нужен ключ OpenRouter (⚙).';openSet();return;}
+  var zone=$('#multiZone');
+  zone.innerHTML='<div class="card"><div class="duo" id="mDuo"></div></div>';
+  var grid=$('#mDuo');
+  chosen.forEach(function(m){
+    var f=document.createElement('div');
+    f.className='fighter';
+    f.innerHTML='<div class="tag"><span>'+esc(m.slice(0,40))+'</span></div><div class="body"><span class="spin"></span>думает…</div>';
+    grid.appendChild(f);
+    ask(m,[{role:'user',content:task}]).then(function(res){
+      var b=f.querySelector('.body');
+      b.innerHTML=res.ok?md(res.text):'<span class="err">Ошибка: '+esc(res.err)+'</span>';
     });
   });
 }
 
 /* ---------- лидеры ---------- */
-function renderLeaders(){
-  var box = $('#leadBox');
-  var t = state.ratings[state.preset] || {};
-  var rows = Object.keys(t).map(function(id){
-    var v = t[id];
-    return { id:id, r:v.r, w:v.w||0, l:v.l||0, d:v.d||0, n:(v.w||0)+(v.l||0)+(v.d||0) };
-  }).sort(function(x,y){ return y.r - x.r; });
-  if(!rows.length){
-    box.innerHTML = '<div class="empty">Пока нет боёв в пресете «' +
-      esc((PRESETS.filter(function(p){ return p.id === state.preset; })[0] || {}).name || '') +
-      '». Проведи дуэль — рейтинг появится здесь.</div>';
-    return;
-  }
-  var html = '<div class="tw"><table><thead><tr><th>#</th><th>Модель</th><th>Elo</th><th>В</th><th>П</th><th>Н</th><th>Боёв</th></tr></thead><tbody>';
-  rows.forEach(function(r, i){
-    html += '<tr class="'+(i===0?'top1':'')+'"><td class="n">'+(i+1)+'</td><td>'+esc(r.id)+'</td>' +
-      '<td class="n"><b>'+r.r+'</b></td><td class="n">'+r.w+'</td><td class="n">'+r.l+'</td><td class="n">'+r.d+'</td><td class="n">'+r.n+'</td></tr>';
-  });
-  html += '</tbody></table></div>';
-  html += '<div class="stats" style="margin-top:8px">Пресет: ' +
-    esc((PRESETS.filter(function(p){ return p.id === state.preset; })[0] || {}).name || '') +
-    ' · старт 1200 · K=32 · ничья и «обе плохие» = 0,5</div>';
-  if(state.hist.length){
-    html += '<div style="margin-top:14px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:800">Последние бои</div>';
-    html += state.hist.slice(0, 8).map(function(h){
-      var v = h.vote === 'a' ? 'A' : h.vote === 'b' ? 'B' : h.vote === 'tie' ? 'ничья' : 'обе плохие';
-      return '<div style="font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
-        '<span class="pill">'+esc(v)+'</span> ' + esc(h.a) + ' vs ' + esc(h.b) +
-        '<div style="color:var(--dim);font-size:12.5px;margin-top:3px">'+esc(h.prompt.slice(0,90))+'</div></div>';
-    }).join('');
-  }
-  box.innerHTML = html;
+function renderBoard(){
+  var p=$('#boardPreset').value;
+  var t=state.ratings[p]||{};
+  var rows=Object.keys(t).map(function(id){return {id:id,d:t[id]}}).filter(function(x){return x.d.n>0})
+    .sort(function(x,y){return y.d.elo-x.d.elo});
+  var body=$('#boardBody');
+  if(!rows.length){body.innerHTML='<tr><td colspan="6" class="muted">Пока пусто — проведи первый бой.</td></tr>';return;}
+  body.innerHTML=rows.map(function(x,idx){
+    return '<tr><td class="n">'+(idx+1)+'</td><td>'+esc(x.id)+'</td><td class="n"><span class="badge'+(idx===0?'':' b2')+'">'+x.d.elo+'</span></td>'+
+      '<td class="n">'+x.d.w+'</td><td class="n">'+x.d.l+'</td><td class="n">'+x.d.d+'</td></tr>';
+  }).join('');
+}
+function renderHist(){
+  var box=$('#histBox');
+  if(!state.hist.length){box.innerHTML='<div class="muted">История пуста.</div>';return;}
+  box.innerHTML=state.hist.slice(0,12).map(function(h){
+    var res=h.v==='a'?'A':h.v==='b'?'B':h.v==='tie'?'ничья':'обе плохие';
+    return '<div class="msg"><div class="who"><span>'+esc(h.a.slice(0,26))+' vs '+esc(h.b.slice(0,26))+'</span><span>'+res+'</span></div>'+
+      '<div class="muted">'+esc(h.q)+'</div></div>';
+  }).join('');
 }
 
 /* ---------- настройки ---------- */
-function openCfg(){
-  $('#cfgModal').hidden = false;
-  $('#cfgKey').value = state.key || '';
-  $('#cfgPaid').checked = !!state.showPaid;
-  $('#cfgModelsState').textContent = state.models.length ? ('в списке: ' + state.models.length) : 'список не загружен';
-}
-function closeCfg(){ $('#cfgModal').hidden = true; }
+function openSet(){$('#keyInput').value=state.key;$('#chkPaid').checked=state.showPaid;$('#setErr').textContent='';$('#modal').classList.add('on');}
+function closeSet(){$('#modal').classList.remove('on');}
 
-function saveKey(){
-  var v = ($('#cfgKey').value || '').trim();
-  state.key = v;
-  store.set('key', v);
-  $('#cfgKeyState').textContent = v ? 'ключ сохранён' : 'ключ очищен';
-  checkKeyWarn();
-}
-function checkKeyWarn(){
-  $('#keyWarn').hidden = !!state.key;
-}
-function checkKey(){
-  if(!state.key){ $('#cfgKeyState').textContent = 'сначала сохрани ключ'; return; }
-  $('#cfgKeyState').innerHTML = '<span class="spinner"></span> проверяю…';
-  fetch('https://openrouter.ai/api/v1/key', { headers: { 'Authorization': 'Bearer ' + state.key } })
-    .then(function(r){ return r.text().then(function(t){ return { ok:r.ok, t:t }; }); })
-    .then(function(res){
-      if(!res.ok){ $('#cfgKeyState').textContent = 'ключ не принят (HTTP ' + (res.ok?200:'ошибка') + ')'; return; }
-      var d = null; try{ d = JSON.parse(res.t); }catch(e){}
-      var info = d && d.data ? d.data : {};
-      var parts = ['ключ рабочий'];
-      if(info.label) parts.push(info.label);
-      if(info.usage != null) parts.push('израсходовано: ' + info.usage);
-      if(info.limit != null) parts.push('лимит: ' + info.limit);
-      $('#cfgKeyState').textContent = parts.join(' · ');
-    })
-    .catch(function(){ $('#cfgKeyState').textContent = 'нет связи с OpenRouter'; });
-}
-function reloadModels(){
-  $('#cfgModelsState').innerHTML = '<span class="spinner"></span> загружаю…';
-  loadModels(true).then(function(list){
-    $('#cfgModelsState').textContent = 'загружено моделей: ' + list.length +
-      ' (free: ' + list.filter(function(m){ return m.free; }).length + ')';
-    syncSelects();
-  }).catch(function(e){
-    $('#cfgModelsState').textContent = 'не удалось: ' + ((e && e.message) || 'ошибка сети');
+/* ---------- события ---------- */
+$$('.tab').forEach(function(t){
+  t.onclick=function(){
+    $$('.tab').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+    $$('.pane').forEach(function(p){p.classList.remove('on')});
+    var pane=$('#pane-'+t.getAttribute('data-tab'));
+    if(pane)pane.classList.add('on');
+    if(t.getAttribute('data-tab')==='board'){renderBoard();renderHist();}
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+$$('#presetRow .chip').forEach(function(c){
+  c.onclick=function(){
+    $$('#presetRow .chip').forEach(function(x){x.classList.remove('on')});
+    c.classList.add('on');state.preset=c.getAttribute('data-p');
+  };
+});
+$('#btnSend').onclick=chatSend;
+$('#btnRival').onclick=chatRival;
+$('#btnClearChat').onclick=function(){state.chat=[];renderChat();};
+$('#btnDuel').onclick=beginDuel;
+$('#btnOther').onclick=function(){if($('#duelTask').value.trim())beginDuel();else $('#duelErr').textContent='Напиши задачу.';};
+$('#btnMulti').onclick=beginMulti;
+$('#boardPreset').onchange=renderBoard;
+$('#btnSet').onclick=openSet;
+$('#btnClose').onclick=closeSet;
+$('#modal').onclick=function(e){if(e.target===$('#modal'))closeSet();};
+$('#btnSaveKey').onclick=function(){
+  var k=$('#keyInput').value.trim();
+  if(!k){$('#setErr').textContent='Ключ пустой.';return;}
+  state.key=k;LSset('ar_key',k);
+  $('#setErr').textContent='';
+  $('#setInfo').textContent='Ключ сохранён. Обновляю список моделей…';
+  $('#banner').style.display='none';
+  loadModels().then(function(n){$('#setInfo').textContent='Готово. Моделей: '+n;}).catch(function(){
+    $('#setInfo').textContent='Ключ сохранён, но список не загрузился — нажми «Обновить список» позже.';
   });
-}
-
-/* ---------- вкладки и события ---------- */
-$$('.tab').forEach(function(b){
-  b.addEventListener('click', function(){
-    $$('.tab').forEach(function(x){ x.classList.remove('active'); });
-    b.classList.add('active');
-    $$('.tabpane').forEach(function(p){ p.classList.remove('active'); });
-    var pane = $('#pane-' + b.dataset.tab);
-    if(pane) pane.classList.add('active');
-    if(b.dataset.tab === 'lead') renderLeaders();
+};
+$('#btnLoadModels').onclick=function(){
+  $('#setInfo').textContent='Загружаю…';
+  loadModels().then(function(n){$('#setInfo').textContent='Готово. Моделей: '+n;}).catch(function(e){
+    $('#setErr').textContent='Не удалось загрузить список: '+(e&&e.message?e.message:'сеть');
   });
+};
+$('#chkPaid').onchange=function(){
+  state.showPaid=this.checked;LSset('ar_paid',this.checked);fillAll();
+};
+$('#btnReset').onclick=function(){
+  if(!confirm('Сбросить все рейтинги?'))return;
+  state.ratings={overall:{},code:{},text:{},logic:{}};LSset('ar_rating',state.ratings);renderBoard();
+};
+$('#btnClearHist').onclick=function(){
+  if(!confirm('Очистить историю боёв?'))return;
+  state.hist=[];LSset('ar_hist',state.hist);renderHist();
+};
+$('#chatInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))chatSend();
 });
-
-$('#btnCfg').addEventListener('click', openCfg);
-$('#warnCfg').addEventListener('click', openCfg);
-$('#cfgClose').addEventListener('click', closeCfg);
-$('#cfgModal').addEventListener('click', function(e){ if(e.target === $('#cfgModal')) closeCfg(); });
-$('#cfgSaveKey').addEventListener('click', saveKey);
-$('#cfgCheckKey').addEventListener('click', checkKey);
-$('#cfgReloadModels').addEventListener('click', reloadModels);
-$('#cfgPaid').addEventListener('change', function(){
-  state.showPaid = $('#cfgPaid').checked;
-  store.set('showPaid', state.showPaid);
-  syncSelects();
-});
-$('#cfgResetElo').addEventListener('click', function(){
-  if(!confirm('Сбросить весь рейтинг по всем пресетам?')) return;
-  state.ratings = {};
-  store.set('ratings', {});
-  renderLeaders();
-  $('#cfgResetElo').textContent = 'рейтинг сброшен';
-  setTimeout(function(){ $('#cfgResetElo').textContent = 'Сбросить рейтинг'; }, 1600);
-});
-$('#cfgResetHist').addEventListener('click', function(){
-  if(!confirm('Очистить историю боёв?')) return;
-  state.hist = [];
-  store.set('hist', []);
-  renderLeaders();
-});
-
-$('#chatSend').addEventListener('click', function(){
-  var t = $('#chatInput').value;
-  $('#chatInput').value = '';
-  sendChat(t, $('#chatModel').value, $('#chatModel').value);
-});
-$('#chatInput').addEventListener('keydown', function(e){
-  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
-    e.preventDefault();
-    $('#chatSend').click();
-  }
-});
-$('#chatClear').addEventListener('click', function(){
-  state.chat = [];
-  renderChat();
-});
-$('#chatRivalGo').addEventListener('click', function(){
-  var lastUser = null;
-  for(var i=state.chat.length-1;i>=0;i--){ if(state.chat[i].role === 'user'){ lastUser = state.chat[i].content; break; } }
-  if(!lastUser){ alert('Сначала задай вопрос — соперник ответит на него же'); return; }
-  var rival = $('#chatRival').value;
-  if(!rival){ alert('Нет второй модели'); return; }
-  pushThinking(rival);
-  callModel(rival, [{ role:'user', content: lastUser }]).then(function(text){
-    popThinking();
-    state.chat.push({ role:'assistant', content:text, who: rival + ' (соперник)' });
-    renderChat();
-  }).catch(function(e){
-    popThinking();
-    state.chat.push({ role:'error', content:'Соперник: ' + ((e && e.message) || 'нет ответа') });
-    renderChat();
-  });
-});
-$('#chatModel').addEventListener('change', function(){
-  state.cfg.chatModel = $('#chatModel').value;
-  store.set('cfg', state.cfg);
-});
-$('#chatRival').addEventListener('change', function(){
-  state.cfg.rival = $('#chatRival').value;
-  store.set('cfg', state.cfg);
-});
-$('#duelA').addEventListener('change', function(){ state.cfg.a = $('#duelA').value; store.set('cfg', state.cfg); });
-$('#duelB').addEventListener('change', function(){ state.cfg.b = $('#duelB').value; store.set('cfg', state.cfg); });
-$('#duelGo').addEventListener('click', runDuel);
-$('#duelSwap').addEventListener('click', function(){
-  var a = $('#duelA').value;
-  $('#duelA').value = $('#duelB').value;
-  $('#duelB').value = a;
-  state.cfg.a = $('#duelA').value;
-  state.cfg.b = $('#duelB').value;
-  store.set('cfg', state.cfg);
-});
-$$('.vote button').forEach(function(b){
-  b.addEventListener('click', function(){ vote(b.dataset.vote); });
-});
-$('#multiGo').addEventListener('click', runMulti);
 
 /* ---------- старт ---------- */
-renderPresets();
-renderChat();
-renderLeaders();
-checkKeyWarn();
-
-var startCfg = state.cfg || {};
-state.cfg = {
-  chatModel: startCfg.chatModel || '',
-  rival: startCfg.rival || '',
-  a: startCfg.a || '',
-  b: startCfg.b || '',
-  multi: Array.isArray(startCfg.multi) ? startCfg.multi : []
-};
-
-if(state.models && state.models.length){
-  syncSelects();
+fillAll();
+renderBoard();renderHist();renderChat();
+if(!state.models.length){
+  loadModels().catch(function(){});
 }
-loadModels(false).then(function(){
-  syncSelects();
-}).catch(function(e){
-  var st = $('#cfgModelsState');
-  if(st) st.textContent = 'список не загрузился: ' + ((e && e.message) || 'нет сети');
-  if(!state.models || !state.models.length){
-    $('#chatModel').innerHTML = '<option value="">— нет списка моделей —</option>';
-    $('#chatRival').innerHTML = '<option value="">— нет списка моделей —</option>';
-    $('#duelA').innerHTML = '<option value="">—</option>';
-    $('#duelB').innerHTML = '<option value="">—</option>';
-    $('#multiList').innerHTML = '<div class="empty">Список моделей не загрузился. Открой настройки → «Обновить список».</div>';
-  }
-});
+})();
 </script>
 </body>
 </html>
