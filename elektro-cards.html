@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070d1a">
+<title>Электротехника — карточный экзамен</title>
+<style>
+:root{
+--bg1:#060b16;--bg2:#0d1830;--bg3:#152744;
+--ink:#e9f0ff;--mut:#8fa3c4;
+--gold:#e8c37a;--gold2:#f7e6bb;
+--ok:#3ddc97;--bad:#ff6b7a;
+--line:rgba(150,180,230,.16);
+--glass:rgba(19,32,58,.74);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+background:radial-gradient(120% 75% at 50% -10%,#1b3156 0%,var(--bg2) 45%,var(--bg1) 100%);
+color:var(--ink);overflow:hidden;user-select:none;
+}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+#app{position:relative;z-index:1;height:100%}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:16px 15px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}
+.screen.active{display:flex;animation:scrIn .5s cubic-bezier(.19,.9,.22,1)}
+@keyframes scrIn{from{opacity:0;transform:translateY(16px) scale(.986)}to{opacity:1;transform:none}}
+
+/* ---------- МЕНЮ ---------- */
+.brand{text-align:center;margin:auto 0 0;padding-top:10px}
+.chip-top{display:inline-block;font-size:11px;letter-spacing:.28em;color:var(--gold);border:1px solid rgba(232,195,122,.35);
+border-radius:100px;padding:6px 14px;margin-bottom:16px;animation:fadeUp .8s both}
+.title{font-size:34px;line-height:1.06;font-weight:800;letter-spacing:-.02em;margin:0 0 10px;
+background:linear-gradient(180deg,#fff 10%,#bcd0f0 55%,#7f9bc7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+animation:fadeUp .8s .05s both}
+.title span{display:block;font-size:15px;letter-spacing:.34em;font-weight:600;color:var(--gold);
+-webkit-text-fill-color:var(--gold);margin-top:12px}
+.sub{color:var(--mut);font-size:13.5px;line-height:1.5;margin:0 auto 22px;max-width:300px;animation:fadeUp .8s .12s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+.pulse-halo{position:relative}
+.pulse-halo::before{content:"";position:absolute;inset:-40px -20px;background:radial-gradient(50% 50% at 50% 50%,rgba(90,140,255,.18),transparent 70%);
+animation:halo 5s ease-in-out infinite;pointer-events:none}
+@keyframes halo{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+
+.menu-btns{display:flex;flex-direction:column;gap:11px;margin:0 auto auto;width:100%;max-width:340px;padding-bottom:8px}
+.btn{
+position:relative;display:flex;align-items:center;justify-content:center;gap:10px;
+padding:15px 18px;border-radius:16px;border:1px solid var(--line);
+background:linear-gradient(180deg,rgba(30,48,80,.9),rgba(18,30,54,.9));
+color:var(--ink);font-size:15.5px;font-weight:600;cursor:pointer;overflow:hidden;
+transition:transform .18s,box-shadow .25s,border-color .25s;
+animation:fadeUp .7s both}
+.btn:nth-child(2){animation-delay:.06s}.btn:nth-child(3){animation-delay:.12s}.btn:nth-child(4){animation-delay:.18s}
+.btn:active{transform:scale(.975)}
+.btn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;
+background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-18deg)}
+.btn:hover::after{animation:shine .9s}
+@keyframes shine{to{left:130%}}
+.btn.main{background:linear-gradient(180deg,#f2d79a,#d8ad63);color:#22190a;border-color:rgba(255,230,180,.6);
+box-shadow:0 10px 28px -10px rgba(232,195,122,.7)}
+.btn.ghost{background:rgba(255,255,255,.03)}
+.btn .ic{font-size:18px}
+
+/* ---------- ОБЩЕЕ ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex:none}
+.back{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+color:var(--ink);font-size:19px;display:grid;place-items:center;cursor:pointer;transition:transform .15s,background .2s}
+.back:active{transform:scale(.93);background:rgba(255,255,255,.1)}
+.h2{font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0}
+.h2 small{display:block;font-size:11.5px;font-weight:500;color:var(--mut);letter-spacing:.05em;margin-top:3px}
+
+/* ---------- НАСТРОЙКИ ---------- */
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;
+backdrop-filter:blur(8px);animation:fadeUp .6s both}
+.panel h3{margin:0 0 4px;font-size:14px;font-weight:700;letter-spacing:.02em}
+.panel p.hint{margin:0 0 12px;font-size:12px;color:var(--mut);line-height:1.45}
+.seg{display:flex;gap:7px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:64px;padding:11px 8px;border-radius:12px;border:1px solid var(--line);
+background:rgba(255,255,255,.03);color:var(--mut);font-size:13px;font-weight:600;cursor:pointer;
+transition:all .22s;font-family:inherit}
+.seg button.on{background:linear-gradient(180deg,rgba(232,195,122,.22),rgba(232,195,122,.1));color:var(--gold2);
+border-color:rgba(232,195,122,.55);box-shadow:0 6px 18px -10px rgba(232,195,122,.8);transform:translateY(-1px)}
+.seg button:active{transform:scale(.96)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+.row+.row{border-top:1px solid rgba(150,180,230,.1)}
+.row .lbl{font-size:13.5px;font-weight:500}
+.row .lbl em{display:block;font-style:normal;font-size:11.5px;color:var(--mut);margin-top:2px}
+.sw{width:50px;height:29px;border-radius:100px;background:rgba(120,140,180,.28);border:1px solid var(--line);
+position:relative;cursor:pointer;transition:background .3s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#93a6c6;
+transition:all .3s cubic-bezier(.3,1.4,.5,1)}
+.sw.on{background:linear-gradient(90deg,rgba(232,195,122,.5),rgba(232,195,122,.85))}
+.sw.on::after{left:24px;background:#fff8e8;box-shadow:0 0 12px rgba(255,230,180,.9)}
+
+/* ---------- ПРАВИЛА ---------- */
+.rule{display:flex;gap:11px;margin-bottom:13px;animation:fadeUp .55s both}
+.rule .num{width:26px;height:26px;flex:none;border-radius:9px;background:rgba(232,195,122,.14);color:var(--gold);
+display:grid;place-items:center;font-size:12.5px;font-weight:700;border:1px solid rgba(232,195,122,.3)}
+.rule div.tx{font-size:13.5px;line-height:1.5;color:#cfdcf2}
+.rule div.tx b{color:#fff}
+
+/* ---------- ИГРА ---------- */
+#game{padding-top:10px}
+.gtop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;margin-bottom:6px}
+.goal{font-size:11.5px;color:var(--mut);letter-spacing:.06em}
+.goal b{color:var(--gold2)}
+.iconbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+color:var(--ink);font-size:16px;display:grid;place-items:center;cursor:pointer;transition:transform .15s}
+.iconbtn:active{transform:scale(.92)}
+
+.table{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.felt{position:absolute;inset:8% 2% 16%;border-radius:50%/46%;
+background:radial-gradient(60% 60% at 50% 45%,rgba(40,86,140,.55),rgba(16,30,54,.75) 65%,rgba(9,17,32,.9));
+border:1px solid rgba(120,170,240,.18);
+box-shadow:inset 0 0 70px rgba(0,0,0,.6),0 0 60px -10px rgba(70,130,220,.35);
+animation:feltGlow 7s ease-in-out infinite}
+@keyframes feltGlow{0%,100%{box-shadow:inset 0 0 70px rgba(0,0,0,.6),0 0 60px -12px rgba(70,130,220,.28)}
+50%{box-shadow:inset 0 0 80px rgba(0,0,0,.55),0 0 80px -8px rgba(90,160,255,.45)}}
+
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .35s}
+.seat.top{top:2%;left:50%;transform:translateX(-50%)}
+.seat.left{left:2%;top:42%;transform:translateY(-50%)}
+.seat.right{right:2%;top:42%;transform:translateY(-50%)}
+.seat.bottom{bottom:calc(0% + 4px);left:50%;transform:translateX(-50%);flex-direction:row;gap:8px}
+.ava{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:21px;
+background:linear-gradient(160deg,rgba(52,80,130,.9),rgba(24,40,70,.95));border:1px solid rgba(150,190,250,.25);
+transition:box-shadow .35s,border-color .35s;position:relative}
+.seat.active .ava{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,195,122,.35),0 0 26px rgba(232,195,122,.55);
+animation:avaPulse 1.8s ease-in-out infinite}
+@keyframes avaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.seat.bottom .ava{width:40px;height:40px;font-size:19px}
+.pinfo{text-align:center;line-height:1.2}
+.pname{font-size:11.5px;font-weight:600;color:#dbe7fb}
+.pscore{font-size:11px;color:var(--gold2);font-weight:700}
+.seat.active .pname{color:#fff}
+.badge{position:absolute;top:-7px;right:-9px;background:var(--gold);color:#241a08;font-size:10px;font-weight:800;
+border-radius:8px;padding:1.5px 5px;box-shadow:0 2px 10px rgba(232,195,122,.7);animation:pop .3s}
+
+/* веера */
+.fan{position:relative;height:52px;width:104px;display:flex;justify-content:center}
+.seat.bottom .fan{display:none}
+.fan i{position:absolute;bottom:0;width:26px;height:38px;border-radius:5px;
+background:linear-gradient(150deg,#24406e,#16253f);border:1px solid rgba(150,190,250,.3);
+box-shadow:0 3px 8px rgba(0,0,0,.5);transform-origin:50% 130%;
+animation:float 4s ease-in-out infinite;transition:transform .4s}
+.fan i::after{content:"";position:absolute;inset:4px;border:1px solid rgba(150,190,250,.22);border-radius:3px}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -4px}}
+
+/* колода */
+.deck{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:76px;height:104px;cursor:default}
+.deck .dc{position:absolute;inset:0;border-radius:11px;
+background:linear-gradient(155deg,#1d3f74,#10203a 70%);border:1px solid rgba(150,200,255,.35);
+box-shadow:0 10px 24px rgba(0,0,0,.5),inset 0 0 18px rgba(90,150,255,.18)}
+.deck .dc::before{content:"";position:absolute;inset:7px;border-radius:7px;border:1px dashed rgba(160,200,255,.28)}
+.deck .dc::after{content:"⚡";position:absolute;inset:0;display:grid;place-items:center;font-size:23px;opacity:.6}
+.deck .dcount{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--mut);
+letter-spacing:.1em;white-space:nowrap}
+.deck.shuffling .dc:nth-child(1){animation:shuf1 .55s ease}
+.deck.shuffling .dc:nth-child(2){animation:shuf2 .55s ease}
+@keyframes shuf1{50%{transform:translate(-26px,-10px) rotate(-11deg)}}
+@keyframes shuf2{50%{transform:translate(26px,-14px) rotate(11deg)}}
+
+/* рука */
+.handwrap{margin-top:auto;padding-top:8px;flex:none}
+.handlabel{font-size:10.5px;letter-spacing:.16em;color:var(--mut);text-align:center;margin-bottom:6px}
+.hand{display:flex;gap:7px;justify-content:center;align-items:flex-end;min-height:132px}
+.hcard{
+flex:1 1 0;max-width:74px;aspect-ratio:.7;border-radius:11px;padding:7px 6px;position:relative;cursor:pointer;
+background:linear-gradient(170deg,#f7f3e8,#e2dccd);color:#16233a;border:1px solid rgba(255,255,255,.65);
+box-shadow:0 8px 18px -6px rgba(0,0,0,.75),inset 0 1px 0 #fff;
+display:flex;flex-direction:column;gap:3px;overflow:hidden;
+animation:deal .5s cubic-bezier(.2,.9,.25,1) both;transition:transform .2s,box-shadow .25s}
+@keyframes deal{from{opacity:0;transform:translateY(34px) rotate(-6deg) scale(.85)}to{opacity:1;transform:none}}
+.hcard:nth-child(2){animation-delay:.04s}.hcard:nth-child(3){animation-delay:.08s}
+.hcard:nth-child(4){animation-delay:.12s}.hcard:nth-child(5){animation-delay:.16s}.hcard:nth-child(6){animation-delay:.2s}
+.hcard:active{transform:translateY(-6px) scale(.97)}
+.hcard .hn{font-size:9px;font-weight:800;color:#8a7a52;letter-spacing:.04em}
+.hcard .hq{font-size:9.5px;line-height:1.22;font-weight:600;overflow:hidden;
+display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical}
+.hcard .hbar{margin-top:auto;height:3px;border-radius:2px;background:linear-gradient(90deg,#c9a45e,#8fb2e0)}
+.hcard.dim{filter:grayscale(.6) brightness(.7);pointer-events:none}
+.waitmsg{text-align:center;font-size:12px;color:var(--mut);padding:10px 0;animation:fadeUp .4s both}
+
+/* ---------- ВОПРОС ---------- */
+.overlay{position:fixed;inset:0;z-index:40;display:none;place-items:center;padding:16px;
+background:rgba(4,8,16,.72);backdrop-filter:blur(6px)}
+.overlay.on{display:grid;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.qbox{width:100%;max-width:400px;border-radius:22px;padding:18px 16px 16px;
+background:linear-gradient(180deg,#fdfaf2,#eee9dc);color:#15213a;
+box-shadow:0 30px 70px -20px rgba(0,0,0,.9),inset 0 1px 0 #fff;
+animation:qIn .5s cubic-bezier(.19,1,.22,1);position:relative;overflow:hidden}
+@keyframes qIn{from{opacity:0;transform:translateY(26px) rotateX(-14deg) scale(.94)}to{opacity:1;transform:none}}
+.qbox.shake{animation:shake .5s}
+@keyframes shake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.qbox.good::before,.qbox.bad::before{content:"";position:absolute;inset:0;pointer-events:none;animation:flash .8s}
+.qbox.good::before{background:radial-gradient(60% 60% at 50% 40%,rgba(61,220,151,.35),transparent)}
+.qbox.bad::before{background:radial-gradient(60% 60% at 50% 40%,rgba(255,107,122,.35),transparent)}
+@keyframes flash{from{opacity:1}to{opacity:0}}
+.qhead{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.14em;
+color:#8a7a52;font-weight:800;margin-bottom:9px}
+.qtheme{background:rgba(21,33,58,.08);border-radius:100px;padding:3px 9px;letter-spacing:.06em}
+.qtext{font-size:15px;line-height:1.36;font-weight:700;margin:0 0 13px;color:#12203a}
+.tbar{height:4px;border-radius:3px;background:rgba(21,33,58,.12);overflow:hidden;margin-bottom:12px}
+.tbar i{display:block;height:100%;width:100%;border-radius:3px;background:linear-gradient(90deg,#c9a45e,#3f6fbd);
+transition:width .25s linear}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{padding:11px 13px;border-radius:12px;border:1.5px solid rgba(21,33,58,.14);background:rgba(255,255,255,.72);
+font-size:12.6px;line-height:1.32;font-weight:600;color:#16233a;cursor:pointer;text-align:left;font-family:inherit;
+transition:all .2s;animation:fadeUp .4s both}
+.opt:nth-child(1){animation-delay:.04s}.opt:nth-child(2){animation-delay:.09s}
+.opt:nth-child(3){animation-delay:.14s}.opt:nth-child(4){animation-delay:.19s}
+.opt:active{transform:scale(.985)}
+.opt.right{background:rgba(61,220,151,.22);border-color:#2fbf85;color:#0d5c3c}
+.opt.wrong{background:rgba(255,107,122,.18);border-color:#e95364;color:#7a1220}
+.opt.off{opacity:.55}
+.qfoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px}
+.hintbtn{font-size:11.5px;font-weight:700;color:#7b6428;background:rgba(201,164,94,.16);border:1px solid rgba(201,164,94,.4);
+padding:7px 11px;border-radius:10px;cursor:pointer;font-family:inherit}
+.hintbtn:active{transform:scale(.96)}
+.qans{font-size:11.8px;line-height:1.42;color:#3a4a68;margin-top:11px;padding-top:11px;
+border-top:1px dashed rgba(21,33,58,.18);display:none;animation:fadeUp .35s both}
+.qans.on{display:block}
+.qans b{color:#12203a}
+.thinking{display:flex;align-items:center;gap:9px;font-size:12.5px;color:#5b6a86;font-weight:600;padding:6px 0}
+.dots i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#8fa0bd;margin-right:4px;animation:blink 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+/* ---------- РЕЗУЛЬТАТ ---------- */
+#result{align-items:center;justify-content:center;text-align:center}
+.trophy{font-size:64px;animation:trophyIn .8s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes trophyIn{from{opacity:0;transform:scale(.3) rotate(-25deg)}to{opacity:1;transform:none}}
+.rtitle{font-size:26px;font-weight:800;margin:10px 0 6px;animation:fadeUp .6s .15s both}
+.rsub{color:var(--mut);font-size:13.5px;line-height:1.5;margin:0 0 18px;max-width:300px;animation:fadeUp .6s .25s both}
+.ranklist{width:100%;max-width:330px;display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.rk{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:13px;border:1px solid var(--line);
+background:rgba(255,255,255,.03);animation:fadeUp .5s both}
+.rk.win{background:linear-gradient(90deg,rgba(232,195,122,.2),rgba(232,195,122,.05));border-color:rgba(232,195,122,.45)}
+.rk .pos{font-size:12px;font-weight:800;color:var(--gold);width:16px}
+.rk .em{font-size:17px}
+.rk .nm{flex:1;text-align:left;font-size:13px;font-weight:600}
+.rk .sc{font-size:13px;font-weight:800;color:var(--gold2)}
+.confetti{position:fixed;top:-20px;width:8px;height:14px;border-radius:2px;z-index:60;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.1}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="app">
+
+<!-- МЕНЮ -->
+<section id="menu" class="screen active">
+  <div class="brand pulse-halo">
+    <div class="chip-top">ЭЛЕКТРОТЕХНИКА · ЭДО · 2 КУРС</div>
+    <h1 class="title">КАРТОЧНЫЙ<span>ЭКЗАМЕН</span></h1>
+    <p class="sub">50 билетов, четыре игрока и одна колода. Отвечай картой — забирай очко.</p>
+  </div>
+  <div class="menu-btns">
+    <button class="btn main" onclick="go('game'),startGame()"><span class="ic">🃏</span> Играть</button>
+    <button class="btn" onclick="go('settings')"><span class="ic">⚙️</span> Настройки</button>
+    <button class="btn ghost" onclick="go('rules')"><span class="ic">📖</span> Правила</button>
+    <button class="btn ghost" onclick="location.href='https://raw.githack.com/pro999mega/konspekty/main/flashcards-elektro.html?v=1'"><span class="ic">🎴</span> Флеш-карточки</button>
+  </div>
+</section>
+
+<!-- НАСТРОЙКИ -->
+<section id="settings" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('menu')">‹</button>
+    <h2 class="h2">Настройки<small>меняются на лету</small></h2>
+    <div style="width:42px"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Сложность ботов</h3>
+    <p class="hint">Как часто бот отвечает верно.</p>
+    <div class="seg" id="segDiff">
+      <button data-v="0">Легко</button><button data-v="1">Средне</button>
+      <button data-v="2">Сложно</button><button data-v="3">Ас</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Цель партии</h3>
+    <p class="hint">Сколько верных ответов нужно для победы.</p>
+    <div class="seg" id="segTarget">
+      <button data-v="5">5</button><button data-v="10">10</button><button data-v="15">15</button><button data-v="25">25</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Правила и подсказки</h3>
+    <div class="row"><div class="lbl">Таймер на ответ<em>20 секунд, иначе минус</em></div><div class="sw" id="swTimer"></div></div>
+    <div class="row"><div class="lbl">Кнопка «Подсказка»<em>но очко тогда не даётся</em></div><div class="sw" id="swHint"></div></div>
+    <div class="row"><div class="lbl">Звуки<em>клики и сигналы</em></div><div class="sw" id="swSound"></div></div>
+  </div>
+
+  <button class="btn main" style="margin-top:6px" onclick="go('game'),startGame()"><span class="ic">🃏</span> Начать партию</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="resetStat()">Сбросить статистику</button>
+</section>
+
+<!-- ПРАВИЛА -->
+<section id="rules" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="go('menu')">‹</button>
+    <h2 class="h2">Правила<small>коротко и по делу</small></h2>
+    <div style="width:42px"></div>
+  </div>
+  <div class="panel">
+    <div class="rule"><div class="num">1</div><div class="tx">В колоде <b>50 билетов</b> по электротехнике. В начале партии каждый получает по <b>6 карт</b>, остальные лежат в центре.</div></div>
+    <div class="rule"><div class="num">2</div><div class="tx">Ходим <b>по очереди</b>: ты, Вольт, Ампер, Ом. В свой ход выбираешь карту из руки — она летит в центр.</div></div>
+    <div class="rule"><div class="num">3</div><div class="tx">К вопросу <b>четыре варианта</b>. Один верный. Ответил — карта уходит в сброс, а ты берёшь новую из колоды.</div></div>
+    <div class="rule"><div class="num">4</div><div class="tx">Верный ответ — <b>+1 очко</b>. Подсказка на карте открывает объяснение, но <b>очко не засчитывается</b>.</div></div>
+    <div class="rule"><div class="num">5</div><div class="tx">Кто первым набрал <b>цель партии</b> — победил. Кончилась колода и руки — побеждает лидер.</div></div>
+    <div class="rule"><div class="num">6</div><div class="tx">Сложность ботов в настройках: Легко 40 %, Средне 65 %, Сложно 85 %, Ас 95 %.</div></div>
+  </div>
+  <button class="btn main" onclick="go('game'),startGame()">Играть</button>
+</section>
+
+<!-- ИГРА -->
+<section id="game" class="screen">
+  <div class="gtop">
+    <button class="iconbtn" onclick="quitGame()">‹</button>
+    <div class="goal">ЦЕЛЬ: <b id="goalTxt">10</b> · <span id="turnTxt">твой ход</span></div>
+    <button class="iconbtn" onclick="toggleSound()" id="sndBtn">🔊</button>
+  </div>
+
+  <div class="table">
+    <div class="felt"></div>
+
+    <div class="seat top" id="seat1">
+      <div class="ava">⚡<span class="badge" id="badge1" style="display:none">1</span></div>
+      <div class="pinfo"><div class="pname">Вольт</div><div class="pscore">0</div></div>
+      <div class="fan" id="fan1"></div>
+    </div>
+
+    <div class="seat left" id="seat2">
+      <div class="ava">🔌<span class="badge" id="badge2" style="display:none">2</span></div>
+      <div class="pinfo"><div class="pname">Ампер</div><div class="pscore">0</div></div>
+      <div class="fan" id="fan2"></div>
+    </div>
+
+    <div class="seat right" id="seat3">
+      <div class="ava">🧲<span class="badge" id="badge3" style="display:none">3</span></div>
+      <div class="pinfo"><div class="pname">Ом</div><div class="pscore">0</div></div>
+      <div class="fan" id="fan3"></div>
+    </div>
+
+    <div class="deck" id="deck"><div class="dc"></div><div class="dc"></div><div class="dc"></div>
+      <div class="dcount" id="dcount">50 карт</div></div>
+
+    <div class="seat bottom" id="seat0">
+      <div class="ava">🎧<span class="badge" id="badge0" style="display:none">4</span></div>
+      <div class="pinfo"><div class="pname">Ты</div><div class="pscore">0</div></div>
+    </div>
+  </div>
+
+  <div class="handwrap">
+    <div class="handlabel">ТВОЯ РУКА · 6 КАРТ</div>
+    <div class="hand" id="hand"></div>
+  </div>
+</section>
+
+<!-- РЕЗУЛЬТАТ -->
+<section id="result" class="screen">
+  <div class="trophy" id="trophy">🏆</div>
+  <h2 class="rtitle" id="rtitle">Победа</h2>
+  <p class="rsub" id="rsub"></p>
+  <div class="ranklist" id="ranklist"></div>
+  <button class="btn main" style="width:100%;max-width:330px" onclick="go('game'),startGame()">Ещё партию</button>
+  <button class="btn ghost" style="width:100%;max-width:330px;margin-top:10px" onclick="go('menu')">В меню</button>
+</section>
+
+</div>
+
+<!-- ОВЕРЛЕЙ ВОПРОСА -->
+<div class="overlay" id="ov">
+  <div class="qbox" id="qbox">
+    <div class="qhead"><span class="qtheme" id="qtheme">ТЕМА</span><span id="qwho">ТВОЙ ХОД</span></div>
+    <div class="tbar" id="tbarWrap"><i id="tbar"></i></div>
+    <p class="qtext" id="qtext">Вопрос</p>
+    <div class="opts" id="opts"></div>
+    <div class="qans" id="qans"></div>
+    <div class="qfoot"><button class="hintbtn" id="hintBtn" onclick="useHint()">Подсказка</button>
+      <span class="thinking" id="thinking" style="display:none"><span class="dots"><i></i><i></i><i></i></span> думает…</span></div>
+  </div>
+</div>
+
+<script>
+/* ===== ДАННЫЕ: 50 ВОПРОСОВ ===== */
+var THEMES=["Заряд и поле","Постоянный ток","Трёхфазные цепи","Переменный ток","Электроника","Величины и единицы"];
+var CARDS=[
+{n:1,t:0,q:"Электрический заряд. Закон Кулона. Электрическая постоянная",k:"F = k·|q1·q2| / r², k = 9·10⁹",a:"Сила взаимодействия двух точечных зарядов прямо пропорциональна произведению зарядов и обратно пропорциональна квадрату расстояния. k = 1/(4πε0) = 9·10⁹ Н·м²/Кл², ε0 = 8,85·10⁻¹² Ф/м. В среде сила меньше в ε раз."},
+{n:2,t:0,q:"Электрическое поле: напряжённость, потенциал, разность потенциалов",k:"E = F/q; U = φ1 − φ2",a:"Напряжённость — силовая характеристика поля: E = F/q [В/м]. Потенциал φ = W/q — энергия единичного заряда [В]. Разность потенциалов U = φ1 − φ2 = A/q. В однородном поле E = U/d."},
+{n:3,t:0,q:"Электрическая ёмкость: обозначение, вычисление, единицы, кратные",k:"C = q/U, единица — фарад (Ф)",a:"Ёмкость — способность накапливать заряд: C = q/U. 1 Ф = 1 Кл / 1 В. Кратные и дольные: мкФ 10⁻⁶, нФ 10⁻⁹, пФ 10⁻¹²."},
+{n:4,t:0,q:"Конденсаторы: область применения, устройство плоского",k:"Две пластины и диэлектрик: C = ε0·ε·S/d",a:"Плоский конденсатор — две параллельные пластины площадью S на расстоянии d, между ними диэлектрик с проницаемостью ε. Применение: фильтры и сглаживание, колебательные контуры, пуск двигателей, компенсация реактивной мощности."},
+{n:5,t:0,q:"Соединение конденсаторов: эквивалентная ёмкость",k:"Параллельно C = C1 + C2; последовательно 1/C = 1/C1 + 1/C2",a:"При параллельном соединении ёмкости складываются, при последовательном складываются обратные величины. Это обратно правилу для резисторов."},
+{n:6,t:1,q:"Закон Ома для участка цепи и для полной цепи",k:"I = U/R; I = E/(R + r)",a:"Для участка: I = U/R. Для полной цепи: I = E/(R + r), где r — внутреннее сопротивление источника. Напряжение на нагрузке U = E − I·r. Режим короткого замыкания: I = E/r."},
+{n:7,t:1,q:"Соединение резисторов: последовательное и параллельное",k:"Rпосл = R1 + R2; 1/Rпар = 1/R1 + 1/R2",a:"Последовательно: R = ΣR, ток общий, напряжения складываются, U_i = I·R_i. Параллельно: 1/R = Σ1/R, напряжение общее, токи складываются. Для двух: R = R1R2/(R1+R2), для n равных: R/n."},
+{n:8,t:1,q:"Понятие ветви, узла, контура",k:"Ветвь — один ток, узел — 3+ ветвей, контур — замкнутый путь",a:"Ветвь — участок цепи с одним и тем же током между двумя узлами. Узел — точка соединения трёх и более ветвей. Контур — любой замкнутый путь по ветвям цепи."},
+{n:9,t:1,q:"Разветвлённая цепь. Параллельное соединение пассивных элементов",k:"Одно напряжение, токи складываются: I = I1 + I2",a:"Цепь разветвлённая, если есть узел с тремя и более ветвями. При параллельном соединении резисторов напряжение на всех одно, а общий ток равен сумме токов ветвей."},
+{n:10,t:1,q:"Законы Кирхгофа",k:"ΣI = 0; ΣE = ΣI·R",a:"Первый закон: алгебраическая сумма токов в узле равна нулю — сколько втекло, столько и вытекло. Второй закон: в замкнутом контуре сумма ЭДС равна сумме падений напряжений на сопротивлениях."},
+{n:11,t:1,q:"Уравнение баланса мощностей",k:"ΣE·I = ΣI²·R",a:"Мощность источников равна мощности приёмников. Пример: E = 12 В, R1 = 2 Ом, R2 = 4 Ом, I = 2 А. Слева 12·2 = 24 Вт, справа 4·2 + 4·4 = 24 Вт."},
+{n:12,t:1,q:"Последовательное соединение: три резистора и два параллельно к ним",k:"R = R1 + R2 + R3 + R4R5/(R4 + R5)",a:"Три резистора включены подряд, к их концам параллельно подключены ещё два. Сначала считают параллельный участок, затем прибавляют последовательные сопротивления."},
+{n:13,t:3,q:"Активная, реактивная и полная мощность. Треугольник мощностей",k:"P = U·I·cos φ; Q = U·I·sin φ; S = U·I",a:"Активная P [Вт] — полезная работа, реактивная Q [вар] — обмен энергией с полем, полная S [В·А]. S = √(P² + Q²). Треугольник: P и Q — катеты, S — гипотенуза, угол φ."},
+{n:14,t:1,q:"Последовательное соединение пассивных элементов, эквивалентное сопротивление",k:"Rэкв = R1 + R2 + R3; U_i = I·R_i",a:"Ток один и тот же, напряжения складываются. Эквивалентное сопротивление равно сумме сопротивлений, а напряжения делятся пропорционально им — это делитель напряжения."},
+{n:15,t:2,q:"Мощность трёхфазной цепи. Звезда и треугольник",k:"P = 1,73·Uл·Iл·cos φ (симметрично)",a:"При симметричной нагрузке P = 1,73·Uл·Iл·cos φ. При несимметричной складывают мощности фаз: P = Pa + Pb + Pc. Схемы соединения: звезда с нулём, звезда без нуля, треугольник."},
+{n:16,t:5,q:"Схема включения амперметра для измерения силы тока",k:"Амперметр — последовательно, сопротивление мало",a:"Амперметр включают последовательно с нагрузкой. Его сопротивление должно быть очень малым, иначе он внесёт ошибку. Для больших токов ставят шунт: Rш = Rа/(n − 1)."},
+{n:17,t:3,q:"Параметры переменного тока: период, частота, амплитуда, угловая частота, действующее значение",k:"f = 1/T; ω = 2πf; U = Um/√2",a:"Период T [с] — время одного колебания, частота f [Гц] — число колебаний в секунду, амплитуда — максимальное значение, ω = 2πf = 314 рад/с при 50 Гц. Действующее значение U = 0,707·Um."},
+{n:18,t:3,q:"Получение переменного тока: уравнение и график синусоидальной ЭДС",k:"e = Em·sin(ωt); Em = B·S·ω·N",a:"При вращении рамки в магнитном поле поток меняется, и наводится ЭДС. График — синусоида. На векторной диаграмме вектор длиной Em вращается с ω, его проекция на ось даёт мгновенное значение."},
+{n:19,t:3,q:"Цепь с активным и индуктивным сопротивлением, общее сопротивление",k:"Z = √(R² + XL²); XL = 2πfL",a:"Ток отстаёт от напряжения на угол φ. Общее сопротивление Z = √(R² + XL²), cos φ = R/Z, полное напряжение U = √(UR² + UL²)."},
+{n:20,t:3,q:"Резонанс напряжений: условия, схема, векторная диаграмма",k:"XL = XC; f0 = 1/(2π√(LC))",a:"Возникает в последовательном контуре, когда индуктивное и ёмкостное сопротивления равны. Тогда Z = R минимально, ток максимален, напряжения на L и C равны и могут превышать напряжение источника — перенапряжение."},
+{n:21,t:3,q:"Резонанс токов: условия, схема, векторная диаграмма",k:"1/(ωL) = ωC; f0 = 1/(2π√(LC))",a:"Возникает в параллельном контуре из L и C. Токи в ветвях равны и противоположны, ток в общей цепи минимален, сопротивление максимально, cos φ = 1."},
+{n:22,t:3,q:"Цепь с активным сопротивлением: временная и векторная диаграммы",k:"φ = 0, ток и напряжение в фазе",a:"В активном сопротивлении ток и напряжение изменяются синхронно, сдвига фаз нет. Векторы совпадают по направлению. Мощность P = I²R выделяется в виде тепла."},
+{n:23,t:2,q:"Получение трёхфазной системы токов, основные схемы соединений",k:"Три ЭДС со сдвигом 120°: звезда и треугольник",a:"Три одинаковые обмотки сдвинуты в пространстве на 120°, поэтому их ЭДС сдвинуты на 120°: e = Em·sin ωt, sin(ωt − 120°), sin(ωt + 120°). Сумма мгновенных значений равна нулю."},
+{n:24,t:2,q:"Соединение звездой: соотношения токов и напряжений",k:"Iл = Iф; Uл = 1,73·Uф (400/230)",a:"Обмотки соединяют в общую точку — нейтраль. Линейный ток равен фазному, линейное напряжение больше фазного в 1,73 раза: 400 В и 230 В. Нейтральный провод выравнивает фазные напряжения."},
+{n:25,t:5,q:"Схема включения вольтметра для измерения напряжения",k:"Вольтметр — параллельно, сопротивление велико",a:"Вольтметр подключают параллельно участку цепи. Его сопротивление должно быть очень большим. Для расширения предела ставят добавочное сопротивление: Rд = Rv·(n − 1)."},
+{n:26,t:2,q:"Соединение треугольником: соотношения токов и напряжений",k:"Uл = Uф; Iл = 1,73·Iф",a:"Обмотки соединяют последовательно в кольцо. Линейное напряжение равно фазному, линейный ток больше фазного в 1,73 раза. Нейтрального провода нет."},
+{n:27,t:3,q:"Цепь с последовательным соединением RLC: вычисление параметров",k:"Z = √(R² + (XL − XC)²)",a:"Все элементы обтекает один ток, напряжения на L и C противоположны по фазе и частично компенсируются. Z = √(R² + (XL − XC)²), I = U/Z, cos φ = R/Z. Пример: R = 6, XL = 10, XC = 2, U = 100 → Z = 10 Ом, I = 10 А, cos φ = 0,6."},
+{n:28,t:1,q:"Первый закон Кирхгофа: формулировка и пример",k:"ΣI = 0 — сумма токов в узле",a:"Алгебраическая сумма токов в любом узле равна нулю: сколько зарядов втекло, столько и вытекло. Пример: I1 = I2 + I3, то есть 5 А = 3 А + 2 А."},
+{n:29,t:3,q:"Треугольники токов, сопротивлений и мощностей",k:"R–X–Z; Iа–Iр–I; P–Q–S",a:"Три подобных прямоугольных треугольника с общим углом φ: сопротивлений (катеты R и X, гипотенуза Z), токов (активная и реактивная составляющие, полный ток) и мощностей (P и Q, S). cos φ = R/Z = Ia/I = P/S."},
+{n:30,t:1,q:"Смешанное соединение пассивных элементов",k:"Сначала параллельный участок, потом последовательный",a:"Цепь разбивают на участки: считают эквивалент параллельной группы, затем прибавляют последовательные сопротивления. Токи и напряжения находят обратным ходом по закону Ома."},
+{n:31,t:3,q:"Цепь с индуктивностью: временная и векторная диаграммы",k:"Ток отстаёт на 90°; XL = 2πfL",a:"Индуктивность противодействует изменению тока, поэтому ток отстаёт от напряжения на четверть периода. XL растёт с частотой. Средняя мощность равна нулю: энергия запасается и возвращается."},
+{n:32,t:5,q:"Обозначение и единицы основных величин",k:"I [А], U [В], E [В], R [Ом], G [См], P [Вт]",a:"Ток I — ампер, напряжение U и ЭДС E — вольт, сопротивление R — ом, проводимость G = 1/R — сименс, мощность P — ватт. Мощность P = U·I = I²R = U²/R."},
+{n:33,t:3,q:"Цепь с ёмкостью: временная и векторная диаграммы",k:"Ток опережает на 90°; XC = 1/(2πfC)",a:"Конденсатор сначала заряжается, потом отдаёт энергию, поэтому ток опережает напряжение на 90°. XC падает с ростом частоты. Средняя мощность равна нулю."},
+{n:34,t:3,q:"Общий случай неразветвлённой цепи переменного тока",k:"Z = √(R² + (XL − XC)²), три случая",a:"Все элементы включены последовательно, ток общий. При XL больше XC цепь индуктивная (ток отстаёт), при XL меньше XC — ёмкостная (ток опережает), при равенстве — резонанс, φ = 0."},
+{n:35,t:1,q:"Второй закон Кирхгофа: формулировка и пример схемы",k:"ΣE = ΣI·R в контуре",a:"Алгебраическая сумма ЭДС в любом замкнутом контуре равна алгебраической сумме падений напряжений на всех сопротивлениях этого контура. Пример: E1 − E2 = I1·R1 + I2·R2."},
+{n:36,t:3,q:"Формула синусоидального напряжения, действующее значение, сдвиг фаз",k:"u = Um·sin(ωt + ψ); U = 0,707·Um",a:"Напряжение меняется по синусоиде. Действующее значение меньше амплитудного в 1,41 раза. Сдвиг фаз — разность начальных фаз напряжения и тока: φ = ψu − ψi."},
+{n:37,t:3,q:"Мощность в цепи переменного тока. Коэффициент мощности и его повышение",k:"cos φ = P/S; повышают конденсатором",a:"Активная мощность P = U·I·cos φ. Коэффициент мощности показывает долю полезной мощности. Повышают параллельным подключением конденсаторов: C = P·(tg φ1 − tg φ2)/(ω·U²)."},
+{n:38,t:3,q:"Основные характеристики переменного тока на волновой диаграмме",k:"Амплитуда, период, частота, действующее значение",a:"На графике: высота пика — амплитуда Um, расстояние между двумя пиками — период T, уровень 0,707·Um — действующее значение. Среднее значение за период равно нулю."},
+{n:39,t:3,q:"Активное и индуктивное сопротивление: схема и векторная диаграмма",k:"Z = √(R² + XL²), ток отстаёт",a:"Напряжение на R совпадает с током, на L опережает на 90°. Строят треугольник: UR вдоль тока, UL вверх, общее U — замыкающая. Пример: R = 3, XL = 4 → Z = 5, cos φ = 0,6."},
+{n:40,t:3,q:"Активное и ёмкостное сопротивление: схема и векторная диаграмма",k:"Z = √(R² + XC²), ток опережает",a:"Напряжение на C отстаёт от тока на 90°, вектор UC направлен вниз. Z = √(R² + XC²), φ = arctg(XC/R), ток опережает напряжение."},
+{n:41,t:3,q:"Цепи переменного тока с разным набором активных и реактивных элементов",k:"Диаграмму строят от вектора тока",a:"Вектор тока принимают за ось отсчёта, UR откладывают вдоль него, UL — вверх, UC — вниз. Замыкающий вектор — полное напряжение. По диаграмме находят Z, φ и мощности."},
+{n:42,t:3,q:"Формула синусоидального напряжения и его действующее значение",k:"u = Um·sin ωt; U = Um/√2",a:"При действующем 230 В амплитуда равна 325 В. Все расчёты и приборы используют именно действующие значения."},
+{n:43,t:2,q:"Соотношения Uф, Uл, Iф, Iл в треугольнике и звезде",k:"Звезда: Uл = 1,73·Uф; треугольник: Iл = 1,73·Iф",a:"В звезде линейное напряжение больше фазного в 1,73 раза, токи равны. В треугольнике напряжения равны, линейный ток больше фазного в 1,73 раза. Один приёмник: звезда — выше напряжение, треугольник — больше ток и мощность в 3 раза."},
+{n:44,t:2,q:"Аварийные режимы при соединении нагрузки в треугольник",k:"Обрыв фазы: две фазы последовательно, половина напряжения",a:"При обрыве одной линии две оставшиеся фазы приёмника оказываются включены последовательно на линейное напряжение. На каждой половина линейного, мощность резко падает, третья фаза работает нормально."},
+{n:45,t:2,q:"Аварийные режимы при соединении звездой (с нулём и без)",k:"Без нуля при обрыве нуля: перекос до 400 В на фазе",a:"С нулевым проводом обрыв фазы не влияет на остальные. Без нуля при несимметричной нагрузке возникает смещение нейтрали: на слабо нагруженной фазе напряжение растёт до линейного 400 В, техника выходит из строя. Замыкание фазы на ноль даёт 400 В на двух других."},
+{n:46,t:2,q:"Основные схемы соединения генератора с нагрузкой",k:"Y–Y, Y–Δ, Δ–Y, Δ–Δ",a:"Генератор обычно соединяют звездой с выведенной нейтралью, нагрузку — звездой с нулём или без либо треугольником. Возможны четыре сочетания: звезда–звезда, звезда–треугольник, треугольник–звезда, треугольник–треугольник."},
+{n:47,t:4,q:"Устройство и принцип действия диодных тиристоров",k:"Четырёхслойный p-n-p-n, три перехода",a:"Тиристор — четыре слоя p-n-p-n и три перехода. Открывается импульсом на управляющем электроде (динистор — при достижении напряжения включения) и остаётся открытым, пока ток больше тока удержания."},
+{n:48,t:4,q:"Однофазные и трёхфазные выпрямители",k:"0,45·U2; 0,9·U2; 1,17·U2ф; 2,34·U2ф",a:"Однополупериодный даёт 0,45·U2, мостовой 0,9·U2. Трёхфазный с нулевым выводом — 1,17·U2ф, трёхфазный мостовой — 2,34·U2ф, или 1,35·Uл. Мостовые схемы дают меньшую пульсацию."},
+{n:49,t:4,q:"Стабилизаторы напряжения и тока",k:"Параметрический, компенсационный, импульсный",a:"Параметрический — стабилитрон с балластным резистором. Компенсационный — обратная связь, микросхема 7805, точнее. Импульсный — ключевой режим, КПД до 90 %. Стабилизатор тока держит ток нагрузки постоянным."},
+{n:50,t:4,q:"Классификация, параметры, характеристики и режимы работы усилителей",k:"Ku = Uвых/Uвх; режимы A, B, AB, C, D",a:"Усилители делят по частоте, мощности и элементу. Параметры: коэффициент усиления, полоса частот, КПД, искажения, входное и выходное сопротивление. Режимы: A — КПД до 50 %, B — 78,5 %, AB — практичный, C — для генераторов, D — импульсный, до 90 %."}
+];
+
+/* ===== СОСТОЯНИЕ ===== */
+var S={target:10,diff:1,timer:true,hint:true,sound:true};
+var G={players:[],deck:[],turn:0,busy:false,over:false};
+var HAND=6, cur=null, correctIdx=0, timerId=null, usedHint=false, tLeft=0;
+var NAMES=[{n:"Ты",e:"🎧"},{n:"Вольт",e:"⚡"},{n:"Ампер",e:"🔌"},{n:"Ом",e:"🧲"}];
+var ACC=[0.4,0.65,0.85,0.95];
+
+/* ===== ЗВУК ===== */
+var AC=null;
+function beep(f,d,type){
+  if(!S.sound)return;
+  try{
+    if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+    var o=AC.createOscillator(),g=AC.createGain();
+    o.type=type||"sine";o.frequency.value=f;
+    o.connect(g);g.connect(AC.destination);
+    g.gain.setValueAtTime(.06,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);
+    o.start();o.stop(AC.currentTime+d);
+  }catch(e){}
+}
+
+/* ===== ФОН ===== */
+(function(){
+  var c=document.getElementById("bg"),x=c.getContext("2d"),ps=[];
+  function rs(){c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;
+    c.style.width=innerWidth+"px";c.style.height=innerHeight+"px";}
+  rs();addEventListener("resize",rs);
+  for(var i=0;i<46;i++)ps.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+    r:Math.random()*1.9+.4,s:Math.random()*.25+.05,a:Math.random()*.5+.15});
+  function loop(){
+    x.clearRect(0,0,c.width,c.height);
+    for(var i=0;i<ps.length;i++){var p=ps[i];
+      p.y-=p.s;if(p.y<-6){p.y=innerHeight+6;p.x=Math.random()*innerWidth;}
+      x.beginPath();x.arc(p.x*devicePixelRatio,p.y*devicePixelRatio,p.r*devicePixelRatio,0,6.284);
+      x.fillStyle="rgba(150,200,255,"+p.a+")";x.fill();}
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ===== НАВИГАЦИЯ ===== */
+function go(id){
+  var s=document.querySelectorAll(".screen");
+  for(var i=0;i<s.length;i++)s[i].classList.remove("active");
+  document.getElementById(id).classList.add("active");
+  beep(520,.08);
+}
+
+/* ===== НАСТРОЙКИ ===== */
+function loadS(){
+  try{var d=JSON.parse(localStorage.getItem("elcards")||"{}");
+    if(d.target)S.target=d.target;if(d.diff!=null)S.diff=d.diff;
+    if(d.timer!=null)S.timer=d.timer;if(d.hint!=null)S.hint=d.hint;
+    if(d.sound!=null)S.sound=d.sound;}catch(e){}
+}
+function saveS(){try{localStorage.setItem("elcards",JSON.stringify(S));}catch(e){}}
+function paintS(){
+  var b=document.querySelectorAll("#segDiff button");
+  for(var i=0;i<b.length;i++)b[i].classList.toggle("on",+b[i].dataset.v===S.diff);
+  var c=document.querySelectorAll("#segTarget button");
+  for(var j=0;j<c.length;j++)c[j].classList.toggle("on",+c[j].dataset.v===S.target);
+  document.getElementById("swTimer").classList.toggle("on",S.timer);
+  document.getElementById("swHint").classList.toggle("on",S.hint);
+  document.getElementById("swSound").classList.toggle("on",S.sound);
+  var sb=document.getElementById("sndBtn"); if(sb)sb.textContent=S.sound?"🔊":"🔇";
+}
+document.getElementById("segDiff").addEventListener("click",function(e){
+  var t=e.target.closest("button");if(!t)return;S.diff=+t.dataset.v;saveS();paintS();beep(660,.08);
+});
+document.getElementById("segTarget").addEventListener("click",function(e){
+  var t=e.target.closest("button");if(!t)return;S.target=+t.dataset.v;saveS();paintS();beep(660,.08);
+});
+document.getElementById("swTimer").onclick=function(){S.timer=!S.timer;saveS();paintS();beep(600,.07);};
+document.getElementById("swHint").onclick=function(){S.hint=!S.hint;saveS();paintS();beep(600,.07);};
+document.getElementById("swSound").onclick=function(){S.sound=!S.sound;saveS();paintS();if(S.sound)beep(700,.1);};
+function toggleSound(){S.sound=!S.sound;saveS();paintS();}
+function resetStat(){try{localStorage.removeItem("elcards");}catch(e){};S={target:10,diff:1,timer:true,hint:true,sound:true};paintS();}
+
+/* ===== УТИЛИТЫ ===== */
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pad(n){return n<10?"0"+n:""+n;}
+
+/* ===== ИГРА ===== */
+function startGame(){
+  G.over=false;G.busy=false;G.turn=0;G.deck=shuffle(CARDS.slice());
+  G.players=[];
+  for(var i=0;i<4;i++){
+    var p={name:NAMES[i].n,emoji:NAMES[i].e,bot:i>0,score:0,hand:[]};
+    p.hand=G.deck.splice(0,HAND);
+    G.players.push(p);
+  }
+  document.getElementById("goalTxt").textContent=S.target;
+  renderAll();
+  var d=document.getElementById("deck");d.classList.add("shuffling");
+  beep(320,.15,"triangle");
+  setTimeout(function(){d.classList.remove("shuffling");},600);
+  beginTurn();
+}
+
+function renderAll(){renderHand();renderSeats();renderDeck();}
+
+function renderSeats(){
+  for(var i=0;i<4;i++){
+    var seat=document.getElementById("seat"+i);
+    seat.classList.toggle("active",i===G.turn&&!G.over);
+    var sc=seat.querySelector(".pscore");
+    if(sc)sc.textContent=G.players[i].score;
+    if(i>0){
+      var fan=document.getElementById("fan"+i);
+      var cards=G.players[i].hand;
+      fan.innerHTML="";
+      for(var k=0;k<cards.length;k++){
+        var el=document.createElement("i");
+        var n=cards.length,pos=k-(n-1)/2;
+        el.style.transform="translateX("+(pos*13)+"px) rotate("+(pos*11)+"deg)";
+        el.style.animationDelay=(k*0.22)+"s";
+        fan.appendChild(el);
+      }
+    }
+  }
+  document.getElementById("turnTxt").textContent=
+    G.over?"партия окончена":(G.turn===0?"твой ход":G.players[G.turn].name+" ходит");
+}
+
+function renderDeck(){
+  document.getElementById("dcount").textContent=G.deck.length+" карт";
+}
+
+function renderHand(){
+  var h=document.getElementById("hand");
+  h.innerHTML="";
+  var me=G.players[0].hand;
+  if(!me.length){
+    h.innerHTML='<div class="waitmsg">Карт нет — колода пуста</div>';
+    return;
+  }
+  for(var i=0;i<me.length;i++){
+    var c=me[i];
+    var d=document.createElement("div");
+    d.className="hcard";d.dataset.i=i;
+    d.innerHTML='<div class="hn">БИЛЕТ '+pad(c.n)+'</div><div class="hq">'+c.q+'</div><div class="hbar"></div>';
+    d.onclick=function(){onCardClick(this);};
+    h.appendChild(d);
+  }
+}
+
+function onCardClick(el){
+  if(G.busy||G.over||G.turn!==0)return;
+  G.busy=true;
+  var i=+el.dataset.i;
+  el.classList.add("dim");
+  el.style.transform="translateY(-26px) scale(1.06) rotate(2deg)";
+  el.style.opacity=".2";
+  beep(760,.09);
+  var card=G.players[0].hand[i];
+  setTimeout(function(){ask(card,0);},380);
+}
+
+function beginTurn(){
+  if(G.over)return;
+  var p=G.players[G.turn];
+  renderSeats();
+  if(!p.hand.length){
+    if(G.deck.length){
+      p.hand=G.deck.splice(0,HAND);renderAll();
+    }else{
+      nextTurn();return;
+    }
+  }
+  if(p.bot){
+    G.busy=true;
+    setTimeout(function(){botPlay();},1000);
+  }else{
+    G.busy=false;
+  }
+}
+
+function botPlay(){
+  if(G.over)return;
+  var p=G.players[G.turn];
+  if(!p.hand.length){nextTurn();return;}
+  var i=Math.floor(Math.random()*p.hand.length);
+  var card=p.hand[i];
+  var fan=document.getElementById("fan"+G.turn);
+  if(fan&&fan.children[i]){fan.children[i].style.transform="translateY(-30px) rotate(0deg)";}
+  beep(680,.09);
+  setTimeout(function(){ask(card,G.turn,i);},340);
+}
+
+function nextTurn(){
+  if(G.over)return;
+  G.busy=false;
+  G.turn=(G.turn+1)%4;
+  beginTurn();
+}
+
+function quitGame(){go("menu");}
+
+/* ===== ВОПРОС ===== */
+function ask(card,who,idx){
+  cur=card;usedHint=false;
+  var p=G.players[who];
+  document.getElementById("qtheme").textContent=THEMES[card.t];
+  document.getElementById("qwho").textContent=who===0?"ТВОЙ ХОД":p.name.toUpperCase();
+  document.getElementById("qtext").textContent=card.q;
+  var qa=document.getElementById("qans");
+  qa.className="qans";qa.innerHTML="<b>Ответ:</b> "+card.a;
+  document.getElementById("qbox").className="qbox";
+
+  // варианты: правильный + три чужих из той же темы
+  var pool=CARDS.filter(function(c){return c.t===card.t&&c.n!==card.n;});
+  if(pool.length<3)pool=CARDS.filter(function(c){return c.n!==card.n;});
+  shuffle(pool);
+  var opts=[{txt:card.k,ok:true}];
+  for(var i=0;i<3;i++)opts.push({txt:pool[i].k,ok:false});
+  shuffle(opts);
+  correctIdx=0;
+  for(var j=0;j<opts.length;j++)if(opts[j].ok)correctIdx=j;
+
+  var box=document.getElementById("opts");
+  box.innerHTML="";
+  for(var k=0;k<opts.length;k++){
+    var b=document.createElement("button");
+    b.className="opt";b.textContent=opts[k].txt;b.dataset.i=k;
+    b.onclick=function(){answer(+this.dataset.i);};
+    box.appendChild(b);
+  }
+
+  document.getElementById("hintBtn").style.display=(S.hint&&who===0)?"inline-block":"none";
+  document.getElementById("ov").classList.add("on");
+
+  if(who!==0){
+    document.getElementById("thinking").style.display="flex";
+    document.getElementById("tbarWrap").style.display="none";
+    var btns=box.querySelectorAll(".opt");
+    for(var m=0;m<btns.length;m++)btns[m].style.pointerEvents="none";
+    var acc=ACC[S.diff];
+    var pick=(Math.random()<acc)?correctIdx:randomOther(correctIdx);
+    setTimeout(function(){answer(pick);},900+Math.random()*900);
+  }else{
+    document.getElementById("thinking").style.display="none";
+    document.getElementById("tbarWrap").style.display=(S.timer?"block":"none");
+    if(S.timer)startTimer();
+  }
+}
+
+function randomOther(ci){
+  var r=Math.floor(Math.random()*4);
+  while(r===ci)r=Math.floor(Math.random()*4);
+  return r;
+}
+
+function startTimer(){
+  tLeft=20;
+  document.getElementById("tbar").style.width="100%";
+  clearInterval(timerId);
+  timerId=setInterval(function(){
+    tLeft-=0.25;
+    var pc=Math.max(0,tLeft/20*100);
+    document.getElementById("tbar").style.width=pc+"%";
+    if(tLeft<=0){clearInterval(timerId);answer(-1);}
+  },250);
+}
+
+function useHint(){
+  if(usedHint)return;
+  usedHint=true;
+  document.getElementById("qans").classList.add("on");
+  document.getElementById("hintBtn").textContent="Подсказка открыта";
+  beep(440,.12);
+}
+
+function answer(idx){
+  clearInterval(timerId);
+  document.getElementById("thinking").style.display="none";
+  var p=G.players[G.turn];
+  var ok=(idx===correctIdx);
+  var btns=document.querySelectorAll("#opts .opt");
+  for(var i=0;i<btns.length;i++){
+    btns[i].style.pointerEvents="none";
+    if(i===correctIdx)btns[i].classList.add("right");
+    else if(i===idx)btns[i].classList.add("wrong");
+    else btns[i].classList.add("off");
+  }
+  var qb=document.getElementById("qbox");
+  if(ok){
+    qb.classList.add("good");
+    if(!usedHint||G.turn!==0){p.score++;beep(880,.14);setTimeout(function(){beep(1180,.16);},120);}
+    else beep(560,.14);
+  }else{
+    qb.classList.add("bad","shake");
+    beep(200,.22,"square");
+  }
+  document.getElementById("qans").classList.add("on");
+
+  setTimeout(function(){
+    document.getElementById("ov").classList.remove("on");
+    qb.className="qbox";
+    endCard();
+  },1550);
+}
+
+function endCard(){
+  // карта ушла из руки
+  var p=G.players[G.turn];
+  if(p.hand.length&&cur){
+    for(var i=0;i<p.hand.length;i++)if(p.hand[i].n===cur.n){p.hand.splice(i,1);break;}
+  }
+  // добор
+  if(G.deck.length)p.hand.push(G.deck.shift());
+  renderAll();
+  // победа?
+  if(p.score>=S.target){finish(p);return;}
+  if(!G.deck.length){
+    var tot=0;for(var j=0;j<4;j++)tot+=G.players[j].hand.length;
+    if(!tot){var best=G.players[0];for(var k=1;k<4;k++)if(G.players[k].score>best.score)best=G.players[k];finish(best);return;}
+  }
+  nextTurn();
+}
+
+/* ===== ФИНАЛ ===== */
+function finish(winner){
+  G.over=true;G.busy=true;
+  renderSeats();
+  var iWin=winner.name==="Ты";
+  document.getElementById("trophy").textContent=iWin?"🏆":"🃏";
+  document.getElementById("rtitle").textContent=iWin?"Победа!":"Победил "+winner.name;
+  document.getElementById("rsub").textContent=iWin
+    ?"Ты набрал "+winner.score+" верных ответов. Колода сдалась."
+    :"У него "+winner.score+" верных. Твоих — "+G.players[0].score+". Ещё партию?";
+
+  var sorted=G.players.slice().sort(function(a,b){return b.score-a.score;});
+  var rl=document.getElementById("ranklist");rl.innerHTML="";
+  for(var i=0;i<sorted.length;i++){
+    var pl=sorted[i];
+    var d=document.createElement("div");
+    d.className="rk"+(pl===winner?" win":"");
+    d.style.animationDelay=(i*0.08)+"s";
+    d.innerHTML='<span class="pos">'+(i+1)+'</span><span class="em">'+pl.emoji+'</span>'+
+      '<span class="nm">'+pl.name+'</span><span class="sc">'+pl.score+'</span>';
+    rl.appendChild(d);
+  }
+  go("result");
+  if(iWin){confetti();beep(880,.15);setTimeout(function(){beep(1100,.15);},150);setTimeout(function(){beep(1320,.25);},300);}
+}
+
+function confetti(){
+  var cols=["#e8c37a","#3ddc97","#5d8fe0","#f7e6bb","#ff6b7a","#8fb2e0"];
+  for(var i=0;i<64;i++){
+    (function(i){
+      var d=document.createElement("div");
+      d.className="confetti";
+      d.style.left=Math.random()*100+"vw";
+      d.style.background=cols[i%cols.length];
+      d.style.animation="fall "+(1.8+Math.random()*1.8)+"s linear "+(Math.random()*0.7)+"s forwards";
+      d.style.width=(5+Math.random()*6)+"px";
+      d.style.height=(9+Math.random()*10)+"px";
+      d.style.opacity=.85;
+      document.body.appendChild(d);
+      setTimeout(function(){d.remove();},4600);
+    })(i);
+  }
+}
+
+/* ===== СТАРТ ===== */
+loadS();paintS();
+document.addEventListener("touchstart",function(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
+</script>
+</body>
+</html>
